@@ -2,10 +2,16 @@ import requests
 
 import datetime
 
+class SearchError(Exception):
+    def __init__(self, message):
+        self.message = message
+
+
 
 def log(message):
     time_now = datetime.datetime.now()
     print(f"{time_now} {message}")
+
 
 def make_get_request(url, params):
     log(f"Making a request: {url}")
@@ -13,8 +19,9 @@ def make_get_request(url, params):
     log(f"Send message status code: {response.status_code}")
     return response
 
-def search(text):
-    response = make_get_request(f"https://api.stackexchange.com//2.2/search/advanced",{
+
+def search_stackoverflow(text):
+    response = make_get_request(f"https://api.stackexchange.com//2.2/search/advanced", {
         "order": "desc",
         "sort": "relevance",
         "title": text,
@@ -25,9 +32,11 @@ def search(text):
     data = response.json()
     quota_remaining = data["quota_remaining"]
     log(f"Quota remaining: {quota_remaining}")
+    if len(data["items"]) == 0:
+        raise SearchError("Answer not found")
+
     accept_answer_id = data["items"][0]["accepted_answer_id"]
     return f"https://stackoverflow.com/a/{accept_answer_id}"
-
 
 
 class Bot:
@@ -39,7 +48,7 @@ class Bot:
         url = f"https://api.telegram.org/bot{self.token}/getUpdates"
         offset = self.last_update_id + 1
         log(f"Sending request. offset = {offset}")
-        response= requests.get(url, params={
+        response = requests.get(url, params={
             "offset": offset,
             "timeout": 5
         })
@@ -49,8 +58,12 @@ class Bot:
             chat_id = update["message"]["chat"]["id"]
             text_message = update["message"]["text"]
             self.last_update_id = update["update_id"]
-            accepted_answer = search(text_message)
-            self.send_message(chat_id, f"Your search: {text_message}. Search result: {accepted_answer}")
+            try:
+                accepted_answer = search_stackoverflow(text_message)
+                self.send_message(chat_id, f"Your search: {text_message}. Search result: {accepted_answer}")
+            except SearchError as error:
+                self.send_message(chat_id, f"Your search: {text_message}. Got error:{error.message}")
+
 
     def send_message(self, chat_id, text):
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
@@ -60,11 +73,8 @@ class Bot:
         })
 
 
-
 token = "1162468954:AAEk6dzuhBqfgRm0WO_3QRbZWe0WnYv0_Qs"
 bot = Bot(token)
 
 while True:
     bot.receive_update()
-
-
