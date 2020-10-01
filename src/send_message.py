@@ -27,8 +27,10 @@ def search_stackoverflow(text):
         "title": text,
         "page": 1,
         "pagesize": 5,
-        "site": "stackoverflow"
+#        "site": "stackoverflow"
     })
+    if response.status_code == 400:
+        raise SearchError("The site is not responding. Try later.")
     data = response.json()
     quota_remaining = data["quota_remaining"]
     log(f"Quota remaining: {quota_remaining}")
@@ -63,6 +65,9 @@ class Bot:
                 self.send_message(chat_id, f"Your search: {text_message}. Search result: {accepted_answer}")
             except SearchError as error:
                 self.send_message(chat_id, f"Your search: {text_message}. Got error:{error.message}")
+                self.send_message(chat_id, f"Your search: {text_message}. Got error:{error.message}")
+
+
 
 
     def send_message(self, chat_id, text):
