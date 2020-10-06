@@ -3,6 +3,7 @@ from typing import List
 from abc import ABCMeta, abstractmethod
 
 
+
 class Question:
     """
     Представляет собой trivia bot  вопрос
