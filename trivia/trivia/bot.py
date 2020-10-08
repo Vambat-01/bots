@@ -1,5 +1,7 @@
 import requests
 import datetime
+from trivia.bot_state import EchoState, Message
+
 
 
 def log(message: str) -> None:
@@ -16,6 +18,7 @@ class Bot:
     def __init__(self, token: str):
         self.token = token
         self.last_update_id = 0
+        self.state = EchoState()
 
     def process_updates(self) -> None:
         """
@@ -35,8 +38,10 @@ class Bot:
             chat_id = update["message"]["chat"]["id"]
             message_text = update["message"]["text"]
             log(f"chat_id : {chat_id}. text: {message_text} ")
+            user_message = Message(chat_id, message_text)
+            bot_response = self.state.process_message(user_message)
             self.last_update_id = update["update_id"]
-            self.send_message(chat_id, f"I got message: {message_text}")
+            self.send_message(bot_response.message.chat_id, bot_response.message.text)
 
     def send_message(self, chat_id: int, text: str ) -> None:
         """
