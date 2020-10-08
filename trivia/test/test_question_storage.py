@@ -4,7 +4,7 @@ from trivia.question_storage import JsonQuestionStorage
 
 class JsonQuestionStorageTest(unittest.TestCase):
     def test_loads_question_correctly(self):
-        json_file = "/home/vambat/projects/bots/trivia/test/resources/test_questions.json"
+        json_file = "/test/test_questions.json"
         storage = JsonQuestionStorage(json_file)
         questions = storage.load_questions()
         self.assertEqual(2, len(questions))

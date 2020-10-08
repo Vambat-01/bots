@@ -1,5 +1,5 @@
 import unittest
-from trivia.bot_state import EchoState, Message
+from trivia.bot_state import EchoState, Message, Command
 
 
 class EchoStateTest(unittest.TestCase):
@@ -13,3 +13,12 @@ class EchoStateTest(unittest.TestCase):
         self.assertEqual(100, state_resp.message.chat_id)
         self.assertEqual(None, state_resp.new_state)
 
+    def test_process_command(self):
+        user_chat_id = 150
+        text = "/start"
+        user_command = Command(user_chat_id, text)
+        state = EchoState()
+        state_resp = state.process_command(user_command)
+        self.assertEqual("I got your command /start", state_resp.message.text)
+        self.assertEqual(None, state_resp.new_state)
+        self.assertEqual(150, state_resp.message.chat_id)

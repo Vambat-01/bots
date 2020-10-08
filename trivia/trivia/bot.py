@@ -1,6 +1,6 @@
 import requests
 import datetime
-from trivia.bot_state import EchoState, Message
+from trivia.bot_state import EchoState, Message, Command
 
 
 
@@ -38,8 +38,12 @@ class Bot:
             chat_id = update["message"]["chat"]["id"]
             message_text = update["message"]["text"]
             log(f"chat_id : {chat_id}. text: {message_text} ")
-            user_message = Message(chat_id, message_text)
-            bot_response = self.state.process_message(user_message)
+            if message_text.startswith("/"):
+                user_command = Command(chat_id, message_text)
+                bot_response = self.state.process_command(user_command)
+            else:
+                user_message = Message(chat_id, message_text)
+                bot_response = self.state.process_message(user_message)
             self.last_update_id = update["update_id"]
             self.send_message(bot_response.message.chat_id, bot_response.message.text)
 

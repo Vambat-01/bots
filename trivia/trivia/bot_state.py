@@ -74,5 +74,8 @@ class EchoState(BotState):
             :param command: команда от пользователя
             :return: ответ бота
         """
-        pass
+        response_command = Command(command.chat_id, f"I got your command {command.text}")
+        response = BotResponse (response_command)
+        return response
+
 
