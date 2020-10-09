@@ -109,3 +109,35 @@ class GreetingState(BotState):
             response = BotResponse(response_command)
             return response
 
+
+class ReadyToPlayState(BotState):
+    """
+        Отвечает за начало игры
+    """
+    def process_message(self, message: Message) -> BotResponse:
+        """
+            Обрабатывает  сообщение
+            :param message: сообщение от пользователя
+            :return: ответ бота
+        """
+        response_message = Message(message.chat_id, "I did not  understand the command. Enter /star or /help")
+        response = BotResponse(response_message)
+        return response
+
+    def process_command(self, command: Command) -> BotResponse:
+        """
+            Обрабатывает команду
+            :param command: команда от пользователя
+            :return: ответ бота
+        """
+        user_command = command.text
+        if user_command == "/start":
+            response_command = Message(command.chat_id, "Starting game")
+            response = BotResponse(response_command)
+            return response
+        elif user_command == "/help":
+            response_command = Message(command.chat_id, "Enter /start or /help")
+            response = BotResponse(response_command)
+            return response
+
+

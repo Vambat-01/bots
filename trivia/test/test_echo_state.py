@@ -1,5 +1,5 @@
 from unittest import TestCase
-from trivia.bot_state import EchoState, Message, Command, GreetingState
+from trivia.bot_state import EchoState, Message, Command, GreetingState, ReadyToPlayState
 
 
 class EchoStateTest(TestCase):
@@ -54,3 +54,36 @@ class GreetingStateTest(TestCase):
         self.assertEqual("Something went wrong. Try again", command_resp.message.text)
         self.assertEqual(255, command_resp.message.chat_id)
         self.assertEqual(None, command_resp.new_state)
+
+class ReadyToPlayStateTest(TestCase):
+    def test_process_message(self):
+        user_id = 260
+        text = "Hello"
+        user_message = Message(user_id, text)
+        message = ReadyToPlayState()
+        message_resp = message.process_message(user_message)
+        self.assertEqual("I did not  understand the command. Enter /star or /help", message_resp.message.text)
+        self.assertEqual(260, message_resp.message.chat_id)
+        self.assertEqual(None, message_resp.new_state)
+
+    def test_process_command_start(self):
+        user_id = 265
+        text = "/start"
+        user_command = Command(user_id, text)
+        command = ReadyToPlayState()
+        command_resp = command.process_command(user_command)
+        self.assertEqual("Starting game", command_resp.message.text)
+        self.assertEqual(265, command_resp.message.chat_id)
+        self.assertEqual(None, command_resp.new_state)
+
+    def test_process_command_help(self):
+        user_id = 270
+        text = "/help"
+        user_command = Command(user_id, text)
+        command = ReadyToPlayState()
+        command_resp = command.process_command(user_command)
+        self.assertEqual("Enter /start or /help", command_resp.message.text)
+        self.assertEqual(270, command_resp.message.chat_id)
+        self.assertEqual(None, command_resp.new_state)
+
+
