@@ -81,7 +81,7 @@ class EchoState(BotState):
 
 class GreetingState(BotState):
     """
-        Приветствует пользователя
+        Состояние отвечающее за приветствие пользователя. Первое состоние в котором находится бот
     """
     def process_message(self, message: Message) -> BotResponse:
         """
@@ -110,9 +110,9 @@ class GreetingState(BotState):
             return response
 
 
-class ReadyToPlayState(BotState):
+class IdleState(BotState):
     """
-        Отвечает за начало игры
+        Состояние бота после привествия. Служит для обработки команд вне игры
     """
     def process_message(self, message: Message) -> BotResponse:
         """
@@ -120,7 +120,7 @@ class ReadyToPlayState(BotState):
             :param message: сообщение от пользователя
             :return: ответ бота
         """
-        response_message = Message(message.chat_id, "I did not  understand the command. Enter /star or /help")
+        response_message = Message(message.chat_id, "I did not  understand the command. Enter /start or /help")
         response = BotResponse(response_message)
         return response
 
@@ -132,12 +132,12 @@ class ReadyToPlayState(BotState):
         """
         user_command = command.text
         if user_command == "/start":
-            response_command = Message(command.chat_id, "Starting game")
-            response = BotResponse(response_command)
-            return response
+            response_message = Message(command.chat_id, "Starting game")
         elif user_command == "/help":
-            response_command = Message(command.chat_id, "Enter /start or /help")
-            response = BotResponse(response_command)
-            return response
+            response_message = Message(command.chat_id, "Enter /start or /help")
+        else:
+            response_message = Message(command.chat_id, "I did not  understand the command. Enter /start or /help")
+        response = BotResponse(response_message)
+        return response
 
 
