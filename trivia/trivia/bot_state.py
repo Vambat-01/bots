@@ -74,8 +74,38 @@ class EchoState(BotState):
             :param command: команда от пользователя
             :return: ответ бота
         """
-        response_command = Command(command.chat_id, f"I got your command {command.text}")
-        response = BotResponse (response_command)
+        response_command = Message(command.chat_id, f"I got your command {command.text}")
+        response = BotResponse(response_command)
         return response
 
+
+class GreetingState(BotState):
+    """
+        Приветствует пользователя
+    """
+    def process_message(self, message: Message) -> BotResponse:
+        """
+            Обрабатывает  сообщение
+            :param message: сообщение от пользователя
+            :return: ответ бота
+        """
+        response_message = Message(message.chat_id, "Trivia bot greeting you")
+        response = BotResponse(response_message)
+        return response
+
+    def process_command(self, command: Command) -> BotResponse:
+        """
+            Обрабатывает команду
+            :param command: команда от пользователя
+            :return: ответ бота
+        """
+        command_type = command.text
+        if command_type == "/start":
+            response_command = Message(command.chat_id, "Trivia bot greeting you. Enter command")
+            response = BotResponse(response_command)
+            return response
+        else:
+            response_command = Message(command.chat_id, "Something went wrong. Try again")
+            response = BotResponse(response_command)
+            return response
 
