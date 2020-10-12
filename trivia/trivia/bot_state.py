@@ -58,8 +58,8 @@ class BotState(metaclass=ABCMeta):
     @abstractmethod
     def on_enter(self, chat_id) -> Optional[Message]:
         """
-
-            :return: ответ бота
+            Дает BotState возможность отправить сообщение в чат при смене состояния бота для этого чата
+            :return: опциональное сообщение для отправки в чат
         """
         pass
 
@@ -91,10 +91,10 @@ class EchoState(BotState):
 
     def on_enter(self, chat_id: int) -> Optional[Message]:
         """
-
-            :return: ответ бота
+            Дает BotState возможность отправить сообщение в чат при смене состояния бота для этого чата
+            :return: опциональное сообщение для отправки в чат
         """
-        pass
+        return None
 
 
 class GreetingState(BotState):
@@ -129,8 +129,8 @@ class GreetingState(BotState):
 
     def on_enter(self, chat_id: int) -> Optional[Message]:
         """
-            Возвращает первый вопрос и варианты ответов
-            :return: ответ бота
+            Дает BotState возможность отправить сообщение в чат при смене состояния бота для этого чата
+            :return: опциональное сообщение для отправки в чат
         """
         pass
 
@@ -167,16 +167,18 @@ class IdleState(BotState):
 
     def on_enter(self, chat_id: int) -> Optional[Message]:
         """
-
-            :return: ответ бота
+            Дает BotState возможность отправить сообщение в чат при смене состояния бота для этого чата
+            :return: опциональное сообщение для отправки в чат
         """
         pass
 
 
 class InGameState(BotState):
 
-    def __init__(self, questions: List[Question] ):
+    def __init__(self, questions: List[Question]):
         self.questions = questions
+        self.current_question = 0
+        self.game_score = 0
 
     def process_message(self, message: Message) -> BotResponse:
         """
@@ -184,16 +186,26 @@ class InGameState(BotState):
             :param message: сообщение от пользователя
             :return: ответ бота
         """
-        quest = self.questions
-        second_question = quest[1]
         user_message = message.text
         answer_id = self.parse_int(user_message)
-        if answer_id == 1:
-            response_message = Message(message.chat_id, f"Answer is correct! Next question: {second_question.text}")
-        elif answer_id is not None and answer_id != 1:
-            response_message = Message(message.chat_id, f"Answer is not correct! Next question: {second_question.text}")
-        else:
+        if answer_id is None:
             response_message = Message(message.chat_id, "I don't understand you. You can enter: 1, 2, 3 or 4")
+        else:
+            if answer_id == 1:
+                message_part_1 = "Answer is correct!"
+                self.game_score += self.questions[self.current_question].points
+            else:
+                message_part_1 = "Answer is not correct!"
+
+            if self.current_question < len(self.questions)-1:
+                next_question = self.questions[self.current_question + 1]
+                message_part_2 = f"Next question: {next_question.text}"
+                self.current_question += 1
+            else:
+                message_part_2 = f"The game is over. Your points: {self.game_score}"
+
+            response_message = Message(message.chat_id, f"{message_part_1} {message_part_2}")
+
         response = BotResponse(response_message)
         return response
 
@@ -214,7 +226,7 @@ class InGameState(BotState):
     def on_enter(self, chat_id: int) -> Optional[Message]:
         """
             Возвращает первый вопрос и варианты ответов
-            :return: ответ бота
+            :return: опциональное сообщение для отправки в чат
         """
         quest = self.questions
         first_question = quest[0]
