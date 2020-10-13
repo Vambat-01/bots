@@ -57,7 +57,7 @@ class Bot:
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
         response = requests.get(url, params={
             "text": text,
-            "chat_id": chat_id
+            "chat_id": str(chat_id)
         })
         log(f"Send message status code: {response.status_code} ")
 

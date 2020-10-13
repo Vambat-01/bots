@@ -236,7 +236,7 @@ class InGameState(BotState):
     def parse_int(self, s: str) -> Optional[int]:
         if s.isdigit():
             return int(s)
-
+        return None
 
 def select_questions(questions: List[Question], num_questions: int) -> List[Question]:
     """
