@@ -13,6 +13,11 @@ class Message:
         self.chat_id = chat_id
         self.text = text
 
+    def __eq__(self, other):
+        if type(other) is type(self):
+            return self.__dict__ == other.__dict__
+        return False
+
 
 class Command:
     """
@@ -23,6 +28,11 @@ class Command:
         self.chat_id = chat_id
         self.text = text
 
+    def __eq__(self, other):
+        if type(other) is type(self):
+            return self.__dict__ == other.__dict__
+        return False
+
 
 class BotResponse:
     """
@@ -31,6 +41,11 @@ class BotResponse:
     def __init__(self, message: Message, new_state: "BotState" = None):
         self.new_state = new_state
         self.message = message
+
+    def __eq__(self, other):
+        if type(other) is type(self):
+            return self.__dict__ == other.__dict__
+        return False
 
 
 class BotState(metaclass=ABCMeta):
@@ -237,6 +252,7 @@ class InGameState(BotState):
         if s.isdigit():
             return int(s)
         return None
+
 
 def select_questions(questions: List[Question], num_questions: int) -> List[Question]:
     """

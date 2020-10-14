@@ -1,7 +1,8 @@
 from unittest import TestCase
-from trivia.bot_state import EchoState, Message, Command
+from trivia.bot_state import EchoState, Message, Command, BotResponse
 from trivia.bot_state import GreetingState, IdleState, InGameState
 from trivia.question_storage import Question
+from typing import List, Tuple
 
 
 class EchoStateTest(TestCase):
@@ -231,4 +232,41 @@ class InGameStateTest(TestCase):
         self.assertEqual(310, message_2.message.chat_id)
         self.assertEqual(None, message_2.new_state)
 
+    def check_conversation(self, first_bot_message: str, conversation: List[Tuple[str, str]]):
+        chat_id = 300
+        questions = self.create_questions()
+        state = InGameState(questions)
+        message = state.on_enter(chat_id)
+        self.assertEqual(Message(chat_id, first_bot_message), message)
 
+        for user_bot_tuple in conversation:
+            response = state.process_message(Message(chat_id, user_bot_tuple[0]))
+            self.assertEqual(BotResponse(Message(chat_id, user_bot_tuple[1])), response)
+
+    def test_when_all_user_answers_another_cor(self):
+        self.check_conversation(
+            "Question: 7+3. Choice answer: ['10', '11']",
+            [
+                ("1", "Answer is correct! Next question: 17+3"),
+                ('1', "Answer is correct! Next question: 27 + 3"),
+                ("1", "Answer is correct! The game is over. Your points: 6")
+            ]
+        )
+
+    def test_when_all_user_answers_another_not_cor(self):
+        self.check_conversation(
+            "Question: 7+3. Choice answer: ['10', '11']",
+            [
+                ("3", "Answer is not correct! Next question: 17+3"),
+                ('3', "Answer is not correct! Next question: 27 + 3"),
+                ("3", "Answer is not correct! The game is over. Your points: 0")
+            ]
+        )
+
+    def test_when_all_user_answers_another_foo(self):
+        self.check_conversation(
+            "Question: 7+3. Choice answer: ['10', '11']",
+            [
+                ("foo", "I don't understand you. You can enter: 1, 2, 3 or 4"),
+            ]
+        )
