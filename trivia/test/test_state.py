@@ -108,6 +108,17 @@ class InGameStateTest(TestCase):
         question_3 = Question("27 + 3", ["30", "31"], 3)
         return [question_1, question_2, question_3]
 
+    def check_conversation(self, first_bot_message: str, conversation: List[Tuple[str, str]]):
+        chat_id = 300
+        questions = self.create_questions()
+        state = InGameState(questions)
+        message = state.on_enter(chat_id)
+        self.assertEqual(Message(chat_id, first_bot_message), message)
+
+        for user_msg, expected_bot_msg in conversation:
+            response = state.process_message(Message(chat_id, user_msg))
+            self.assertEqual(BotResponse(Message(chat_id, expected_bot_msg)), response)
+
     def test_process_message_int_cor(self):
         chat_id = 280
         text = "1"
@@ -176,72 +187,6 @@ class InGameStateTest(TestCase):
         response = state.on_enter(chat_id)
         self.assertEqual("Question: 7+3. Choice answer: ['10', '11']", response.text)
         self.assertEqual(295, response.chat_id)
-
-    def test_when_all_user_answers_are_correct(self):
-        chat_id = 300
-        text = "1"
-        questions = self.create_questions()
-        state = InGameState(questions)
-        message_1 = state.on_enter(chat_id)
-        self.assertEqual("Question: 7+3. Choice answer: ['10', '11']", message_1.text)
-        self.assertEqual(300, message_1.chat_id)
-        message_2 = state.process_message(Message(chat_id, text))
-        self.assertEqual("Answer is correct! Next question: 17+3", message_2.message.text)
-        self.assertEqual(300, message_2.message.chat_id)
-        self.assertEqual(None, message_2.new_state)
-        message_3 = state.process_message(Message(chat_id, text))
-        self.assertEqual("Answer is correct! Next question: 27 + 3", message_3.message.text)
-        self.assertEqual(300, message_2.message.chat_id)
-        self.assertEqual(None, message_2.new_state)
-        message_4 = state.process_message(Message(chat_id, text))
-        self.assertEqual("Answer is correct! The game is over. Your points: 6", message_4.message.text)
-        self.assertEqual(300, message_4.message.chat_id)
-        self.assertEqual(None, message_4.new_state)
-
-    def test_when_all_user_answers_not_correct(self):
-        chat_id = 305
-        text = "3"
-        questions = self.create_questions()
-        state = InGameState(questions)
-        message_1 = state.on_enter(chat_id)
-        self.assertEqual("Question: 7+3. Choice answer: ['10', '11']", message_1.text)
-        self.assertEqual(305, message_1.chat_id)
-        message_2 = state.process_message(Message(chat_id, text))
-        self.assertEqual("Answer is not correct! Next question: 17+3", message_2.message.text)
-        self.assertEqual(305, message_2.message.chat_id)
-        self.assertEqual(None, message_2.new_state)
-        message_3 = state.process_message(Message(chat_id, text))
-        self.assertEqual("Answer is not correct! Next question: 27 + 3", message_3.message.text)
-        self.assertEqual(305, message_2.message.chat_id)
-        self.assertEqual(None, message_2.new_state)
-        message_4 = state.process_message(Message(chat_id, text))
-        self.assertEqual("Answer is not correct! The game is over. Your points: 0", message_4.message.text)
-        self.assertEqual(305, message_4.message.chat_id)
-        self.assertEqual(None, message_4.new_state)
-
-    def test_when_all_user_answers_another(self):
-        chat_id = 310
-        text = "1foo"
-        questions = self.create_questions()
-        state = InGameState(questions)
-        message_1 = state.on_enter(chat_id)
-        self.assertEqual("Question: 7+3. Choice answer: ['10', '11']", message_1.text)
-        self.assertEqual(310, message_1.chat_id)
-        message_2 = state.process_message(Message(chat_id, text))
-        self.assertEqual("I don't understand you. You can enter: 1, 2, 3 or 4", message_2.message.text)
-        self.assertEqual(310, message_2.message.chat_id)
-        self.assertEqual(None, message_2.new_state)
-
-    def check_conversation(self, first_bot_message: str, conversation: List[Tuple[str, str]]):
-        chat_id = 300
-        questions = self.create_questions()
-        state = InGameState(questions)
-        message = state.on_enter(chat_id)
-        self.assertEqual(Message(chat_id, first_bot_message), message)
-
-        for user_bot_tuple in conversation:
-            response = state.process_message(Message(chat_id, user_bot_tuple[0]))
-            self.assertEqual(BotResponse(Message(chat_id, user_bot_tuple[1])), response)
 
     def test_when_all_user_answers_another_cor(self):
         self.check_conversation(
