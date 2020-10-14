@@ -215,3 +215,35 @@ class InGameStateTest(TestCase):
                 ("foo", "I don't understand you. You can enter: 1, 2, 3 or 4"),
             ]
         )
+
+    def test_when_all_user_answers_another_second_foo_cor(self):
+        self.check_conversation(
+            "Question: 7+3. Choice answer: ['10', '11']",
+            [
+                ("foo", "I don't understand you. You can enter a number from 1 to 2"),
+                ('foo', "I don't understand you. You can enter a number from 1 to 2"),
+                ("1", "Answer is correct! Next question: 17+3")
+            ]
+        )
+
+    def test_when_all_user_answers_another_second_foo_not_cor(self):
+        self.check_conversation(
+            "Question: 7+3. Choice answer: ['10', '11']",
+            [
+                ("foo", "I don't understand you. You can enter a number from 1 to 2"),
+                ('foo', "I don't understand you. You can enter a number from 1 to 2"),
+                ("2", "Answer is not correct! Next question: 17+3")
+            ]
+        )
+
+    def test_when_all_user_answers_another_third_foo_not_cor(self):
+        self.check_conversation(
+            "Question: 7+3. Choice answer: ['10', '11']",
+            [
+                ("foo", "I don't understand you. You can enter a number from 1 to 2"),
+                ('6', "I don't understand you. You can enter a number from 1 to 2"),
+                ("2", "Answer is not correct! Next question: 17+3")
+            ]
+        )
+
+

@@ -203,8 +203,17 @@ class InGameState(BotState):
         """
         user_message = message.text
         answer_id = self.parse_int(user_message)
+        num_of_resp = len(self.questions[self.current_question].answers)
         if answer_id is None:
-            response_message = Message(message.chat_id, "I don't understand you. You can enter: 1, 2, 3 or 4")
+            response_message = Message(
+                message.chat_id,
+                f"I don't understand you. You can enter a number from 1 to {num_of_resp}"
+            )
+        elif int(user_message) > num_of_resp:
+            response_message = Message(
+                message.chat_id,
+                f"I don't understand you. You can enter a number from 1 to {num_of_resp}"
+            )
         else:
             if answer_id == 1:
                 message_part_1 = "Answer is correct!"
