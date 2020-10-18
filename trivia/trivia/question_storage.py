@@ -18,6 +18,11 @@ class Question:
         self.answers = answers
         self.points = points
 
+    def __eq__(self, other):
+        if type(other) is type(self):
+            return self.__dict__ == other.__dict__
+        return False
+
 
 class QuestionStorage(metaclass=ABCMeta):
     """
