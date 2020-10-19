@@ -69,12 +69,6 @@ class GreetingStateTest(TestCase):
 
 
 class IdleStateTest(TestCase):
-    def create_questions(self):
-        question_1 = Question("7+3", ["10", "11"], 1)
-        question_2 = Question("17+3", ["20", "21"], 2)
-        question_3 = Question("27 + 3", ["30", "31"], 3)
-        return [question_1, question_2, question_3]
-
     def test_process_message(self):
         chat_id = 260
         text = "Hello"

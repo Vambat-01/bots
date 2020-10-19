@@ -1,7 +1,8 @@
 import requests
 import datetime
-from trivia.bot_state import EchoState, Message, Command
-
+from trivia.bot_state import EchoState, Message, Command, BotState, GreetingState, BotStateFactory
+from trivia.question_storage import JsonQuestionStorage
+import os
 
 
 def log(message: str) -> None:
@@ -16,9 +17,12 @@ def log(message: str) -> None:
 
 class Bot:
     def __init__(self, token: str):
+        json_file = "resources/questions_for_bot.json"
+        storage = JsonQuestionStorage(json_file)
+        state_factory = BotStateFactory(storage)
         self.token = token
         self.last_update_id = 0
-        self.state = EchoState()
+        self.state = GreetingState(state_factory)
 
     def process_updates(self) -> None:
         """
@@ -38,12 +42,30 @@ class Bot:
             chat_id = update["message"]["chat"]["id"]
             message_text = update["message"]["text"]
             log(f"chat_id : {chat_id}. text: {message_text} ")
+            user_command = Command(chat_id, message_text)
+            bot_response = self.state.process_command(user_command)
+            self.last_update_id = update["update_id"]
+            self.send_message(bot_response.message.chat_id, bot_response.message.text)
+
+
             if message_text.startswith("/"):
                 user_command = Command(chat_id, message_text)
                 bot_response = self.state.process_command(user_command)
+                if bot_response.new_state is not None:
+                    self.state = bot_response.new_state
+                    first_message = self.state.on_enter(user_command.chat_id)
+                    if first_message is not None:
+                        self.last_update_id = update["update_id"]
+                        self.send_message(first_message.)
+
+
             else:
                 user_message = Message(chat_id, message_text)
                 bot_response = self.state.process_message(user_message)
+                if bot_response.new_state is not None:
+                    self.state = bot_response.new_state
+                    first_message = self.state.on_enter(user_message.chat_id)
+
             self.last_update_id = update["update_id"]
             self.send_message(bot_response.message.chat_id, bot_response.message.text)
 
@@ -62,8 +84,4 @@ class Bot:
         log(f"Send message status code: {response.status_code} ")
 
 
-token = "1162468954:AAEk6dzuhBqfgRm0WO_3QRbZWe0WnYv0_Qs"
-bot = Bot(token)
 
-while True:
-    bot.process_updates()
