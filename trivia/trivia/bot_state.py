@@ -223,7 +223,7 @@ class IdleState(BotState):
         user_command = command.text
         if user_command == "/start":
             response_message = Message(command.chat_id, "Starting game")
-            new_state = in_game_state.on_enter(response_message.chat_id)
+            new_state = in_game_state
         elif user_command == "/help":
             response_message = Message(command.chat_id, "Enter /start or /help")
         else:
