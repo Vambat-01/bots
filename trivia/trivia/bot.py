@@ -22,7 +22,7 @@ class Bot:
         state_factory = BotStateFactory(storage)
         self.token = token
         self.last_update_id = 0
-        self.state = GreetingState(state_factory)
+        self.state: BotState = GreetingState(state_factory)
 
     def process_updates(self) -> None:
         """
