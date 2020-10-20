@@ -294,7 +294,7 @@ class InGameState(BotState):
 
             if self.current_question < len(self.questions)-1:
                 next_question = self.questions[self.current_question + 1]
-                message_part_2 = f"Next question: {next_question.text} {next_question.answers}"
+                message_part_2 = f"Next question: {next_question.text}. Choice answer: {next_question.answers}"
                 self.current_question += 1
             else:
                 new_state = idle_state

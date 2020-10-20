@@ -171,7 +171,7 @@ class InGameStateTest(TestCase):
         state_factory = BotStateFactory(storage)
         state = InGameState(questions, state_factory)
         message_resp = state.process_message(user_message)
-        self.assertEqual("Answer is correct! Next question: 17+3", message_resp.message.text)
+        self.assertEqual("Answer is correct! Next question: 17+3. Choice answer: ['20', '21']", message_resp.message.text)
         self.assertEqual(280, message_resp.message.chat_id)
         self.assertEqual(None, message_resp.new_state)
 
@@ -185,7 +185,7 @@ class InGameStateTest(TestCase):
         state_factory = BotStateFactory(storage)
         state = InGameState(questions, state_factory)
         message_resp = state.process_message(user_message)
-        self.assertEqual("Answer is not correct! Next question: 17+3", message_resp.message.text)
+        self.assertEqual("Answer is not correct! Next question: 17+3. Choice answer: ['20', '21']", message_resp.message.text)
         self.assertEqual(300, message_resp.message.chat_id)
         self.assertEqual(None, message_resp.new_state)
 
@@ -245,8 +245,8 @@ class InGameStateTest(TestCase):
     def test_when_all_user_answers_another_cor(self):
         state_factory = self.create_state_factory()
         conversation = [
-                ("1", "Answer is correct! Next question: 17+3"),
-                ('1', "Answer is correct! Next question: 27+3"),
+                ("1", "Answer is correct! Next question: 17+3. Choice answer: ['20', '21']"),
+                ('1', "Answer is correct! Next question: 27+3. Choice answer: ['30', '31']"),
                 ("1", "Answer is correct! The game is over. Your points: 6")
             ]
 
@@ -260,8 +260,8 @@ class InGameStateTest(TestCase):
     def test_when_all_user_answers_another_not_cor(self):
         state_factory = self.create_state_factory()
         conversation = [
-                ("2", "Answer is not correct! Next question: 17+3"),
-                ('2', "Answer is not correct! Next question: 27+3"),
+                ("2", "Answer is not correct! Next question: 17+3. Choice answer: ['20', '21']"),
+                ('2', "Answer is not correct! Next question: 27+3. Choice answer: ['30', '31']"),
                 ("2", "Answer is not correct! The game is over. Your points: 0")
             ]
         self.check_conversation(
@@ -290,7 +290,7 @@ class InGameStateTest(TestCase):
         conversation = [
                 ("foo", "I don't understand you. You can enter a number from 1 to 2"),
                 ('foo', "I don't understand you. You can enter a number from 1 to 2"),
-                ("1", "Answer is correct! Next question: 17+3")
+                ("1", "Answer is correct! Next question: 17+3. Choice answer: ['20', '21']")
             ]
         self.check_conversation(
                                 state_factory,
@@ -304,7 +304,7 @@ class InGameStateTest(TestCase):
         conversation = [
                 ("foo", "I don't understand you. You can enter a number from 1 to 2"),
                 ('foo', "I don't understand you. You can enter a number from 1 to 2"),
-                ("2", "Answer is not correct! Next question: 17+3")
+                ("2", "Answer is not correct! Next question: 17+3. Choice answer: ['20', '21']")
             ]
         self.check_conversation(
                                 state_factory,
@@ -319,7 +319,7 @@ class InGameStateTest(TestCase):
         conversation = [
                 ("foo", "I don't understand you. You can enter a number from 1 to 2"),
                 ('6', "I don't understand you. You can enter a number from 1 to 2"),
-                ("2", "Answer is not correct! Next question: 17+3")
+                ("2", "Answer is not correct! Next question: 17+3. Choice answer: ['20', '21']")
             ]
         self.check_conversation(
             state_factory,
