@@ -42,32 +42,21 @@ class Bot:
             chat_id = update["message"]["chat"]["id"]
             message_text = update["message"]["text"]
             log(f"chat_id : {chat_id}. text: {message_text} ")
-            user_command = Command(chat_id, message_text)
-            bot_response = self.state.process_command(user_command)
-            self.last_update_id = update["update_id"]
-            self.send_message(bot_response.message.chat_id, bot_response.message.text)
-
-
             if message_text.startswith("/"):
                 user_command = Command(chat_id, message_text)
                 bot_response = self.state.process_command(user_command)
-                if bot_response.new_state is not None:
-                    self.state = bot_response.new_state
-                    first_message = self.state.on_enter(user_command.chat_id)
-                    if first_message is not None:
-                        self.last_update_id = update["update_id"]
-                        self.send_message(first_message.)
-
-
             else:
                 user_message = Message(chat_id, message_text)
                 bot_response = self.state.process_message(user_message)
-                if bot_response.new_state is not None:
-                    self.state = bot_response.new_state
-                    first_message = self.state.on_enter(user_message.chat_id)
-
             self.last_update_id = update["update_id"]
             self.send_message(bot_response.message.chat_id, bot_response.message.text)
+
+            if bot_response.new_state is not None:
+                new_state: BotState = bot_response.new_state
+                self.state = new_state
+                first_message = self.state.on_enter(chat_id)
+                if first_message is not None:
+                    self.send_message(first_message.chat_id, first_message.text)
 
     def send_message(self, chat_id: int, text: str ) -> None:
         """
