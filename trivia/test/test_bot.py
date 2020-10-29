@@ -11,18 +11,17 @@ CHAT_ID = 125
 
 class NewFakeState(BotState):
     """
-        Состояние в которое бот перейдет после начального.     проверять on_enter
+        Состояние в которое бот перейдет после начального
     """
 
-    def __init__(self, new_state: Optional["BotState"] = None):
-        self.new_state = new_state
+    def __init__(self):
         self.on_enter_is_called = False
 
     def process_message(self, message: Message) -> BotResponse:
-        return BotResponse(Message(CHAT_ID, "text message"), self.new_state)
+        return BotResponse(Message(CHAT_ID, "new fake state message response"))
 
     def process_command(self, command: Command) -> BotResponse:
-        return BotResponse(Message(CHAT_ID, "text command"), self.new_state)
+        return BotResponse(Message(CHAT_ID, "text command"))
 
     def on_enter(self, chat_id) -> Optional[Message]:
         self.on_enter_is_called = True
@@ -33,59 +32,43 @@ class FakeState(BotState):
     """
         Начальное тестовое состояние
     """
-    def __init__(self, text: str, new_state: Optional["BotState"] = None):
-        self.text = text
+    def __init__(self, reply_text: str, next_state: Optional["BotState"] = None):
+        self.reply_text = reply_text
         self.process_message_is_called = False
         self.process_command_is_called = False
-        self.new_state = new_state
+        self.next_state = next_state
 
     def process_message(self, message: Message) -> BotResponse:
-        """
-            Обрабатывает текстовое сообщние
-        :param message: сообщение от пользователя
-        :return: ответ бота
-        """
         self.process_message_is_called = True
-
-        message = Message(CHAT_ID, self.text)
-        bor_response = BotResponse(message, self.new_state)
-        return bor_response
+        message = Message(CHAT_ID, self.reply_text)
+        bot_response = BotResponse(message, self.next_state)
+        return bot_response
 
     def process_command(self, command: Command) -> BotResponse:
-        """
-            Обрабатывает команду пользователя
-        :param command: команда от пользователя
-        :return: ответ бота
-        """
         self.process_command_is_called = True
-        message = Message(CHAT_ID, self.text)
-        bot_response = BotResponse(message, self.new_state)
+        message = Message(CHAT_ID, self.reply_text)
+        bot_response = BotResponse(message, self.next_state)
         return bot_response
 
     def on_enter(self, chat_id) -> Optional[Message]:
-        """
-            Дает возможность отправильно сообщение в чат при смене состояние для этого чата
-        :param chat_id: идентификатор чата
-        :return: опциональное сообщение для отправки в чат
-        """
         return None
 
 
 class FakeTelegramApi(TelegramApi):
-    def __init__(self, text: str):
+    def __init__(self, user_message_text: str):
         self.sent_messages: List[str] = []
-        self.text = text
+        self.user_message_text = user_message_text
 
     def get_updates(self, offset: int) -> Response:
         data = {
             "ok": True,
             "result": [
                 {
-                    "update_id": 671149212,
+                    "update_id": 675789456,
                     "message": {
                         "message_id": 220,
                         "from": {
-                            "id": 1379897917,
+                            "id": 1379887547,
                             "is_bot": False,
                             "first_name": "Евгений",
                             "last_name": "Васильев",
@@ -93,14 +76,14 @@ class FakeTelegramApi(TelegramApi):
                             "language_code": "en"
                         },
                         "chat": {
-                            "id": 1379897917,
-                            "first_name": "Евгений",
-                            "last_name": "Васильев",
-                            "username": "zenja09",
+                            "id": 1379887547,
+                            "first_name": "Степан",
+                            "last_name": "Капуста",
+                            "username": "степка",
                             "type": "private"
                         },
                         "date": 1603405920,
-                        "text": self.text
+                        "text": self.user_message_text
                     }
                 }
             ]
@@ -120,22 +103,22 @@ class FakeTelegramApi(TelegramApi):
 class FixTelegramBotTest(TestCase):
     def check_state_transition(self, user_message: str, is_command: bool):
         telegram_api = FakeTelegramApi(user_message)
-        new_state = NewFakeState()
-        state = FakeState("bot message", new_state)
+        next_state = NewFakeState()
+        state = FakeState("bot message", next_state)
         bot = Bot(telegram_api, state)
         bot.process_updates()
-        self.assertEqual(bot.state, new_state)
-        self.assertEqual(True, new_state.on_enter_is_called)
+        self.assertEqual(bot.state, next_state)
+        self.assertTrue(next_state.on_enter_is_called)
         self.assertEqual(["bot message", "text message on_enter"], telegram_api.sent_messages)
         if is_command:
-            self.assertEqual(True, state.process_command_is_called)
+            self.assertTrue(state.process_command_is_called)
         else:
-            self.assertEqual(True, state.process_message_is_called)
+            self.assertTrue(state.process_message_is_called)
 
-    def test_command_transition(self):
+    def test_command_state_transition(self):
         self.check_state_transition("/command", True)
 
-    def test_message_transition(self):
+    def test_message_state_transition(self):
         self.check_state_transition("user message", False)
 
     def check_command_without_state_transition(self, user_message: str, is_command: bool):
@@ -146,9 +129,9 @@ class FixTelegramBotTest(TestCase):
         self.assertEqual(bot.state, state)
         self.assertEqual(["bot message"], telegram_api.sent_messages)
         if is_command:
-            self.assertEqual(True, state.process_command_is_called)
+            self.assertTrue(state.process_command_is_called)
         else:
-            self.assertEqual(True, state.process_message_is_called)
+            self.assertTrue(state.process_message_is_called)
 
     def test_command_without_transition(self):
         self.check_command_without_state_transition("/command", True)
