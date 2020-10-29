@@ -1,7 +1,8 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod, ABC
 from typing import List
 from trivia.question_storage import Question, QuestionStorage
 from typing import Optional
+import textwrap
 
 
 class Message:
@@ -9,9 +10,10 @@ class Message:
         Телеграм сообщение
     """
 
-    def __init__(self, chat_id: int, text: str):
+    def __init__(self, chat_id: int, text: str, parse_mode: Optional[str] = None):
         self.chat_id = chat_id
         self.text = text
+        self.parse_mode = parse_mode
 
     def __eq__(self, other):
         if type(other) is type(self):
@@ -38,6 +40,7 @@ class BotResponse:
     """
         Ответ бота
     """
+
     def __init__(self, message: Message, new_state: Optional["BotState"] = None):
         self.new_state = new_state
         self.message = message
@@ -52,6 +55,7 @@ class BotStateFactory:
     """
         Служит для создания состояний бота
     """
+
     def __init__(self, questions_storage: QuestionStorage):
         self.questions_storage = questions_storage
 
@@ -79,6 +83,7 @@ class BotState(metaclass=ABCMeta):
     """
         Интерфейс состояния бота
     """
+
     @abstractmethod
     def process_message(self, message: Message) -> BotResponse:
         """
@@ -106,10 +111,31 @@ class BotState(metaclass=ABCMeta):
         pass
 
 
+class MarkdownTestState(BotState):
+    def process_message(self, message: Message) -> BotResponse:
+        test_text = textwrap.dedent(
+            """        
+            *__Question__*
+                _1: answer_
+                _2: answer_
+                _3: answer_
+                _4: answer_
+            """
+        ).strip()
+        return BotResponse(Message(message.chat_id, test_text, "MarkdownV2"))
+
+    def process_command(self, command: Command) -> BotResponse:
+        return BotResponse(Message(command.chat_id, command.text))
+
+    def on_enter(self, chat_id: int) -> Optional[Message]:
+        return None
+
+
 class EchoState(BotState):
     """
         Обрабатывает полученное сообщение или команду от пользователя и возвращает ответ бота
     """
+
     def process_message(self, message: Message) -> BotResponse:
         """
             Обрабатывает сообщение
@@ -142,7 +168,8 @@ class GreetingState(BotState):
     """
         Состояние отвечающее за приветствие пользователя. Первое состоние в котором находится бот
     """
-    def __init__(self, state_factory: BotStateFactory ):
+
+    def __init__(self, state_factory: BotStateFactory):
         self.state_factory = state_factory
 
     def __eq__(self, other):
@@ -292,7 +319,7 @@ class InGameState(BotState):
             else:
                 message_part_1 = "Answer is not correct!"
 
-            if self.current_question < len(self.questions)-1:
+            if self.current_question < len(self.questions) - 1:
                 next_question = self.questions[self.current_question + 1]
                 message_part_2 = f"Next question: {next_question.text}. Choice answer: {next_question.answers}"
                 self.current_question += 1
@@ -346,5 +373,3 @@ def select_questions(questions: List[Question], num_questions: int) -> List[Ques
         :return: Список вопросов
     """
     return questions[:num_questions]
-
-
