@@ -113,7 +113,7 @@ class FakeTelegramApi(TelegramApi):
         response._content = content
         return response
 
-    def send_message(self, chat_id: int, text: str):
+    def send_message(self, chat_id: int, text: str, parse_mode: Optional[str] = None):
         self.sent_messages.append(text)
 
 
