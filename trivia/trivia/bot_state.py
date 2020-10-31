@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod, ABC
 from typing import List
 from trivia.question_storage import Question, QuestionStorage
 from typing import Optional
-import textwrap
+from trivia import format
 
 
 class Message:
@@ -19,6 +19,17 @@ class Message:
         if type(other) is type(self):
             return self.__dict__ == other.__dict__
         return False
+
+    def __repr__(self):
+        return f"""
+                    Message:
+                    text: {self.text}
+                    chat_id: {self.chat_id}
+                    parse_mode: {self.parse_mode} 
+                 """
+
+    def __str__(self):
+        return self.__repr__()
 
 
 class Command:
@@ -49,6 +60,16 @@ class BotResponse:
         if type(other) is type(self):
             return self.__dict__ == other.__dict__
         return False
+
+    def __repr__(self):
+        return f"""
+                    BotResponse: 
+                        new_state: {self.new_state}
+                        message: {self.message}                        
+                 """
+
+    def __str__(self):
+        return self.__repr__()
 
 
 class BotStateFactory:
@@ -113,16 +134,7 @@ class BotState(metaclass=ABCMeta):
 
 class MarkdownTestState(BotState):
     def process_message(self, message: Message) -> BotResponse:
-        test_text = textwrap.dedent(
-            """        
-            *__Question__*
-                _1: answer_
-                _2: answer_
-                _3: answer_
-                _4: answer_
-            """
-        ).strip()
-        return BotResponse(Message(message.chat_id, test_text, "MarkdownV2"))
+        return BotResponse(Message(message.chat_id, "Test", "HTML"))
 
     def process_command(self, command: Command) -> BotResponse:
         return BotResponse(Message(command.chat_id, command.text))
@@ -184,7 +196,7 @@ class GreetingState(BotState):
             :return: ответ бота
         """
         idle_state = self.state_factory.create_idle_state()
-        response_message = Message(message.chat_id, "Trivia bot greeting you")
+        response_message = Message(message.chat_id, "<i>&#129417Trivia bot greeting you</i>", "HTML")
         response = BotResponse(response_message, idle_state)
         return response
 
@@ -197,11 +209,14 @@ class GreetingState(BotState):
         idle_state = self.state_factory.create_idle_state()
         command_type = command.text
         if command_type == "/start":
-            response_command = Message(command.chat_id, "Trivia bot greeting you. Enter command")
+            response_command = Message(command.chat_id,
+                                       "<i>&#129417Trivia bot greeting you. Enter command /start or /help </i>",
+                                       "HTML"
+                                       )
             response = BotResponse(response_command, idle_state)
             return response
         else:
-            response_command = Message(command.chat_id, "Something went wrong. Try again")
+            response_command = Message(command.chat_id, "<i>Something went wrong. Try again</i>")
             response = BotResponse(response_command)
             return response
 
@@ -235,7 +250,10 @@ class IdleState(BotState):
             :param message: сообщение от пользователя
             :return: ответ бота
         """
-        response_message = Message(message.chat_id, "I did not  understand the command. Enter /start or /help")
+        response_message = Message(message.chat_id,
+                                   "<i>I did not  understand the command. Enter /start or /help</i>",
+                                   "HTML"
+                                   )
         response = BotResponse(response_message)
         return response
 
@@ -249,12 +267,15 @@ class IdleState(BotState):
         in_game_state = self.state_factory.create_in_game_state()
         user_command = command.text
         if user_command == "/start":
-            response_message = Message(command.chat_id, "Starting game")
+            response_message = Message(command.chat_id, "<i>Starting game</i>", "HTML")
             new_state = in_game_state
         elif user_command == "/help":
-            response_message = Message(command.chat_id, "Enter /start or /help")
+            response_message = Message(command.chat_id, "<i>Enter /start or /help</i>", "HTML")
         else:
-            response_message = Message(command.chat_id, "I did not  understand the command. Enter /start or /help")
+            response_message = Message(command.chat_id,
+                                       "<i>I did not  understand the command. Enter /start or /help</i>",
+                                       "HTML"
+                                       )
         response = BotResponse(response_message, new_state)
         return response
 
@@ -305,29 +326,29 @@ class InGameState(BotState):
         if answer_id is None:
             response_message = Message(
                 message.chat_id,
-                f"I don't understand you. You can enter a number from 1 to {num_of_resp}"
+                format.get_number_of_answers_help(num_of_resp),
+                "HTML"
             )
         elif int(user_message) > num_of_resp:
             response_message = Message(
                 message.chat_id,
-                f"I don't understand you. You can enter a number from 1 to {num_of_resp}"
+                format.get_number_of_answers_help(num_of_resp),
+                "HTML"
             )
         else:
-            if answer_id == 1:
-                message_part_1 = "Answer is correct!"
+            is_answer_correct = answer_id == 1
+            if is_answer_correct:
                 self.game_score += self.questions[self.current_question].points
-            else:
-                message_part_1 = "Answer is not correct!"
 
             if self.current_question < len(self.questions) - 1:
                 next_question = self.questions[self.current_question + 1]
-                message_part_2 = f"Next question: {next_question.text}. Choice answer: {next_question.answers}"
                 self.current_question += 1
+                message_text = format.get_response_for_valid_answer(is_answer_correct, next_question=next_question)
             else:
                 new_state = idle_state
-                message_part_2 = f"The game is over. Your points: {self.game_score}"
+                message_text = format.get_response_for_valid_answer(is_answer_correct, game_score=self.game_score)
 
-            response_message = Message(message.chat_id, f"{message_part_1} {message_part_2}")
+            response_message = Message(message.chat_id, message_text, "HTML")
 
         response = BotResponse(response_message, new_state)
         return response
@@ -342,10 +363,10 @@ class InGameState(BotState):
         idle_state = self.state_factory.create_idle_state()
         user_command = command.text
         if user_command == "/stop":
-            response_message = Message(command.chat_id, "The game is over.")
+            response_message = Message(command.chat_id, "<i>The game is over.</i>", "HTML")
             new_state = idle_state
         else:
-            response_message = Message(command.chat_id, "Other commands are not available in the game")
+            response_message = Message(command.chat_id, "<i>Other commands are not available in the game</i>", "HTML")
         response = BotResponse(response_message, new_state)
         return response
 
@@ -356,7 +377,10 @@ class InGameState(BotState):
         """
         quest = self.questions
         first_question = quest[0]
-        response_message = Message(chat_id, f"Question: {first_question.text}. Choice answer: {first_question.answers}")
+
+        string_text = format.get_text_questions_answers("Question", first_question.text, first_question.answers)
+        message_text = string_text
+        response_message = Message(chat_id, message_text, "HTML")
         return response_message
 
     def parse_int(self, s: str) -> Optional[int]:
@@ -373,3 +397,9 @@ def select_questions(questions: List[Question], num_questions: int) -> List[Ques
         :return: Список вопросов
     """
     return questions[:num_questions]
+
+
+
+
+
+

@@ -73,6 +73,8 @@ class RealTelegramApi(TelegramApi):
             "parse_mode": str(parse_mode)
         })
         log(f"Send message status code: {response.status_code} ")
+        if response.status_code != 200:
+            log(f"We have a problems: {response.text} ")
 
 
 class Bot:

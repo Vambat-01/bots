@@ -9,7 +9,10 @@ state_factory = BotStateFactory(storage)
 state = GreetingState(state_factory)
 test_state = MarkdownTestState()
 telegram_api = RealTelegramApi(token)
-bot = Bot(telegram_api, test_state)
+bot = Bot(telegram_api, state)
 
 while True:
     bot.process_updates()
+
+
+
