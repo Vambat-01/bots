@@ -1,130 +1,10 @@
 from unittest import TestCase
-from trivia.bot_state import EchoState, Message, Command, BotResponse
-from trivia.bot_state import GreetingState, IdleState, InGameState, BotStateFactory, BotState
+from trivia.bot_state import Message, Command, BotResponse
+from trivia.bot_state import IdleState, InGameState, BotStateFactory, BotState
 from trivia.question_storage import Question, JsonQuestionStorage
 from typing import List, Tuple, Optional
 from trivia.utils import dedent_and_strip
 from trivia import format
-
-
-class EchoStateTest(TestCase):
-    def test_process_message(self):
-        chat_id = 100
-        text = "Hello"
-        user_message = Message(chat_id, text)
-        state = EchoState()
-        state_resp = state.process_message(user_message)
-        self.assertEqual("I got your message Hello", state_resp.message.text)
-        self.assertEqual(100, state_resp.message.chat_id)
-        self.assertEqual(None, state_resp.new_state)
-
-    def test_process_command(self):
-        chat_id = 150
-        text = "/start"
-        user_command = Command(chat_id, text)
-        state = EchoState()
-        state_resp = state.process_command(user_command)
-        self.assertEqual("I got your command /start", state_resp.message.text)
-        self.assertEqual(None, state_resp.new_state)
-        self.assertEqual(150, state_resp.message.chat_id)
-
-
-class GreetingStateTest(TestCase):
-    def test_process_message(self):
-        chat_id = 200
-        text = "Hi bot"
-        user_message = Message(chat_id, text)
-        json_file = "resources/test_questions.json"
-        storage = JsonQuestionStorage(json_file)
-        state_factory = BotStateFactory(storage)
-        state = GreetingState(state_factory)
-        message_resp = state.process_message(user_message)
-        self.assertEqual("<i>&#129417Trivia bot greeting you</i>", message_resp.message.text)
-        self.assertEqual(200, message_resp.message.chat_id)
-        self.assertEqual(IdleState(state_factory), message_resp.new_state)
-
-    def test_process_command_start(self):
-        chat_id = 250
-        text = "/start"
-        user_command = Command(chat_id, text)
-        json_file = "resources/test_questions.json"
-        storage = JsonQuestionStorage(json_file)
-        state_factory = BotStateFactory(storage)
-        state = GreetingState(state_factory)
-        command_resp = state.process_command(user_command)
-        self.assertEqual("<i>&#129417Trivia bot greeting you. Enter command /start or /help </i>",
-                         command_resp.message.text
-        )
-        self.assertEqual(250, command_resp.message.chat_id)
-        self.assertEqual(IdleState(state_factory), command_resp.new_state)
-
-    def test_process_command_another(self):
-        chat_id = 255
-        text = "start"
-        user_command = Command(chat_id, text)
-        json_file = "resources/test_questions.json"
-        storage = JsonQuestionStorage(json_file)
-        state_factory = BotStateFactory(storage)
-        state = GreetingState(state_factory)
-        command_resp = state.process_command(user_command)
-        self.assertEqual("<i>Something went wrong. Try again</i>", command_resp.message.text)
-        self.assertEqual(255, command_resp.message.chat_id)
-        self.assertEqual(None, command_resp.new_state)
-
-
-class IdleStateTest(TestCase):
-    def test_process_message(self):
-        chat_id = 260
-        text = "Hello"
-        user_message = Message(chat_id, text)
-        json_file = "resources/test_questions.json"
-        storage = JsonQuestionStorage(json_file)
-        state_factory = BotStateFactory(storage)
-        state = IdleState(state_factory)
-        message_resp = state.process_message(user_message)
-        self.assertEqual("<i>I did not  understand the command. Enter /start or /help</i>", message_resp.message.text)
-        self.assertEqual(260, message_resp.message.chat_id)
-        self.assertEqual(None, message_resp.new_state)
-
-    def test_process_command_start(self):
-        chat_id = 265
-        text = "/start"
-        user_command = Command(chat_id, text)
-        json_file = "resources/test_questions.json"
-        storage = JsonQuestionStorage(json_file)
-        questions = storage.load_questions()
-        state_factory = BotStateFactory(storage)
-        state = IdleState(state_factory)
-        command_resp = state.process_command(user_command)
-        self.assertEqual("<i>Starting game</i>", command_resp.message.text)
-        self.assertEqual(265, command_resp.message.chat_id)
-        self.assertEqual(InGameState(questions, state_factory), command_resp.new_state)
-
-    def test_process_command_help(self):
-        chat_id = 270
-        text = "/help"
-        user_command = Command(chat_id, text)
-        json_file = "resources/test_questions.json"
-        storage = JsonQuestionStorage(json_file)
-        state_factory = BotStateFactory(storage)
-        state = IdleState(state_factory)
-        command_resp = state.process_command(user_command)
-        self.assertEqual("<i>Enter /start or /help</i>", command_resp.message.text)
-        self.assertEqual(270, command_resp.message.chat_id)
-        self.assertEqual(None, command_resp.new_state)
-
-    def test_process_command_another(self):
-        chat_id = 275
-        text = "/bla-bla"
-        user_command = Command(chat_id, text)
-        json_file = "resources/test_questions.json"
-        storage = JsonQuestionStorage(json_file)
-        state_factory = BotStateFactory(storage)
-        state = IdleState(state_factory)
-        command_resp = state.process_command(user_command)
-        self.assertEqual("<i>I did not  understand the command. Enter /start or /help</i>", command_resp.message.text)
-        self.assertEqual(275, command_resp.message.chat_id)
-        self.assertEqual(None, command_resp.new_state)
 
 
 class InGameStateTest(TestCase):
@@ -366,5 +246,3 @@ class InGameStateTest(TestCase):
             conversation,
             None
         )
-
-
