@@ -1,8 +1,35 @@
 from abc import ABCMeta, abstractmethod, ABC
 from typing import List
 from trivia.question_storage import Question, QuestionStorage
-from typing import Optional
+from typing import Optional, Dict, Any
 from trivia import format
+
+
+class Button:
+    def __init__(self, text: str, callback_data: str):
+        self.text = text
+        self.callback_data = callback_data
+
+    def as_json(self) -> Dict[str, str]:
+        return {
+            "text": self.text,
+            "callback_data": self.callback_data
+        }
+
+
+class Keyboard:
+    def __init__(self, buttons: List[List[Button]]):
+        self.buttons = buttons
+
+    def as_json(self) -> List[Any]:
+        res = []
+        for button_row in self.buttons:
+            row = []
+            for button in button_row:
+                row.append(button.as_json())
+            res.append(row)
+
+        return res
 
 
 class Message:
@@ -10,10 +37,11 @@ class Message:
         Телеграм сообщение
     """
 
-    def __init__(self, chat_id: int, text: str, parse_mode: Optional[str] = None):
+    def __init__(self, chat_id: int, text: str, parse_mode: Optional[str] = None, keyboad: Optional[Keyboard] = None):
         self.chat_id = chat_id
         self.text = text
         self.parse_mode = parse_mode
+        self.keyboard = keyboad
 
     def __eq__(self, other):
         if type(other) is type(self):
@@ -132,9 +160,21 @@ class BotState(metaclass=ABCMeta):
         pass
 
 
-class MarkdownTestState(BotState):
+class TestState(BotState):
     def process_message(self, message: Message) -> BotResponse:
-        return BotResponse(Message(message.chat_id, "Test", "HTML"))
+        buttons = [
+            [
+                Button("Button A", "data A"),
+                Button("Button B", "data B"),
+                Button("Button C", "data C")
+            ],
+            [
+                Button("Button D", "data D"),
+                Button("Button E", "data E")
+            ]
+        ]
+        keyboard = Keyboard(buttons)
+        return BotResponse(Message(message.chat_id, "Text with a keyboard", "HTML", keyboard))
 
     def process_command(self, command: Command) -> BotResponse:
         return BotResponse(Message(command.chat_id, command.text))
