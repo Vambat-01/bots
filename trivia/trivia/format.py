@@ -43,30 +43,6 @@ def _get_answers(list_answers: List[str]):
     return list_ans
 
 
-def get_four_buttons():
-    array_for_button = [
-            [
-                {
-                    "text": "A",
-                    "callback_data": "back_one"
-                },
-                {
-                    "text": "B",
-                    "callback_data": "back_two"
-                }
-            ],
-            [
-                {
-                    "text": "C",
-                    "callback_data": "back_three"
-                },
-                {
-                    "text": "D",
-                    "callback_data": "back_four"
-                    }
-            ]
-        ]
-    string_array = json.dumps(array_for_button)
-    return string_array
+
 
 

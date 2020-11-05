@@ -7,13 +7,18 @@ from trivia import format
 
 class Button:
     """
-        кнопка в телеграм боте
+        Представляет собой одну кнопку встроенной клавиатуры. Нужна для сбора клавиатуры, чтобы получать ответ от
+         пользователя. Telegram Api documentation ( https://core.telegram.org/bots/api#inlinekeyboardbutton ).
     """
     def __init__(self, text: str, callback_data: str):
         self.text = text
         self.callback_data = callback_data
 
     def as_json(self) -> Dict[str, str]:
+        """
+            Передает одну кнопку встроенной клавиатуры
+        :return: Dict[str, str]
+        """
         return {
             "text": self.text,
             "callback_data": self.callback_data
@@ -22,19 +27,25 @@ class Button:
 
 class Keyboard:
     """
-        клавиатура состоящая из двумерного массива кнопок
+        Встроенная клавиатура, которая появляется рядом с сообщением, которому она пренадлежит. Чтобы пользователь
+        имел возможность дать ответ на вопрос, просто нажав на одну из кнопок вариантов ответа.
+        Telegram Api documentation ( https://core.telegram.org/bots/api#inlinekeyboardmarkup ).
     """
     def __init__(self, buttons: List[List[Button]]):
         self.buttons = buttons
 
     def as_json(self) -> List[Any]:
-        result = []
+        """
+            Собирает кнопки во встроенную клавиатуру
+        :return: List[Any]
+        """
+        result_row = []
         for row in self.buttons:
             array_row = []
             for button in row:
                 array_row.append(button.as_json())
-            result.append(array_row)
-        return result
+            result_row.append(array_row)
+        return result_row
 
 
 class Message:
@@ -43,6 +54,12 @@ class Message:
     """
 
     def __init__(self, chat_id: int, text: str, parse_mode: Optional[str] = None, keyboard: Optional[Keyboard] = None):
+        """
+        :param chat_id: идентификация чата
+        :param text: текст сообщения
+        :param parse_mode: режим для форматирования текста сообщения
+        :param keyboard: дополнительная втсроенная клавиатура, которая будет отображаться пользователю
+        """
         self.chat_id = chat_id
         self.text = text
         self.parse_mode = parse_mode
@@ -167,7 +184,8 @@ class BotState(metaclass=ABCMeta):
 
 class TestState(BotState):
     """
-        Служит для проведения тестов
+        Служит для проведения различных тестов, чтобы проверить правильность работы бота. Например, тест на смену
+         состояния бота.
     """
     def process_message(self, message: Message) -> BotResponse:
         buttons = [

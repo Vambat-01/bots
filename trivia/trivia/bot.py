@@ -38,7 +38,7 @@ class TelegramApi(metaclass=ABCMeta):
         :param chat_id: идентификация чата
         :param text: текст сообщения
         :param parse_mode: режим для форматирования текста сообщения
-        :param keyboard: режим для вывода кнопок
+        :param keyboard: дополнительная втсроенная клавиатура, которая будет отображаться пользователю
         :return: None
         """
         pass
@@ -68,14 +68,7 @@ class RealTelegramApi(TelegramApi):
                      parse_mode: Optional[str] = None,
                      keyboard: Optional[Keyboard] = None,
                      ) -> None:
-        """
-            Отправляет текстовое сообщение
-        :param chat_id: идентификатор чата
-        :param text: текст сообщения
-        :param parse_mode: режим для форматирования текста сообщения
-        :param keyboard: режим для вывода кнопок
-        :return: None
-        """
+
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
         body = {
             "text": text,

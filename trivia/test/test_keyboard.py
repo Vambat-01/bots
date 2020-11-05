@@ -1,11 +1,9 @@
 from unittest import TestCase
-from trivia.bot_state import Button, Keyboard, BotResponse, Message
+from trivia.bot_state import Button, Keyboard
 
 
 class KeyboardTest(TestCase):
-    def test_keyboard_true(self):
-        chat_id = 125
-        text = "Test question text"
+    def test_keyboard_json_conversion(self):
         buttons = [
             [
                 Button("A", "back_A")
@@ -15,16 +13,12 @@ class KeyboardTest(TestCase):
                 Button("C", "back_C")
             ]
         ]
-        keyboard = Keyboard(buttons)
-        response = BotResponse(Message(chat_id, text, "HTML", keyboard))
-        self.assertTrue(response.message.keyboard)
-        self.assertEqual(2, len(response.message.keyboard.buttons))
-        self.assertEqual(1, len(response.message.keyboard.buttons[0]))
-        self.assertEqual(2, len(response.message.keyboard.buttons[1]))
+        expected = [[{'callback_data': 'back_A', 'text': 'A'}],
+                   [{'callback_data': 'back_B', 'text': 'B'},
+                    {'callback_data': 'back_C', 'text': 'C'}]]
+        keyboard = Keyboard(buttons).as_json()
+        self.assertEqual(expected, keyboard)
 
-    def test_keyboard_none(self):
-        chat_id = 125
-        text = "Test question text"
-        response = BotResponse(Message(chat_id, text, "HTML"))
-        self.assertEqual(None, response.message.keyboard)
+
+
 
