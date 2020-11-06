@@ -1,6 +1,6 @@
 import requests
 import datetime
-from trivia.bot_state import Message, Command, BotState
+from trivia.bot_state import Message, Command, BotState, Keyboard
 from requests.models import Response
 from abc import ABCMeta, abstractmethod
 from typing import Optional
@@ -29,12 +29,16 @@ class TelegramApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def send_message(self, chat_id: int, text: str, parse_mode: Optional[str] = None) -> None:
+    def send_message(self, chat_id: int,
+                     text: str,
+                     parse_mode: Optional[str] = None,
+                     keyboard: Optional[Keyboard] = None) -> None:
         """
             Отправляет текстовое сообщение
         :param chat_id: идентификация чата
         :param text: текст сообщения
         :param parse_mode: режим для форматирования текста сообщения
+        :param keyboard: опциональная встроенная клавиатура, которая будет отображаться пользователю
         :return: None
         """
         pass
@@ -58,23 +62,30 @@ class RealTelegramApi(TelegramApi):
         })
         return response
 
-    def send_message(self, chat_id: int, text: str, parse_mode: Optional[str] = None) -> None:
-        """
-            Отправляет текстовое сообщение
-        :param chat_id: идентификатор чата
-        :param text: текст сообщения
-        :param parse_mode: режим для форматирования текста сообщения
-        :return: None
-        """
+    def send_message(self,
+                     chat_id: int,
+                     text: str,
+                     parse_mode: Optional[str] = None,
+                     keyboard: Optional[Keyboard] = None,
+                     ) -> None:
+
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
-        response = requests.get(url, params={
+        body = {
             "text": text,
-            "chat_id": str(chat_id),
-            "parse_mode": str(parse_mode)
-        })
+            "chat_id": chat_id
+        }
+        if parse_mode is not None:
+            body["parse_mode"] = parse_mode
+
+        if keyboard is not None:
+            body["reply_markup"] = {
+                "inline_keyboard": keyboard.as_json()
+            }
+
+        response = requests.post(url, json=body)
         log(f"Send message status code: {response.status_code} ")
         if response.status_code != 200:
-            log(f"We have a problems: {response.text} ")
+            log(f"TelegramAPI: Unexpected status code: {response.status_code}. Response body: {response.text}")
 
 
 class Bot:
@@ -107,7 +118,8 @@ class Bot:
             self.last_update_id = update["update_id"]
             self.telegram_api.send_message(bot_response.message.chat_id,
                                            bot_response.message.text,
-                                           bot_response.message.parse_mode
+                                           bot_response.message.parse_mode,
+                                           bot_response.message.keyboard
                                            )
 
             if bot_response.new_state is not None:
@@ -117,7 +129,8 @@ class Bot:
                 if first_message is not None:
                     self.telegram_api.send_message(first_message.chat_id,
                                                    first_message.text,
-                                                   bot_response.message.parse_mode
+                                                   bot_response.message.parse_mode,
+                                                   bot_response.message.keyboard
                                                    )
 
 

@@ -1,6 +1,5 @@
 from unittest import TestCase
 from trivia import format
-import textwrap
 from trivia.question_storage import Question
 from trivia.utils import dedent_and_strip
 

@@ -1,7 +1,7 @@
 from typing import Optional, List
 from unittest import TestCase
 from requests.models import Response
-from trivia.bot_state import EchoState, BotState, Message, Command
+from trivia.bot_state import BotState, Message, Command, Keyboard
 from trivia.bot import Bot, TelegramApi
 import json
 from trivia.bot_state import BotResponse
@@ -96,7 +96,11 @@ class FakeTelegramApi(TelegramApi):
         response._content = content
         return response
 
-    def send_message(self, chat_id: int, text: str, parse_mode: Optional[str] = None):
+    def send_message(self,
+                     chat_id: int,
+                     text: str,
+                     parse_mode: Optional[str] = None,
+                     keyboard: Optional[Keyboard] = None):
         self.sent_messages.append(text)
 
 

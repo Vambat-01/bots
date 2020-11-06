@@ -1,5 +1,6 @@
 from trivia.question_storage import Question
 from typing import Optional, List
+import json
 
 
 def get_number_of_answers_help(num_of_resp: int) -> str:
@@ -32,6 +33,7 @@ def get_text_questions_answers(first_text: str, question_text, answers: List[str
     list_text.extend(answers)
     string_text = "\n".join(list_text)
     return string_text
+
 
 def _get_answers(list_answers: List[str]):
     list_ans = []
