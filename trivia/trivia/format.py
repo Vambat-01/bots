@@ -42,7 +42,3 @@ def _get_answers(list_answers: List[str]):
         list_ans.append(answer)
     return list_ans
 
-
-
-
-

@@ -16,8 +16,8 @@ class KeyboardTest(TestCase):
         expected = [[{'callback_data': 'back_A', 'text': 'A'}],
                    [{'callback_data': 'back_B', 'text': 'B'},
                     {'callback_data': 'back_C', 'text': 'C'}]]
-        keyboard = Keyboard(buttons).as_json()
-        self.assertEqual(expected, keyboard)
+        actual = Keyboard(buttons).as_json()
+        self.assertEqual(expected, actual)
 
 
 
