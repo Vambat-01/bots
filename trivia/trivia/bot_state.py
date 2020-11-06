@@ -7,12 +7,12 @@ from trivia import format
 
 class Button:
     """
-        Представляет собой одну кнопку встроенной клавиатуры. Нужна для сбора клавиатуры, чтобы получать ответ от
-        пользователя. Telegram Api documentation ( https://core.telegram.org/bots/api#inlinekeyboardbutton ).
+        Представляет собой одну кнопку встроенной клавиатуры.
+        Telegram Api documentation ( https://core.telegram.org/bots/api#inlinekeyboardbutton ).
     """
     def __init__(self, text: str, callback_data: str):
         """
-        :param text: текст метки на кнопке
+        :param text: текст, который отображается на кнопке
         :param callback_data: данные для отправки боту в ответном запроси при нажатии кнопки, 1-64 байта
         """
         self.text = text
@@ -20,7 +20,7 @@ class Button:
 
     def as_json(self) -> Dict[str, str]:
         """
-            Преобразует одну кнопку встроенной клавиатуры в Dict[str, str]
+            Возвращает JSON представление кнопки для отправки в Telegram API
         :return: Dict[str, str]
         """
         return {
@@ -31,19 +31,19 @@ class Button:
 
 class Keyboard:
     """
-        Встроенная клавиатура, которая появляется рядом с сообщением, которому она принадлежит и може тбыть добавлена к
-        любому сообщению. Чтобы пользователь имел возможность воспольховаться кнопками для ответа, вместо печали.
+        Встроенная клавиатура, которая появляется рядом с сообщением, которому она принадлежит и может быть добавлена к
+        любому сообщению. Чтобы пользователь имел возможность воспользоваться кнопками для ответа, вместо печати.
         Telegram Api documentation ( https://core.telegram.org/bots/api#inlinekeyboardmarkup ).
     """
     def __init__(self, buttons: List[List[Button]]):
         """
-        :param buttons: Массив в массиве из кнопок встроенной клавиатуры
+        :param buttons: Двумерный массив
         """
         self.buttons = buttons
 
     def as_json(self) -> List[Any]:
         """
-            Преобразует кнопки встроенной клавиатуры в json как это требует telegram API
+            Возаращает JSON представление клавиаутры для оптравки в Telegram API
         :return: List[Any]
         """
         result_row = []
@@ -62,9 +62,9 @@ class Message:
 
     def __init__(self, chat_id: int, text: str, parse_mode: Optional[str] = None, keyboard: Optional[Keyboard] = None):
         """
-        :param chat_id: идентификация чата
+        :param chat_id: идентификатор чата
         :param text: текст сообщения
-        :param parse_mode: режим для форматирования текста сообщения
+        :param parse_mode: режим форматирования текста сообщения
         :param keyboard: опциональная встроенная клавиатура, которая будет отображаться пользователю
         """
         self.chat_id = chat_id
