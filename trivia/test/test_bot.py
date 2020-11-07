@@ -1,7 +1,8 @@
 from typing import Optional, List
 from unittest import TestCase
 from requests.models import Response
-from trivia.bot_state import BotState, Message, Command, Keyboard
+from trivia.bot_state import BotState
+from trivia.models import Message, Command, Keyboard
 from trivia.bot import Bot, TelegramApi
 import json
 from trivia.bot_state import BotResponse
