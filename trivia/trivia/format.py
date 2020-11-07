@@ -1,6 +1,6 @@
 from trivia.question_storage import Question
 from typing import Optional, List
-import json
+from trivia.models import Keyboard, Button
 
 
 def get_number_of_answers_help(num_of_resp: int) -> str:
@@ -41,4 +41,17 @@ def _get_answers(list_answers: List[str]):
         answer = f"{i + 1}: {list_answers[i]}"
         list_ans.append(answer)
     return list_ans
+
+
+def make_keyboard_for_question(num_answers: int) -> Keyboard:
+    def button(answer_id: int):
+        return Button(str(answer_id), str(answer_id))
+
+    if num_answers == 2:
+        return Keyboard([[button(1), button(2)]])
+    elif num_answers == 4:
+        return Keyboard([[button(1), button(2)], [button(3), button(4)]])
+    else:
+        row = [button(i + 1) for i in range(num_answers)]
+        return Keyboard([row])
 

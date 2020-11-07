@@ -1,6 +1,7 @@
 import requests
 import datetime
-from trivia.bot_state import Message, Command, BotState, Keyboard
+from trivia.bot_state import BotState
+from trivia.models import Message, Command, Keyboard
 from requests.models import Response
 from abc import ABCMeta, abstractmethod
 from typing import Optional
@@ -106,6 +107,10 @@ class Bot:
         data = response.json()
         result = data["result"]
         for update in result:
+            if "message" not in update:
+                log("skipping update")
+                continue
+
             chat_id = update["message"]["chat"]["id"]
             message_text = update["message"]["text"]
             log(f"chat_id : {chat_id}. text: {message_text} ")
@@ -129,8 +134,8 @@ class Bot:
                 if first_message is not None:
                     self.telegram_api.send_message(first_message.chat_id,
                                                    first_message.text,
-                                                   bot_response.message.parse_mode,
-                                                   bot_response.message.keyboard
+                                                   first_message.parse_mode,
+                                                   first_message.keyboard
                                                    )
 
 

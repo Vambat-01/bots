@@ -1,17 +1,20 @@
 from unittest import TestCase
-from trivia.bot_state import Message, Command, BotResponse
-from trivia.bot_state import IdleState, InGameState, BotStateFactory, BotState
+from trivia.models import Message, Command, Button, Keyboard
+from trivia.bot_state import IdleState, InGameState, BotStateFactory, BotState, BotResponse
 from trivia.question_storage import Question, JsonQuestionStorage
 from typing import List, Tuple, Optional
 from trivia.utils import dedent_and_strip
 from trivia import format
 
 
+CHAT_ID = 300
+
+
 class InGameStateTest(TestCase):
     def check_conversation(self,
                            state_factory: BotStateFactory,
-                           first_bot_message: str,
-                           conversation: List[Tuple[str, str]],
+                           first_bot_message: Message,
+                           conversation: List[Tuple[str, Message]],
                            expected_state: Optional[BotState] = None):
         """
             Проверяет правильность ответа бота на сообщения и команды от пользователя
@@ -26,17 +29,17 @@ class InGameStateTest(TestCase):
         questions = storage.load_questions()
         state = InGameState(questions, state_factory)
         message = state.on_enter(chat_id)
-        self.assertEqual(Message(chat_id, first_bot_message, "HTML"), message)
+        self.assertEqual(first_bot_message, message)
         count = 0
         for user_msg, expected_bot_msg in conversation:
             response = state.process_message(Message(chat_id, user_msg))
             count += 1
 
             if len(conversation) == count:
-                expected_response = BotResponse(Message(chat_id, expected_bot_msg, "HTML"), expected_state)
+                expected_response = BotResponse(expected_bot_msg, expected_state)
                 self.assertEqual(expected_response, response)
             else:
-                expected_response = BotResponse(Message(chat_id, expected_bot_msg, "HTML"), None)
+                expected_response = BotResponse(expected_bot_msg, None)
                 self.assertEqual(expected_response, response)
 
     def create_state_factory(self) -> BotStateFactory:
@@ -135,15 +138,20 @@ class InGameStateTest(TestCase):
 
     def test_when_all_user_answers_another_cor(self):
         state_factory = self.create_state_factory()
+        keyboard = format.make_keyboard_for_question(2)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
-        first_bot_message = dedent_and_strip(text)
+        first_bot_text = dedent_and_strip(text)
+        first_bot_message = Message(CHAT_ID, first_bot_text, "HTML", keyboard)
         text_1 = format.get_response_for_valid_answer(True, Question("17+3", ["20", "21"], 0))
+        message_1 = Message(CHAT_ID, text_1, "HTML", keyboard)
         text_2 = format.get_response_for_valid_answer(True, Question("27+3", ["30", "31"], 0))
+        message_2 = Message(CHAT_ID, text_2, "HTML", keyboard)
         text_3 = format.get_response_for_valid_answer(True, game_score=6)
+        message_3 = Message(CHAT_ID, text_3, "HTML", None)
         conversation = [
-                ("1", text_1),
-                ('1', text_2),
-                ("1", text_3)
+                ("1", message_1),
+                ('1', message_2),
+                ("1", message_3)
             ]
 
         self.check_conversation(
@@ -155,15 +163,20 @@ class InGameStateTest(TestCase):
 
     def test_when_all_user_answers_another_not_cor(self):
         state_factory = self.create_state_factory()
+        keyboard = format.make_keyboard_for_question(2)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
-        first_bot_message = dedent_and_strip(text)
+        first_bot_text = dedent_and_strip(text)
+        first_bot_message = Message(CHAT_ID, first_bot_text, "HTML", keyboard)
         text_1 = format.get_response_for_valid_answer(False, Question("17+3", ["20", "21"], 0))
+        message_1 = Message(CHAT_ID, text_1, "HTML", keyboard)
         text_2 = format.get_response_for_valid_answer(False, Question("27+3", ["30", "31"], 0))
+        message_2 = Message(CHAT_ID, text_2, "HTML", keyboard)
         text_3 = format.get_response_for_valid_answer(False, game_score=0)
+        message_3 = Message(CHAT_ID, text_3, "HTML", None)
         conversation = [
-                ("2", text_1),
-                ('2', text_2),
-                ("2", text_3)
+                ("2", message_1),
+                ('2', message_2),
+                ("2", message_3)
             ]
         self.check_conversation(
                                 state_factory,
@@ -175,11 +188,14 @@ class InGameStateTest(TestCase):
 
     def test_when_all_user_answers_another_foo(self):
         state_factory = self.create_state_factory()
+        keyboard = format.make_keyboard_for_question(2)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
-        first_bot_message = dedent_and_strip(text)
+        first_bot_text = dedent_and_strip(text)
+        first_bot_message = Message(CHAT_ID, first_bot_text, "HTML", keyboard)
         text_1 = format.get_number_of_answers_help(2)
+        message_1 = Message(CHAT_ID, text_1, "HTML", None)
         conversation = [
-                ("foo", text_1)
+                ("foo", message_1)
             ]
         self.check_conversation(
                                 state_factory,
@@ -191,15 +207,20 @@ class InGameStateTest(TestCase):
 
     def test_when_all_user_answers_another_second_foo_cor(self):
         state_factory = self.create_state_factory()
+        keyboard = format.make_keyboard_for_question(2)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
-        first_bot_message = dedent_and_strip(text)
+        first_bot_text = dedent_and_strip(text)
+        first_bot_message = Message(CHAT_ID, first_bot_text, "HTML", keyboard)
         text_1 = format.get_number_of_answers_help(2)
+        message_1 = Message(CHAT_ID, text_1, "HTML", None)
         text_2 = format.get_number_of_answers_help(2)
+        message_2 = Message(CHAT_ID, text_1, "HTML", None)
         text_3 = format.get_response_for_valid_answer(True, Question("17+3", ["20", "21"], 0))
+        message_3 = Message(CHAT_ID, text_3, "HTML", keyboard)
         conversation = [
-                ("foo", text_1),
-                ('foo', text_2),
-                ("1", text_3)
+                ("foo", message_1),
+                ('foo', message_2),
+                ("1", message_3)
             ]
         self.check_conversation(
                                 state_factory,
@@ -210,15 +231,20 @@ class InGameStateTest(TestCase):
 
     def test_when_all_user_answers_another_second_foo_not_cor(self):
         state_factory = self.create_state_factory()
+        keyboard = format.make_keyboard_for_question(2)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
-        first_bot_message = dedent_and_strip(text)
+        first_bot_text = dedent_and_strip(text)
+        first_bot_message = Message(CHAT_ID, first_bot_text, "HTML", keyboard)
         text_1 = format.get_number_of_answers_help(2)
+        message_1 = Message(CHAT_ID, text_1, "HTML", None)
         text_2 = format.get_number_of_answers_help(2)
+        message_2 = Message(CHAT_ID, text_1, "HTML", None)
         text_3 = format.get_response_for_valid_answer(False, Question("17+3", ["20", "21"], 0))
+        message_3 = Message(CHAT_ID, text_3, "HTML", keyboard)
         conversation = [
-                ("foo", text_1),
-                ('foo', text_2),
-                ("2", text_3)
+                ("foo", message_1),
+                ('foo', message_2),
+                ("2", message_3)
             ]
         self.check_conversation(
                                 state_factory,
@@ -230,15 +256,20 @@ class InGameStateTest(TestCase):
 
     def test_when_all_user_answers_another_third_foo_not_cor(self):
         state_factory = self.create_state_factory()
+        keyboard = format.make_keyboard_for_question(2)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
-        first_bot_message = dedent_and_strip(text)
+        first_bot_text = dedent_and_strip(text)
+        first_bot_message = Message(CHAT_ID, first_bot_text, "HTML", keyboard)
         text_1 = format.get_number_of_answers_help(2)
+        message_1 = Message(CHAT_ID, text_1, "HTML", None)
         text_2 = format.get_number_of_answers_help(2)
+        message_2 = Message(CHAT_ID, text_1, "HTML", None)
         text_3 = format.get_response_for_valid_answer(False, Question("17+3", ["20", "21"], 0))
+        message_3 = Message(CHAT_ID, text_3, "HTML", keyboard)
         conversation = [
-                ("foo", text_1),
-                ('6', text_2),
-                ("2", text_3)
+                ("foo", message_1),
+                ('6', message_2),
+                ("2", message_3)
             ]
         self.check_conversation(
             state_factory,

@@ -2,6 +2,7 @@ from unittest import TestCase
 from trivia import format
 from trivia.question_storage import Question
 from trivia.utils import dedent_and_strip
+from trivia.models import Button, Keyboard
 
 
 class GetNumbersOfAnswersHelpTest(TestCase):
@@ -47,6 +48,36 @@ class GetResponseForValidAnswerText(TestCase):
         self.assertEqual(expected_text, format.get_response_for_valid_answer(False, game_score=2))
 
 
+class MakeKeyboardForQuestionTest(TestCase):
+    def test_make_for_two_answers(self):
+        buttons = [
+            [
+                Button("1", "1"),
+                Button("2", "2")
+            ]
+        ]
+        expected = Keyboard(buttons)
+        actual = format.make_keyboard_for_question(2)
+        self.assertEqual(expected, actual)
 
+    def test_make_for_four_answers(self):
+        buttons = [
+            [
+                Button("1", "1"),
+                Button("2", "2")
+            ],
+            [
+                Button("3", "3"),
+                Button("4", "4")
+            ],
+        ]
+        expected = Keyboard(buttons)
+        actual = format.make_keyboard_for_question(4)
+        self.assertEqual(expected, actual)
 
+    def test_make_for_five_answers(self):
+        buttons = [[Button("1", "1"), Button("2", "2"), Button("3", "3"), Button("4", "4"), Button("5", "5")]]
+        expected = Keyboard(buttons)
+        actual = format.make_keyboard_for_question(5)
+        self.assertEqual(expected, actual)
 
