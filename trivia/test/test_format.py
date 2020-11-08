@@ -49,7 +49,7 @@ class GetResponseForValidAnswerText(TestCase):
 
 
 class MakeKeyboardForQuestionTest(TestCase):
-    def test_make_for_two_answers(self):
+    def test_two_answers(self):
         buttons = [
             [
                 Button("1", "1"),
@@ -60,7 +60,7 @@ class MakeKeyboardForQuestionTest(TestCase):
         actual = format.make_keyboard_for_question(2)
         self.assertEqual(expected, actual)
 
-    def test_make_for_four_answers(self):
+    def test_four_answers(self):
         buttons = [
             [
                 Button("1", "1"),
@@ -75,9 +75,9 @@ class MakeKeyboardForQuestionTest(TestCase):
         actual = format.make_keyboard_for_question(4)
         self.assertEqual(expected, actual)
 
-    def test_make_for_five_answers(self):
-        buttons = [[Button("1", "1"), Button("2", "2"), Button("3", "3"), Button("4", "4"), Button("5", "5")]]
-        expected = Keyboard(buttons)
+    def test_five_answers(self):
+        buttons_1 = [[Button(str(i + 1), str(i + 1)) for i in range(5)]]
+        expected = Keyboard(buttons_1)
         actual = format.make_keyboard_for_question(5)
         self.assertEqual(expected, actual)
 
