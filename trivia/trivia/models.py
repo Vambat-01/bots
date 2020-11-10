@@ -1,5 +1,6 @@
 from typing import List, Dict, Any
 from typing import Optional
+from dataclasses import dataclass
 
 
 class Button:
@@ -126,5 +127,14 @@ class Command:
         return False
 
 
+@dataclass
+class CallbackQuery:
+    """
+        Новый входящий запрос обратного вызова.
+        Telegram Api documentation ( https://core.telegram.org/bots/api/#callbackquery ).
+        data: Данные связанные с кнопкой обратного вызова
+    """
+    data: str
+    message: Message
 
 

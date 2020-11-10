@@ -2,7 +2,7 @@ from typing import Optional, List
 from unittest import TestCase
 from requests.models import Response
 from trivia.bot_state import BotState
-from trivia.models import Message, Command, Keyboard
+from trivia.models import Message, Command, Keyboard, CallbackQuery
 from trivia.bot import Bot, TelegramApi
 import json
 from trivia.bot_state import BotResponse
@@ -28,6 +28,9 @@ class NewFakeState(BotState):
         self.on_enter_is_called = True
         return Message(CHAT_ID, "text message on_enter")
 
+    def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
+        return BotResponse(Message(CHAT_ID, "text callback_query"))
+
 
 class FakeState(BotState):
     """
@@ -37,6 +40,7 @@ class FakeState(BotState):
         self.reply_text = reply_text
         self.process_message_is_called = False
         self.process_command_is_called = False
+        self.process_callback_query_is_called = False
         self.next_state = next_state
 
     def process_message(self, message: Message) -> BotResponse:
@@ -53,6 +57,12 @@ class FakeState(BotState):
 
     def on_enter(self, chat_id) -> Optional[Message]:
         return None
+
+    def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
+        self.process_callback_query_is_called = True
+        message = Message(CHAT_ID, self.reply_text)
+        bot_response = BotResponse(message, self.next_state)
+        return bot_response
 
 
 class FakeTelegramApi(TelegramApi):
@@ -71,9 +81,9 @@ class FakeTelegramApi(TelegramApi):
                         "from": {
                             "id": 1379887547,
                             "is_bot": False,
-                            "first_name": "Евгений",
-                            "last_name": "Васильев",
-                            "username": "zenja09",
+                            "first_name": "Степан",
+                            "last_name": "Капуста",
+                            "username": "степка",
                             "language_code": "en"
                         },
                         "chat": {
@@ -89,6 +99,7 @@ class FakeTelegramApi(TelegramApi):
                 }
             ]
         }
+
         string = json.dumps(data)
         content = string.encode('utf-8')
 
@@ -103,6 +114,9 @@ class FakeTelegramApi(TelegramApi):
                      parse_mode: Optional[str] = None,
                      keyboard: Optional[Keyboard] = None):
         self.sent_messages.append(text)
+
+    def answer_callback_query(self, callback_query_id: str) -> None:
+        pass
 
 
 class FixTelegramBotTest(TestCase):

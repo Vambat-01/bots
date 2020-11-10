@@ -1,7 +1,7 @@
 import requests
 import datetime
-from trivia.bot_state import BotState
-from trivia.models import Message, Command, Keyboard
+from trivia.bot_state import BotState, BotResponse
+from trivia.models import Message, Command, Keyboard, CallbackQuery
 from requests.models import Response
 from abc import ABCMeta, abstractmethod
 from typing import Optional
@@ -40,6 +40,16 @@ class TelegramApi(metaclass=ABCMeta):
         :param text: текст сообщения
         :param parse_mode: режим для форматирования текста сообщения
         :param keyboard: опциональная встроенная клавиатура, которая будет отображаться пользователю
+        :return: None
+        """
+        pass
+
+    @abstractmethod
+    def answer_callback_query(self, callback_query_id: str) -> None:
+        """
+            Метод для отправки ответов на запросы обратного вызова, отправленные со встроенных клавиатур
+            Telegram Api documentation ( https://core.telegram.org/bots/api#answercallbackquery ).
+        :param callback_query_id: уникальный идентификатор запроса, на который нужно ответить
         :return: None
         """
         pass
@@ -88,6 +98,13 @@ class RealTelegramApi(TelegramApi):
         if response.status_code != 200:
             log(f"TelegramAPI: Unexpected status code: {response.status_code}. Response body: {response.text}")
 
+    def answer_callback_query(self, callback_query_id: str) -> None:
+        url = f"https://api.telegram.org/bot{self.token}/CallbackQuery"
+        body = {
+            "callback_query_id": callback_query_id
+        }
+        response = requests.post(url, json=body)
+
 
 class Bot:
     """
@@ -107,19 +124,30 @@ class Bot:
         data = response.json()
         result = data["result"]
         for update in result:
-            if "message" not in update:
+            if "message" in update:
+                chat_id = update["message"]["chat"]["id"]
+                message_text = update["message"]["text"]
+                log(f"chat_id : {chat_id}. text: {message_text} ")
+                if message_text.startswith("/"):
+                    user_command = Command(chat_id, message_text)
+                    bot_response: Optional[BotResponse] = self.state.process_command(user_command)
+                else:
+                    user_message = Message(chat_id, message_text)
+                    bot_response: Optional[BotResponse] = self.state.process_message(user_message)
+            elif "callback_query" in update:
+                callback_query_id = update["callback_query"]["id"]
+                # TODO: message is optional
+                chat_id = update["callback_query"]["message"]["chat"]["id"]
+                message_text = update["callback_query"]["message"]["text"]
+                message = Message(chat_id, message_text)
+                callback_query_data = update["callback_query"]["data"]
+                callback_query = CallbackQuery(callback_query_data, message)
+                self.telegram_api.answer_callback_query(callback_query_id)
+                bot_response: Optional[BotResponse] = self.state.process_callback_query(callback_query)
+            else:
                 log("skipping update")
                 continue
 
-            chat_id = update["message"]["chat"]["id"]
-            message_text = update["message"]["text"]
-            log(f"chat_id : {chat_id}. text: {message_text} ")
-            if message_text.startswith("/"):
-                user_command = Command(chat_id, message_text)
-                bot_response = self.state.process_command(user_command)
-            else:
-                user_message = Message(chat_id, message_text)
-                bot_response = self.state.process_message(user_message)
             self.last_update_id = update["update_id"]
             self.telegram_api.send_message(bot_response.message.chat_id,
                                            bot_response.message.text,
