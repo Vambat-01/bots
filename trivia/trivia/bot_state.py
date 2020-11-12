@@ -127,6 +127,7 @@ class TestState(BotState):
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
         pass
 
+
 class EchoState(BotState):
     """
         Обрабатывает полученное сообщение или команду от пользователя и возвращает ответ бота
@@ -216,6 +217,7 @@ class GreetingState(BotState):
 
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
         pass
+
 
 class IdleState(BotState):
     """

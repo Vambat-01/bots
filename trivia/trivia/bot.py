@@ -4,7 +4,7 @@ from trivia.bot_state import BotState, BotResponse
 from trivia.models import Message, Command, Keyboard, CallbackQuery
 from requests.models import Response
 from abc import ABCMeta, abstractmethod
-from typing import Optional
+from typing import Optional, Dict, Any
 
 
 def log(message: str) -> None:
@@ -124,47 +124,59 @@ class Bot:
         data = response.json()
         result = data["result"]
         for update in result:
-            if "message" in update:
-                chat_id = update["message"]["chat"]["id"]
-                message_text = update["message"]["text"]
-                log(f"chat_id : {chat_id}. text: {message_text} ")
-                if message_text.startswith("/"):
-                    user_command = Command(chat_id, message_text)
-                    bot_response: Optional[BotResponse] = self.state.process_command(user_command)
-                else:
-                    user_message = Message(chat_id, message_text)
-                    bot_response: Optional[BotResponse] = self.state.process_message(user_message)
-            elif "callback_query" in update:
-                callback_query_id = update["callback_query"]["id"]
-                # TODO: message is optional
-                chat_id = update["callback_query"]["message"]["chat"]["id"]
-                message_text = update["callback_query"]["message"]["text"]
-                message = Message(chat_id, message_text)
-                callback_query_data = update["callback_query"]["data"]
-                callback_query = CallbackQuery(callback_query_data, message)
-                self.telegram_api.answer_callback_query(callback_query_id)
-                bot_response: Optional[BotResponse] = self.state.process_callback_query(callback_query)
-            else:
-                log("skipping update")
-                continue
-
             self.last_update_id = update["update_id"]
-            self.telegram_api.send_message(bot_response.message.chat_id,
-                                           bot_response.message.text,
-                                           bot_response.message.parse_mode,
-                                           bot_response.message.keyboard
-                                           )
+            bot_response = self.process_update(update)
+            if bot_response is not None:
+                self.telegram_api.send_message(bot_response.message.chat_id,
+                                               bot_response.message.text,
+                                               bot_response.message.parse_mode,
+                                               bot_response.message.keyboard
+                                               )
 
-            if bot_response.new_state is not None:
-                new_state: BotState = bot_response.new_state
-                self.state = new_state
-                first_message = self.state.on_enter(chat_id)
-                if first_message is not None:
-                    self.telegram_api.send_message(first_message.chat_id,
-                                                   first_message.text,
-                                                   first_message.parse_mode,
-                                                   first_message.keyboard
-                                                   )
+                if bot_response.new_state is not None:
+                    new_state: BotState = bot_response.new_state
+                    self.state = new_state
+                    first_message = self.state.on_enter(self._get_chat_id(update))
+                    if first_message is not None:
+                        self.telegram_api.send_message(first_message.chat_id,
+                                                       first_message.text,
+                                                       first_message.parse_mode,
+                                                       first_message.keyboard
+                                                       )
 
+    def process_update(self, update: Dict[str, Any]) -> Optional[BotResponse]:
+        if "message" in update:
+            chat_id = self._get_chat_id(update)
+            message_text = update["message"]["text"]
+            log(f"chat_id : {chat_id}. text: {message_text} ")
+            if message_text.startswith("/"):
+                user_command = Command(chat_id, message_text)
+                bot_response: Optional[BotResponse] = self.state.process_command(user_command)
+                return bot_response
+            else:
+                user_message = Message(chat_id, message_text)
+                bot_response = self.state.process_message(user_message)
+                return bot_response
+        elif "callback_query" in update:
+            callback_query_id = update["callback_query"]["id"]
+            # TODO: message is optional
+            chat_id = update["callback_query"]["message"]["chat"]["id"]
+            message_text = update["callback_query"]["message"]["text"]
+            message = Message(chat_id, message_text)
+            callback_query_data = update["callback_query"]["data"]
+            callback_query = CallbackQuery(callback_query_data, message)
+            self.telegram_api.answer_callback_query(callback_query_id)
+            bot_response = self.state.process_callback_query(callback_query)
+            return bot_response
+        else:
+            log("skipping update")
+            return None
+
+    def _get_chat_id(self, update: Dict[str, Any]) -> Optional[int]:
+        if "callback_query" in update:
+            chat_id = update["callback_query"]["message"]["chat"]["id"]
+        else:
+            chat_id = update["message"]["chat"]["id"]
+        return chat_id
 
 
