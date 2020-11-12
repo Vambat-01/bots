@@ -172,7 +172,7 @@ class Bot:
             log("skipping update")
             return None
 
-    def _get_chat_id(self, update: Dict[str, Any]) -> Optional[int]:
+    def _get_chat_id(self, update: Dict[str, Any]) -> int:
         if "callback_query" in update:
             chat_id = update["callback_query"]["message"]["chat"]["id"]
         else:
