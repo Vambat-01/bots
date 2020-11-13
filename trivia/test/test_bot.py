@@ -11,7 +11,7 @@ from enum import Enum
 CHAT_ID = 125
 
 
-class GetType(Enum):
+class UpdateType(Enum):
     MESSAGE = 1
     COMMAND = 2
     CALLBACK_QUERY = 3
@@ -36,7 +36,7 @@ class NewFakeState(BotState):
         return Message(CHAT_ID, "text message on_enter")
 
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
-        return BotResponse(Message(CHAT_ID, "text callback_query"))
+        return None
 
 
 class FakeState(BotState):
@@ -76,10 +76,11 @@ class FakeTelegramApi(TelegramApi):
     def __init__(self, response_body: Dict[str, Any]):
         self.sent_messages: List[str] = []
         self.response_body = response_body
+        self.answer_callback_query_is_called = False
 
     def get_updates(self, offset: int) -> Response:
-        string = json.dumps(self.response_body)
-        content = string.encode('utf-8')
+        body = json.dumps(self.response_body)
+        content = body.encode('utf-8')
         response = Response()
         response.status_code = 200
         response._content = content
@@ -93,11 +94,12 @@ class FakeTelegramApi(TelegramApi):
         self.sent_messages.append(text)
 
     def answer_callback_query(self, callback_query_id: str) -> None:
+        self.answer_callback_query_is_called = True
         pass
 
 
 class FixTelegramBotTest(TestCase):
-    def check_transition_2(self, type: GetType, response_body: Dict[str, Any]):
+    def check_transition(self, update_type: UpdateType, response_body: Dict[str, Any]):
         telegram_api = FakeTelegramApi(response_body)
         next_state = NewFakeState()
         state = FakeState("bot message", next_state)
@@ -106,27 +108,28 @@ class FixTelegramBotTest(TestCase):
         self.assertEqual(bot.state, next_state)
         self.assertTrue(next_state.on_enter_is_called)
         self.assertEqual(["bot message", "text message on_enter"], telegram_api.sent_messages)
-        if type == GetType.MESSAGE:
+        if update_type == UpdateType.MESSAGE:
             self.assertTrue(state.process_message_is_called)
-        elif type == GetType.COMMAND:
+        elif update_type == UpdateType.COMMAND:
             self.assertTrue(state.process_command_is_called)
-        elif type == GetType.CALLBACK_QUERY:
+        elif update_type == UpdateType.CALLBACK_QUERY:
             self.assertTrue(state.process_callback_query_is_called)
+            self.assertTrue(telegram_api.answer_callback_query_is_called)
 
-    def test_message_state_transition_2(self):
-        response = json_message_and_command("1")
-        self.check_transition_2(GetType.MESSAGE, response)
+    def test_message_state_transition(self):
+        response = make_message_and_command_update("1")
+        self.check_transition(UpdateType.MESSAGE, response)
 
-    def test_command_state_transition_2(self):
-        response = json_message_and_command("/command")
-        self.check_transition_2(GetType.COMMAND, response)
+    def test_command_state_transition(self):
+        response = make_message_and_command_update("/command")
+        self.check_transition(UpdateType.COMMAND, response)
 
-    def test_callback_query_state_transition_2(self):
+    def test_callback_query_state_transition(self):
         response = json_callback_query("2")
-        self.check_transition_2(GetType.CALLBACK_QUERY, response)
+        self.check_transition(UpdateType.CALLBACK_QUERY, response)
 
     def check_command_without_state_transition(self, user_message: str, is_command: bool):
-        response = json_message_and_command(user_message)
+        response = make_message_and_command_update(user_message)
         telegram_api = FakeTelegramApi(response)
         state = FakeState("bot message")
         bot = Bot(telegram_api, state)
@@ -145,9 +148,10 @@ class FixTelegramBotTest(TestCase):
         self.check_command_without_state_transition("/command", True)
 
 
-def json_message_and_command(text: str) -> Dict[str, Any]:
+def make_message_and_command_update(text: str) -> Dict[str, Any]:
     """
-        Возвращает json объект. Ответ пользователя, сообщение или команду
+        Создает Telegram update состоящий из одного сообщения. В зависимости от `text` это сообщение представляет собой
+        либо сообщение либо команду от пользователя.
     :param text: текст или команда полученные от пользователя
     :return: json объект
     """
@@ -184,8 +188,9 @@ def json_message_and_command(text: str) -> Dict[str, Any]:
 
 def json_callback_query(callback_data: str) -> Dict[str, Any]:
     """
-        Возвращает json щбъект. Ответ пользователя при нажатие на кнопку
-    :param callback_data: ответ пользоватебя при нажатие на кнопку
+        Создает Telegram update состоящий из одного сообщения. В зависимости от `callback_data` кнопки, которую нажмет
+        пользователь на встроенной клавиатуре, которая появляется рядом с сообщением, которому она принадлежит.
+    :param callback_data: ответ пользоватебя при нажатие на кнопку встроенной клавиатуры
     :return: json объект
     """
     data = {

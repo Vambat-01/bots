@@ -43,7 +43,7 @@ class JsonQuestionStorage(QuestionStorage):
         Класс для чтения вопросов из JSON файла
     """
 
-    def __init__(self, file_path:str):
+    def __init__(self, file_path: str):
         """
             Передает путь к файлу
         :param file_path: путь к файлу

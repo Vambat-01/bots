@@ -93,8 +93,8 @@ class BotState(metaclass=ABCMeta):
     @abstractmethod
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
         """
-            Обрабатывает входящий запрос обратного вызова
-        :param callback_query: входящий запрос обратного вызова
+            Обрабатывает входящий запрос обратного вызова от кнопки обратного вызова на встроенной клавиатуре
+        :param callback_query: входящий запрос обратного вызова от кнопки обратного вызова
         :return: ответ бота
         """
 
@@ -125,7 +125,7 @@ class TestState(BotState):
         return None
 
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
-        pass
+        return None
 
 
 class EchoState(BotState):
@@ -154,7 +154,7 @@ class EchoState(BotState):
         return response
 
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
-        pass
+        return None
 
     def on_enter(self, chat_id: int) -> Optional[Message]:
         """
@@ -216,7 +216,7 @@ class GreetingState(BotState):
         pass
 
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
-        pass
+        return None
 
 
 class IdleState(BotState):
@@ -278,7 +278,7 @@ class IdleState(BotState):
         pass
 
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
-        pass
+        return None
 
 
 class InGameState(BotState):
@@ -313,7 +313,6 @@ class InGameState(BotState):
             :return: ответ бота
         """
         user_message = message.text
-        # answer_id = self.parse_int(user_message)
         chat_id = message.chat_id
         response = self._process_answer(user_message, chat_id)
         return response
@@ -336,6 +335,10 @@ class InGameState(BotState):
         return response
 
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
+        """
+
+        :rtype: object
+        """
         chat_id = callback_query.message.chat_id
         answer_id = callback_query.data
         response = self._process_answer(answer_id, chat_id)
@@ -361,7 +364,6 @@ class InGameState(BotState):
 
     def _process_answer(self, answer: str, chat_id: int) -> BotResponse:
         new_state = None
-        idle_state = self.state_factory.create_idle_state()
         num_of_resp = len(self.questions[self.current_question].answers)
         answer_id = self.parse_int(answer)
         if answer_id is None:
@@ -388,6 +390,7 @@ class InGameState(BotState):
                 message_text = format.get_response_for_valid_answer(is_answer_correct, next_question=next_question)
                 response_message = Message(chat_id, message_text, "HTML", keyboard)
             else:
+                idle_state = self.state_factory.create_idle_state()
                 new_state = idle_state
                 message_text = format.get_response_for_valid_answer(is_answer_correct, game_score=self.game_score)
                 response_message = Message(chat_id, message_text, "HTML")

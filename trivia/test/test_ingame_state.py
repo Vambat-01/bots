@@ -8,6 +8,7 @@ from trivia import format
 
 
 CHAT_ID = 300
+PATH_JSON = "resources/test_questions.json"
 
 
 class InGameStateTest(TestCase):
@@ -23,16 +24,15 @@ class InGameStateTest(TestCase):
             :param conversation: список пар (сообщение пользователя, ответ бота на это сообщение)
             :param expected_state: ожидаемое состояние бота в конце диалога
         """
-        chat_id = 300
         json_file = "resources/test_questions.json"
         storage = JsonQuestionStorage(json_file)
         questions = storage.load_questions()
         state = InGameState(questions, state_factory)
-        message = state.on_enter(chat_id)
+        message = state.on_enter(CHAT_ID)
         self.assertEqual(first_bot_message, message)
         count = 0
         for user_msg, expected_bot_msg in conversation:
-            response = state.process_message(Message(chat_id, user_msg))
+            response = state.process_message(Message(CHAT_ID, user_msg))
             count += 1
 
             if len(conversation) == count:
@@ -49,30 +49,20 @@ class InGameStateTest(TestCase):
         return state_factory
 
     def test_process_message_int_cor(self):
-        chat_id = 280
         text = "1"
-        user_message = Message(chat_id, text)
-        json_file = "resources/test_questions.json"
-        storage = JsonQuestionStorage(json_file)
-        questions = storage.load_questions()
-        state_factory = BotStateFactory(storage)
-        state = InGameState(questions, state_factory)
+        user_message = Message(CHAT_ID, text)
+        state = _make_in_game_state(PATH_JSON)
         message_resp = state.process_message(user_message)
         check_text = format.get_response_for_valid_answer(True, Question("17+3", ["20", "21"], 0))
         self.assertEqual(check_text, message_resp.message.text
             )
-        self.assertEqual(280, message_resp.message.chat_id)
+        self.assertEqual(300, message_resp.message.chat_id)
         self.assertEqual(None, message_resp.new_state)
 
     def test_process_message_int_not_cor(self):
-        chat_id = 300
         text = "2"
-        user_message = Message(chat_id, text)
-        json_file = "resources/test_questions.json"
-        storage = JsonQuestionStorage(json_file)
-        questions = storage.load_questions()
-        state_factory = BotStateFactory(storage)
-        state = InGameState(questions, state_factory)
+        user_message = Message(CHAT_ID, text)
+        state = _make_in_game_state(PATH_JSON)
         message_resp = state.process_message(user_message)
         check_text = format.get_response_for_valid_answer(False, Question("17+3", ["20", "21"], 0))
         self.assertEqual(dedent_and_strip(check_text), message_resp.message.text
@@ -81,23 +71,17 @@ class InGameStateTest(TestCase):
         self.assertEqual(None, message_resp.new_state)
 
     def test_process_message_another(self):
-        chat_id = 305
         text = "1foo"
-        user_message = Message(chat_id, text)
-        json_file = "resources/test_questions.json"
-        storage = JsonQuestionStorage(json_file)
-        questions = storage.load_questions()
-        state_factory = BotStateFactory(storage)
-        state = InGameState(questions, state_factory)
+        user_message = Message(CHAT_ID, text)
+        state = _make_in_game_state(PATH_JSON)
         message_resp = state.process_message(user_message)
         self.assertEqual("<i>I don't understand you. You can enter a number from 1 to 2</i>", message_resp.message.text)
-        self.assertEqual(305, message_resp.message.chat_id)
+        self.assertEqual(300, message_resp.message.chat_id)
         self.assertEqual(None, message_resp.new_state)
 
     def test_process_command_stop(self):
-        chat_id = 285
         text = "/stop"
-        user_command = Command(chat_id, text)
+        user_command = Command(CHAT_ID, text)
         json_file = "resources/test_questions.json"
         storage = JsonQuestionStorage(json_file)
         questions = storage.load_questions()
@@ -105,68 +89,46 @@ class InGameStateTest(TestCase):
         state = InGameState(questions, state_factory)
         command_resp = state.process_command(user_command)
         self.assertEqual("<i>The game is over.</i>", command_resp.message.text)
-        self.assertEqual(285, command_resp.message.chat_id)
+        self.assertEqual(300, command_resp.message.chat_id)
         self.assertEqual(IdleState(state_factory), command_resp.new_state)
 
     def test_process_command_another(self):
-        chat_id = 290
         text = "/start"
-        user_command = Command(chat_id, text)
-        json_file = "resources/test_questions.json"
-        storage = JsonQuestionStorage(json_file)
-        questions = storage.load_questions()
-        state_factory = BotStateFactory(storage)
-        state = InGameState(questions, state_factory)
+        user_command = Command(CHAT_ID, text)
+        state = _make_in_game_state(PATH_JSON)
         command_response = state.process_command(user_command)
         self.assertEqual("<i>Other commands are not available in the game</i>", command_response.message.text)
-        self.assertEqual(290, command_response.message.chat_id)
+        self.assertEqual(300, command_response.message.chat_id)
         self.assertEqual(None, command_response.new_state)
 
     def test_on_enter(self):
-        chat_id = 295
-        json_file = "resources/test_questions.json"
-        storage = JsonQuestionStorage(json_file)
-        questions = storage.load_questions()
-        state_factory = BotStateFactory(storage)
-        state = InGameState(questions, state_factory)
-        response = state.on_enter(chat_id)
+        state = _make_in_game_state(PATH_JSON)
+        response = state.on_enter(CHAT_ID)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
         check_text = dedent_and_strip(text)
         self.assertEqual(dedent_and_strip(check_text), response.text
         )
-        self.assertEqual(295, response.chat_id)
+        self.assertEqual(300, response.chat_id)
 
     def test_callback_query_answer_cor(self):
-        chat_id = 300
-        callback_query_data = "1"
-        user_message = Message(chat_id, callback_query_data)
-        json_file = "resources/test_questions.json"
-        storage = JsonQuestionStorage(json_file)
-        questions = storage.load_questions()
-        state_factory = BotStateFactory(storage)
-        state = InGameState(questions, state_factory)
-        callback_query = CallbackQuery(callback_query_data,user_message)
-        message_resp = state.process_callback_query(callback_query)
-        expected = format.get_response_for_valid_answer(True, Question("17+3", ["20", "21"], 0))
-        self.assertEqual(dedent_and_strip(expected), message_resp.message.text)
-        self.assertEqual(300, message_resp.message.chat_id)
-        self.assertEqual(None, message_resp.new_state)
+        message_text = "1"
+        user_message = Message(CHAT_ID, message_text)
+        state = _make_in_game_state(PATH_JSON)
+        callback_query = CallbackQuery(message_text, user_message)
+        callback_query_response = state.process_callback_query(callback_query)
+        answer_text = format.get_response_for_valid_answer(True, Question("17+3", ["20", "21"], 0))
+        expected = BotResponse(Message(CHAT_ID, dedent_and_strip(answer_text), "HTML", make_keyboard_for_question(2)))
+        self.assertEqual(expected, callback_query_response)
 
     def test_callback_query_answer_not_cor(self):
-        chat_id = 350
-        callback_query_data = "2"
-        user_message = Message(chat_id, callback_query_data)
-        json_file = "resources/test_questions.json"
-        storage = JsonQuestionStorage(json_file)
-        questions = storage.load_questions()
-        state_factory = BotStateFactory(storage)
-        state = InGameState(questions, state_factory)
-        callback_query = CallbackQuery(callback_query_data,user_message)
-        message_resp = state.process_callback_query(callback_query)
-        expected = format.get_response_for_valid_answer(False, Question("17+3", ["20", "21"], 0))
-        self.assertEqual(dedent_and_strip(expected), message_resp.message.text)
-        self.assertEqual(350, message_resp.message.chat_id)
-        self.assertEqual(None, message_resp.new_state)
+        message_text = "2"
+        user_message = Message(CHAT_ID, message_text)
+        state = _make_in_game_state(PATH_JSON)
+        callback_query = CallbackQuery(message_text, user_message)
+        callback_query_response = state.process_callback_query(callback_query)
+        answer_text = format.get_response_for_valid_answer(False, Question("17+3", ["20", "21"], 0))
+        expected = BotResponse(Message(CHAT_ID, dedent_and_strip(answer_text), "HTML", make_keyboard_for_question(2)))
+        self.assertEqual(expected, callback_query_response)
 
     def test_when_all_user_answers_another_cor(self):
         state_factory = self.create_state_factory()
@@ -303,3 +265,19 @@ class InGameStateTest(TestCase):
             conversation,
             None
         )
+
+
+def _make_in_game_state(path_json: str) -> InGameState:
+    """
+        Создает InGameState
+    :param path_json: путь к файлу
+    :return: InGameState
+    """
+    json_file = path_json
+    storage = JsonQuestionStorage(json_file)
+    questions = storage.load_questions()
+    state_factory = BotStateFactory(storage)
+    state = InGameState(questions, state_factory)
+    return state
+
+
