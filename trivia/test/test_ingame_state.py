@@ -269,8 +269,8 @@ class InGameStateTest(TestCase):
 
 def _make_in_game_state(questions_file_path: str) -> InGameState:
     """
-        Создает InGameState
-    :param path_json: путь к файлу json
+        Создает InGameState с вопросами из файла questions_file_path
+    :param questions_file_path: путь к файлу json
     :return: InGameState
     """
     storage = JsonQuestionStorage(questions_file_path)
