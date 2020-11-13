@@ -335,8 +335,8 @@ class InGameState(BotState):
 
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
         chat_id = callback_query.message.chat_id
-        answer_id = callback_query.data
-        response = self._process_answer(answer_id, chat_id)
+        answer_string = callback_query.data
+        response = self._process_answer(answer_string, chat_id)
         return response
 
     def on_enter(self, chat_id: int) -> Optional[Message]:
