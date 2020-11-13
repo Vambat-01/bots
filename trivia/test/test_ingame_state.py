@@ -108,9 +108,9 @@ class InGameStateTest(TestCase):
         check_text = dedent_and_strip(text)
         self.assertEqual(dedent_and_strip(check_text), response.text
         )
-        self.assertEqual(300, response.chat_id)
+        self.assertEqual(CHAT_ID, response.chat_id)
 
-    def test_callback_query_answer_correct(self):
+    def test_callback_query_when_answer_is_correct(self):
         message_text = "1"
         user_message = Message(CHAT_ID, message_text)
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
@@ -120,7 +120,7 @@ class InGameStateTest(TestCase):
         expected = BotResponse(Message(CHAT_ID, dedent_and_strip(answer_text), "HTML", make_keyboard_for_question(2)))
         self.assertEqual(expected, callback_query_response)
 
-    def test_callback_query_answer_not_correct(self):
+    def test_callback_query_when_answer_is_not_correct(self):
         message_text = "2"
         user_message = Message(CHAT_ID, message_text)
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
@@ -130,7 +130,7 @@ class InGameStateTest(TestCase):
         expected = BotResponse(Message(CHAT_ID, dedent_and_strip(answer_text), "HTML", make_keyboard_for_question(2)))
         self.assertEqual(expected, callback_query_response)
 
-    def test_when_all_user_answers_another_correct(self):
+    def test_when_all_user_answers_is_correct(self):
         state_factory = self.create_state_factory()
         keyboard = make_keyboard_for_question(2)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
@@ -154,7 +154,7 @@ class InGameStateTest(TestCase):
                                 IdleState(state_factory)
                                 )
 
-    def test_when_all_user_answers_another_not_correct(self):
+    def test_when_all_user_answers_is_not_correct(self):
         state_factory = self.create_state_factory()
         keyboard = make_keyboard_for_question(2)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
@@ -178,7 +178,7 @@ class InGameStateTest(TestCase):
 
         )
 
-    def test_when_all_user_answers_another_foo(self):
+    def test_when_user_answers_is_foo(self):
         state_factory = self.create_state_factory()
         keyboard = make_keyboard_for_question(2)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
@@ -196,7 +196,7 @@ class InGameStateTest(TestCase):
 
         )
 
-    def test_when_all_user_answers_another_second_foo_correct(self):
+    def test_when_user_answers_is_foo_and_is_correct(self):
         state_factory = self.create_state_factory()
         keyboard = make_keyboard_for_question(2)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
@@ -219,7 +219,7 @@ class InGameStateTest(TestCase):
                                 None
         )
 
-    def test_when_all_user_answers_another_second_foo_not_correct(self):
+    def test_when_user_answers_is_foo_and_is_not_correct(self):
         state_factory = self.create_state_factory()
         keyboard = make_keyboard_for_question(2)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
@@ -243,7 +243,7 @@ class InGameStateTest(TestCase):
 
         )
 
-    def test_when_all_user_answers_another_third_foo_not_correct(self):
+    def test_when_all_user_third_foo_not_correct(self):
         state_factory = self.create_state_factory()
         keyboard = make_keyboard_for_question(2)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])

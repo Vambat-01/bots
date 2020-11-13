@@ -104,7 +104,7 @@ class RealTelegramApi(TelegramApi):
             "callback_query_id": callback_query_id
         }
         response = requests.post(url, json=body)
-        log(f"TelegramAPI: Unexpected status code: {response.status_code}. Response body: {response.text}")
+        log(f"TelegramAPI answer_callback_query status code: {response.status_code}")
 
 
 class Bot:

@@ -187,9 +187,8 @@ def make_message_update(text: str) -> Dict[str, Any]:
 
 def make_callback_query_update(callback_data: str) -> Dict[str, Any]:
     """
-        Создает Telegram update состоящий из одного callback_data. В зависимости от `callback_data` кнопки, которую
-         нажмет пользователь на встроенной клавиатуре, которая появляется рядом с сообщением, которому она принадлежит.
-    :param callback_data: ответ пользоватебя при нажатие на кнопку встроенной клавиатуры
+        Создает Telegram update состоящий из одного CallbackQuery.
+    :param callback_data: ответ при нажатие на кнопку встроенной клавиатуры
     :return: json объект
     """
     data = {
