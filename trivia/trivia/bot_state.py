@@ -93,8 +93,8 @@ class BotState(metaclass=ABCMeta):
     @abstractmethod
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
         """
-            Обрабатывает входящий запрос обратного вызова от кнопки обратного вызова на встроенной клавиатуре
-        :param callback_query: входящий запрос обратного вызова от кнопки обратного вызова
+            Обрабатывает входящий запрос от кнопки на встроенной клавиатуре
+        :param callback_query: входящий запрос от кнопки
         :return: ответ бота
         """
 
@@ -313,8 +313,7 @@ class InGameState(BotState):
             :return: ответ бота
         """
         user_message = message.text
-        chat_id = message.chat_id
-        response = self._process_answer(user_message, chat_id)
+        response = self._process_answer(user_message, message.chat_id)
         return response
 
     def process_command(self, command: Command) -> BotResponse:
@@ -335,10 +334,6 @@ class InGameState(BotState):
         return response
 
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
-        """
-
-        :rtype: object
-        """
         chat_id = callback_query.message.chat_id
         answer_id = callback_query.data
         response = self._process_answer(answer_id, chat_id)

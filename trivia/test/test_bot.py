@@ -95,7 +95,6 @@ class FakeTelegramApi(TelegramApi):
 
     def answer_callback_query(self, callback_query_id: str) -> None:
         self.answer_callback_query_is_called = True
-        pass
 
 
 class FixTelegramBotTest(TestCase):
@@ -117,19 +116,19 @@ class FixTelegramBotTest(TestCase):
             self.assertTrue(telegram_api.answer_callback_query_is_called)
 
     def test_message_state_transition(self):
-        response = make_message_and_command_update("1")
+        response = make_message_update("1")
         self.check_transition(UpdateType.MESSAGE, response)
 
     def test_command_state_transition(self):
-        response = make_message_and_command_update("/command")
+        response = make_message_update("/command")
         self.check_transition(UpdateType.COMMAND, response)
 
     def test_callback_query_state_transition(self):
-        response = json_callback_query("2")
+        response = make_callback_query_update("2")
         self.check_transition(UpdateType.CALLBACK_QUERY, response)
 
     def check_command_without_state_transition(self, user_message: str, is_command: bool):
-        response = make_message_and_command_update(user_message)
+        response = make_message_update(user_message)
         telegram_api = FakeTelegramApi(response)
         state = FakeState("bot message")
         bot = Bot(telegram_api, state)
@@ -148,7 +147,7 @@ class FixTelegramBotTest(TestCase):
         self.check_command_without_state_transition("/command", True)
 
 
-def make_message_and_command_update(text: str) -> Dict[str, Any]:
+def make_message_update(text: str) -> Dict[str, Any]:
     """
         Создает Telegram update состоящий из одного сообщения. В зависимости от `text` это сообщение представляет собой
         либо сообщение либо команду от пользователя.
@@ -186,10 +185,10 @@ def make_message_and_command_update(text: str) -> Dict[str, Any]:
     return data
 
 
-def json_callback_query(callback_data: str) -> Dict[str, Any]:
+def make_callback_query_update(callback_data: str) -> Dict[str, Any]:
     """
-        Создает Telegram update состоящий из одного сообщения. В зависимости от `callback_data` кнопки, которую нажмет
-        пользователь на встроенной клавиатуре, которая появляется рядом с сообщением, которому она принадлежит.
+        Создает Telegram update состоящий из одного callback_data. В зависимости от `callback_data` кнопки, которую
+         нажмет пользователь на встроенной клавиатуре, которая появляется рядом с сообщением, которому она принадлежит.
     :param callback_data: ответ пользоватебя при нажатие на кнопку встроенной клавиатуры
     :return: json объект
     """

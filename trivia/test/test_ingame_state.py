@@ -8,7 +8,7 @@ from trivia import format
 
 
 CHAT_ID = 300
-PATH_JSON = "resources/test_questions.json"
+TEST_QUESTIONS_PATH = "resources/test_questions.json"
 
 
 class InGameStateTest(TestCase):
@@ -48,35 +48,35 @@ class InGameStateTest(TestCase):
         state_factory = BotStateFactory(storage)
         return state_factory
 
-    def test_process_message_int_cor(self):
+    def test_process_message_int_correct(self):
         text = "1"
         user_message = Message(CHAT_ID, text)
-        state = _make_in_game_state(PATH_JSON)
+        state = _make_in_game_state(TEST_QUESTIONS_PATH)
         message_resp = state.process_message(user_message)
         check_text = format.get_response_for_valid_answer(True, Question("17+3", ["20", "21"], 0))
         self.assertEqual(check_text, message_resp.message.text
             )
-        self.assertEqual(300, message_resp.message.chat_id)
+        self.assertEqual(CHAT_ID, message_resp.message.chat_id)
         self.assertEqual(None, message_resp.new_state)
 
-    def test_process_message_int_not_cor(self):
+    def test_process_message_int_not_correct(self):
         text = "2"
         user_message = Message(CHAT_ID, text)
-        state = _make_in_game_state(PATH_JSON)
+        state = _make_in_game_state(TEST_QUESTIONS_PATH)
         message_resp = state.process_message(user_message)
         check_text = format.get_response_for_valid_answer(False, Question("17+3", ["20", "21"], 0))
         self.assertEqual(dedent_and_strip(check_text), message_resp.message.text
         )
-        self.assertEqual(300, message_resp.message.chat_id)
+        self.assertEqual(CHAT_ID, message_resp.message.chat_id)
         self.assertEqual(None, message_resp.new_state)
 
     def test_process_message_another(self):
         text = "1foo"
         user_message = Message(CHAT_ID, text)
-        state = _make_in_game_state(PATH_JSON)
+        state = _make_in_game_state(TEST_QUESTIONS_PATH)
         message_resp = state.process_message(user_message)
         self.assertEqual("<i>I don't understand you. You can enter a number from 1 to 2</i>", message_resp.message.text)
-        self.assertEqual(300, message_resp.message.chat_id)
+        self.assertEqual(CHAT_ID, message_resp.message.chat_id)
         self.assertEqual(None, message_resp.new_state)
 
     def test_process_command_stop(self):
@@ -89,20 +89,20 @@ class InGameStateTest(TestCase):
         state = InGameState(questions, state_factory)
         command_resp = state.process_command(user_command)
         self.assertEqual("<i>The game is over.</i>", command_resp.message.text)
-        self.assertEqual(300, command_resp.message.chat_id)
+        self.assertEqual(CHAT_ID, command_resp.message.chat_id)
         self.assertEqual(IdleState(state_factory), command_resp.new_state)
 
     def test_process_command_another(self):
         text = "/start"
         user_command = Command(CHAT_ID, text)
-        state = _make_in_game_state(PATH_JSON)
+        state = _make_in_game_state(TEST_QUESTIONS_PATH)
         command_response = state.process_command(user_command)
         self.assertEqual("<i>Other commands are not available in the game</i>", command_response.message.text)
-        self.assertEqual(300, command_response.message.chat_id)
+        self.assertEqual(CHAT_ID, command_response.message.chat_id)
         self.assertEqual(None, command_response.new_state)
 
     def test_on_enter(self):
-        state = _make_in_game_state(PATH_JSON)
+        state = _make_in_game_state(TEST_QUESTIONS_PATH)
         response = state.on_enter(CHAT_ID)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
         check_text = dedent_and_strip(text)
@@ -110,27 +110,27 @@ class InGameStateTest(TestCase):
         )
         self.assertEqual(300, response.chat_id)
 
-    def test_callback_query_answer_cor(self):
+    def test_callback_query_answer_correct(self):
         message_text = "1"
         user_message = Message(CHAT_ID, message_text)
-        state = _make_in_game_state(PATH_JSON)
+        state = _make_in_game_state(TEST_QUESTIONS_PATH)
         callback_query = CallbackQuery(message_text, user_message)
         callback_query_response = state.process_callback_query(callback_query)
         answer_text = format.get_response_for_valid_answer(True, Question("17+3", ["20", "21"], 0))
         expected = BotResponse(Message(CHAT_ID, dedent_and_strip(answer_text), "HTML", make_keyboard_for_question(2)))
         self.assertEqual(expected, callback_query_response)
 
-    def test_callback_query_answer_not_cor(self):
+    def test_callback_query_answer_not_correct(self):
         message_text = "2"
         user_message = Message(CHAT_ID, message_text)
-        state = _make_in_game_state(PATH_JSON)
+        state = _make_in_game_state(TEST_QUESTIONS_PATH)
         callback_query = CallbackQuery(message_text, user_message)
         callback_query_response = state.process_callback_query(callback_query)
         answer_text = format.get_response_for_valid_answer(False, Question("17+3", ["20", "21"], 0))
         expected = BotResponse(Message(CHAT_ID, dedent_and_strip(answer_text), "HTML", make_keyboard_for_question(2)))
         self.assertEqual(expected, callback_query_response)
 
-    def test_when_all_user_answers_another_cor(self):
+    def test_when_all_user_answers_another_correct(self):
         state_factory = self.create_state_factory()
         keyboard = make_keyboard_for_question(2)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
@@ -154,7 +154,7 @@ class InGameStateTest(TestCase):
                                 IdleState(state_factory)
                                 )
 
-    def test_when_all_user_answers_another_not_cor(self):
+    def test_when_all_user_answers_another_not_correct(self):
         state_factory = self.create_state_factory()
         keyboard = make_keyboard_for_question(2)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
@@ -196,7 +196,7 @@ class InGameStateTest(TestCase):
 
         )
 
-    def test_when_all_user_answers_another_second_foo_cor(self):
+    def test_when_all_user_answers_another_second_foo_correct(self):
         state_factory = self.create_state_factory()
         keyboard = make_keyboard_for_question(2)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
@@ -219,7 +219,7 @@ class InGameStateTest(TestCase):
                                 None
         )
 
-    def test_when_all_user_answers_another_second_foo_not_cor(self):
+    def test_when_all_user_answers_another_second_foo_not_correct(self):
         state_factory = self.create_state_factory()
         keyboard = make_keyboard_for_question(2)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
@@ -243,7 +243,7 @@ class InGameStateTest(TestCase):
 
         )
 
-    def test_when_all_user_answers_another_third_foo_not_cor(self):
+    def test_when_all_user_answers_another_third_foo_not_correct(self):
         state_factory = self.create_state_factory()
         keyboard = make_keyboard_for_question(2)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
@@ -267,14 +267,13 @@ class InGameStateTest(TestCase):
         )
 
 
-def _make_in_game_state(path_json: str) -> InGameState:
+def _make_in_game_state(questions_file_path: str) -> InGameState:
     """
         Создает InGameState
-    :param path_json: путь к файлу
+    :param path_json: путь к файлу json
     :return: InGameState
     """
-    json_file = path_json
-    storage = JsonQuestionStorage(json_file)
+    storage = JsonQuestionStorage(questions_file_path)
     questions = storage.load_questions()
     state_factory = BotStateFactory(storage)
     state = InGameState(questions, state_factory)
