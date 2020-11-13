@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from typing import List
-from trivia.models import Message, Command, Keyboard, Button
+from trivia.models import Message, Command, Keyboard, Button, CallbackQuery
 from trivia.question_storage import Question, QuestionStorage
 from typing import Optional
 from trivia import format
@@ -90,6 +90,14 @@ class BotState(metaclass=ABCMeta):
         """
         pass
 
+    @abstractmethod
+    def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
+        """
+            Обрабатывает входящий запрос от кнопки на встроенной клавиатуре
+        :param callback_query: входящий запрос от кнопки
+        :return: ответ бота
+        """
+
 
 class TestState(BotState):
     """
@@ -114,6 +122,9 @@ class TestState(BotState):
         return BotResponse(Message(command.chat_id, command.text))
 
     def on_enter(self, chat_id: int) -> Optional[Message]:
+        return None
+
+    def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
         return None
 
 
@@ -141,6 +152,9 @@ class EchoState(BotState):
         response_command = Message(command.chat_id, f"I got your command {command.text}")
         response = BotResponse(response_command)
         return response
+
+    def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
+        return None
 
     def on_enter(self, chat_id: int) -> Optional[Message]:
         """
@@ -201,6 +215,9 @@ class GreetingState(BotState):
         """
         pass
 
+    def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
+        return None
+
 
 class IdleState(BotState):
     """
@@ -260,6 +277,9 @@ class IdleState(BotState):
         """
         pass
 
+    def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
+        return None
+
 
 class InGameState(BotState):
 
@@ -292,40 +312,8 @@ class InGameState(BotState):
             :param message: сообщение от пользователя
             :return: ответ бота
         """
-        new_state = None
-        idle_state = self.state_factory.create_idle_state()
         user_message = message.text
-        answer_id = self.parse_int(user_message)
-        num_of_resp = len(self.questions[self.current_question].answers)
-        if answer_id is None:
-            response_message = Message(
-                message.chat_id,
-                format.get_number_of_answers_help(num_of_resp),
-                "HTML"
-            )
-        elif int(user_message) > num_of_resp:
-            response_message = Message(
-                message.chat_id,
-                format.get_number_of_answers_help(num_of_resp),
-                "HTML"
-            )
-        else:
-            is_answer_correct = answer_id == 1
-            if is_answer_correct:
-                self.game_score += self.questions[self.current_question].points
-
-            if self.current_question < len(self.questions) - 1:
-                next_question = self.questions[self.current_question + 1]
-                self.current_question += 1
-                keyboard = format.make_keyboard_for_question(num_of_resp)
-                message_text = format.get_response_for_valid_answer(is_answer_correct, next_question=next_question)
-                response_message = Message(message.chat_id, message_text, "HTML", keyboard)
-            else:
-                new_state = idle_state
-                message_text = format.get_response_for_valid_answer(is_answer_correct, game_score=self.game_score)
-                response_message = Message(message.chat_id, message_text, "HTML")
-
-        response = BotResponse(response_message, new_state)
+        response = self._process_answer(user_message, message.chat_id)
         return response
 
     def process_command(self, command: Command) -> BotResponse:
@@ -345,6 +333,12 @@ class InGameState(BotState):
         response = BotResponse(response_message, new_state)
         return response
 
+    def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
+        chat_id = callback_query.message.chat_id
+        answer_string = callback_query.data
+        response = self._process_answer(answer_string, chat_id)
+        return response
+
     def on_enter(self, chat_id: int) -> Optional[Message]:
         """
             Возвращает первый вопрос и варианты ответов
@@ -352,7 +346,7 @@ class InGameState(BotState):
         """
         quest = self.questions
         first_question = quest[0]
-        keyboard = format.make_keyboard_for_question(len(first_question.answers))
+        keyboard = make_keyboard_for_question(len(first_question.answers))
         string_text = format.get_text_questions_answers("Question", first_question.text, first_question.answers)
         message_text = string_text
         response_message = Message(chat_id, message_text, "HTML", keyboard)
@@ -363,10 +357,59 @@ class InGameState(BotState):
             return int(s)
         return None
 
+    def _process_answer(self, answer: str, chat_id: int) -> BotResponse:
+        new_state = None
+        num_of_resp = len(self.questions[self.current_question].answers)
+        answer_id = self.parse_int(answer)
+        if answer_id is None:
+            response_message = Message(
+                chat_id,
+                format.get_number_of_answers_help(num_of_resp),
+                "HTML"
+            )
+        elif answer_id > num_of_resp:
+            response_message = Message(
+                chat_id,
+                format.get_number_of_answers_help(num_of_resp),
+                "HTML"
+            )
+        else:
+            is_answer_correct = answer_id == 1
+            if is_answer_correct:
+                self.game_score += self.questions[self.current_question].points
+
+            if self.current_question < len(self.questions) - 1:
+                next_question = self.questions[self.current_question + 1]
+                self.current_question += 1
+                keyboard = make_keyboard_for_question(num_of_resp)
+                message_text = format.get_response_for_valid_answer(is_answer_correct, next_question=next_question)
+                response_message = Message(chat_id, message_text, "HTML", keyboard)
+            else:
+                idle_state = self.state_factory.create_idle_state()
+                new_state = idle_state
+                message_text = format.get_response_for_valid_answer(is_answer_correct, game_score=self.game_score)
+                response_message = Message(chat_id, message_text, "HTML")
+
+        response = BotResponse(response_message, new_state)
+        return response
+
+
+def make_keyboard_for_question(num_answers: int) -> Keyboard:
+    def button(answer_id: int):
+        return Button(str(answer_id), str(answer_id))
+
+    if num_answers == 2:
+        return Keyboard([[button(1), button(2)]])
+    elif num_answers == 4:
+        return Keyboard([[button(1), button(2)], [button(3), button(4)]])
+    else:
+        row = [button(i + 1) for i in range(num_answers)]
+        return Keyboard([row])
+
 
 def select_questions(questions: List[Question], num_questions: int) -> List[Question]:
     """
-        Создает List[Questions] из трех первых вопросов
+        Создает List[Questions] из вопросов
         :param questions: вопросы
         :param num_questions: количество вопросов
         :return: Список вопросов

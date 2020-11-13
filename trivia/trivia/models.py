@@ -1,5 +1,6 @@
 from typing import List, Dict, Any
 from typing import Optional
+from dataclasses import dataclass
 
 
 class Button:
@@ -126,5 +127,15 @@ class Command:
         return False
 
 
+@dataclass
+class CallbackQuery:
+    """
+        Входящий запрос обратного вызова. Когда пользователю отправляется сообщение с прикрепленной встроенной
+        клавиатурой, как только пользователь нажимает кнопку на клавиатуре, мы получаем CallbackQuery обновление.
+        Telegram Api documentation ( https://core.telegram.org/bots/api/#callbackquery ).
+        data: Данные связанные с кнопкой обратного вызова
+    """
+    data: str
+    message: Message
 
 

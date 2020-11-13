@@ -3,6 +3,7 @@ from trivia import format
 from trivia.question_storage import Question
 from trivia.utils import dedent_and_strip
 from trivia.models import Button, Keyboard
+from trivia.bot_state import make_keyboard_for_question
 
 
 class GetNumbersOfAnswersHelpTest(TestCase):
@@ -57,7 +58,7 @@ class MakeKeyboardForQuestionTest(TestCase):
             ]
         ]
         expected = Keyboard(buttons)
-        actual = format.make_keyboard_for_question(2)
+        actual = make_keyboard_for_question(2)
         self.assertEqual(expected, actual)
 
     def test_four_answers(self):
@@ -72,12 +73,12 @@ class MakeKeyboardForQuestionTest(TestCase):
             ],
         ]
         expected = Keyboard(buttons)
-        actual = format.make_keyboard_for_question(4)
+        actual = make_keyboard_for_question(4)
         self.assertEqual(expected, actual)
 
     def test_five_answers(self):
         buttons_1 = [[Button(str(i + 1), str(i + 1)) for i in range(5)]]
         expected = Keyboard(buttons_1)
-        actual = format.make_keyboard_for_question(5)
+        actual = make_keyboard_for_question(5)
         self.assertEqual(expected, actual)
 
