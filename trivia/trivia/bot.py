@@ -1,20 +1,10 @@
 import requests
-import datetime
-from trivia.bot_state import BotState, BotResponse
+from trivia.bot_state import BotState, BotResponse, BotStateLoggingWrapper
 from trivia.models import Message, Command, Keyboard, CallbackQuery
 from requests.models import Response
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Dict, Any
-
-
-def log(message: str) -> None:
-    """
-        Выводит текущее время и сообщение
-    :param message: полученное сообщение
-    :return: None
-    """
-    time_now = datetime.datetime.now()
-    print(f"{time_now} {message}")
+from trivia.utils import log
 
 
 class TelegramApi(metaclass=ABCMeta):
@@ -113,7 +103,7 @@ class Bot:
     """
     def __init__(self, telegram_api: TelegramApi, state: BotState):
         self.telegram_api = telegram_api
-        self.state = state
+        self.state = BotStateLoggingWrapper(state)
         self.last_update_id = 0
 
     def process_updates(self) -> None:
@@ -136,7 +126,7 @@ class Bot:
 
                 if bot_response.new_state is not None:
                     new_state: BotState = bot_response.new_state
-                    self.state = new_state
+                    self.state = BotStateLoggingWrapper(new_state)
                     first_message = self.state.on_enter(self._get_chat_id(update))
                     if first_message is not None:
                         self.telegram_api.send_message(first_message.chat_id,

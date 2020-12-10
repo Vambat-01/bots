@@ -4,6 +4,7 @@ from trivia.models import Message, Command, Keyboard, Button, CallbackQuery
 from trivia.question_storage import Question, QuestionStorage
 from typing import Optional
 from trivia import format
+from trivia.utils import log
 
 
 class BotResponse:
@@ -97,6 +98,27 @@ class BotState(metaclass=ABCMeta):
         :param callback_query: входящий запрос от кнопки
         :return: ответ бота
         """
+
+
+class BotStateLoggingWrapper(BotState):
+    def __init__(self, inner: BotState):
+        self.inner = inner
+
+    def process_message(self, message: Message) -> BotResponse:
+        log("process_message is called")
+        return self.inner.process_message(message)
+
+    def process_command(self, command: Command) -> BotResponse:
+        log("process_command is called")
+        return self.inner.process_command(command)
+
+    def on_enter(self, chat_id: int) -> Optional[Message]:
+        log("on_enter is called")
+        return self.inner.on_enter(chat_id)
+
+    def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
+        log("callback_query is called")
+        return self.inner.process_callback_query(callback_query)
 
 
 class TestState(BotState):
@@ -415,8 +437,6 @@ def select_questions(questions: List[Question], num_questions: int) -> List[Ques
         :return: Список вопросов
     """
     return questions[:num_questions]
-
-
 
 
 
