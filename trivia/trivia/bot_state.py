@@ -4,7 +4,7 @@ from trivia.models import Message, Command, Keyboard, Button, CallbackQuery
 from trivia.question_storage import Question, QuestionStorage
 from typing import Optional
 from trivia import format
-from trivia.utils import log
+from trivia.utils import log, dedent_and_strip
 
 
 class BotResponse:
@@ -110,10 +110,10 @@ class BotStateLoggingWrapper(BotState):
         return False
 
     def __repr__(self):
-        return f"""
+        return dedent_and_strip(f"""
                       BotStateLoggingWrapper: 
                           inner: {self.inner}
-                   """
+                   """)
 
     def __str__(self):
         return self.__repr__()

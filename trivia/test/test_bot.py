@@ -6,6 +6,7 @@ from trivia.models import Message, Command, Keyboard, CallbackQuery
 from trivia.bot import Bot, TelegramApi
 import json
 from trivia.bot_state import BotResponse
+from trivia.utils import dedent_and_strip
 from enum import Enum
 
 CHAT_ID = 125
@@ -31,10 +32,10 @@ class NewFakeState(BotState):
         return False
 
     def __repr__(self):
-        return f"""
+        return dedent_and_strip(f"""
                       NewFakeState: 
                           on_enter: {self.on_enter_is_called}
-                   """
+                   """)
 
     def __str__(self):
         return self.__repr__()
@@ -124,7 +125,7 @@ class FixTelegramBotTest(TestCase):
         bot = Bot(telegram_api, state)
         bot.process_updates()
         self.assertEqual(bot.state, BotStateLoggingWrapper(next_state))
-        self.assertTrue(next_state.on_enter(CHAT_ID))
+        self.assertTrue(next_state.on_enter_is_called)
         self.assertEqual(["bot message", "text message on_enter"], telegram_api.sent_messages)
         if update_type == UpdateType.MESSAGE:
             self.assertTrue(state.process_message_is_called)
