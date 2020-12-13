@@ -1,11 +1,12 @@
 from typing import Optional, List, Dict, Any
 from unittest import TestCase
 from requests.models import Response
-from trivia.bot_state import BotState
+from trivia.bot_state import BotState, BotStateLoggingWrapper
 from trivia.models import Message, Command, Keyboard, CallbackQuery
 from trivia.bot import Bot, TelegramApi
 import json
 from trivia.bot_state import BotResponse
+from trivia.utils import dedent_and_strip
 from enum import Enum
 
 CHAT_ID = 125
@@ -24,6 +25,20 @@ class NewFakeState(BotState):
 
     def __init__(self):
         self.on_enter_is_called = False
+
+    def __eq__(self, other):
+        if type(other) is type(self):
+            return self.__dict__ == other.__dict__
+        return False
+
+    def __repr__(self):
+        return dedent_and_strip(f"""
+                      NewFakeState: 
+                          on_enter: {self.on_enter_is_called}
+                   """)
+
+    def __str__(self):
+        return self.__repr__()
 
     def process_message(self, message: Message) -> BotResponse:
         return BotResponse(Message(CHAT_ID, "new fake state message response"))
@@ -49,6 +64,11 @@ class FakeState(BotState):
         self.process_command_is_called = False
         self.process_callback_query_is_called = False
         self.next_state = next_state
+
+    def __eq__(self, other):
+        if type(other) is type(self):
+            return self.__dict__ == other.__dict__
+        return False
 
     def process_message(self, message: Message) -> BotResponse:
         self.process_message_is_called = True
@@ -104,7 +124,7 @@ class FixTelegramBotTest(TestCase):
         state = FakeState("bot message", next_state)
         bot = Bot(telegram_api, state)
         bot.process_updates()
-        self.assertEqual(bot.state, next_state)
+        self.assertEqual(bot.state, BotStateLoggingWrapper(next_state))
         self.assertTrue(next_state.on_enter_is_called)
         self.assertEqual(["bot message", "text message on_enter"], telegram_api.sent_messages)
         if update_type == UpdateType.MESSAGE:
@@ -133,7 +153,7 @@ class FixTelegramBotTest(TestCase):
         state = FakeState("bot message")
         bot = Bot(telegram_api, state)
         bot.process_updates()
-        self.assertEqual(bot.state, state)
+        self.assertEqual(bot.state, BotStateLoggingWrapper(state))
         self.assertEqual(["bot message"], telegram_api.sent_messages)
         if is_command:
             self.assertTrue(state.process_command_is_called)
