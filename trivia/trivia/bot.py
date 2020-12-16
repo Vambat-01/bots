@@ -1,6 +1,6 @@
 import requests
 from trivia.bot_state import BotState, BotResponse, BotStateLoggingWrapper
-from trivia.models import Message, Command, Keyboard, CallbackQuery
+from trivia.models import Message, Command, Keyboard, CallbackQuery, MessageEdit
 from requests.models import Response
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Dict, Any
@@ -41,6 +41,18 @@ class TelegramApi(metaclass=ABCMeta):
             Telegram Api documentation ( https://core.telegram.org/bots/api#answercallbackquery ).
         :param callback_query_id: уникальный идентификатор запроса, на который нужно ответить
         :return: None
+        """
+        pass
+
+    @abstractmethod
+    def message_edit(self, chat_id: int, message_id: int, text: str) -> MessageEdit:
+        """
+            Метод для редактирования существующего сообщения в истории сообщений, вместо отправления нового сообщения.
+            Telegram Api documentation ( https://core.telegram.org/bots/api#editmessagetext )
+        :param chat_id: идентификатор чата
+        :param message_id: идентификатор сообщения для редактирования
+        :param text: новый текст редактируюмого сообщения
+        :return: отредактированное сообщение
         """
         pass
 
@@ -95,6 +107,16 @@ class RealTelegramApi(TelegramApi):
         }
         response = requests.post(url, json=body)
         log(f"TelegramAPI answer_callback_query status code: {response.status_code}")
+
+    def message_edit(self, chat_id: int, message_id: int, text: str) -> MessageEdit:
+        url = f"https://api.telegram.org/bot{self.token}/editMessageText"
+        body = {
+            "chat_id": chat_id,
+            "message_id": message_id,
+            "text": text
+        }
+        response = requests.post(url, json=body)
+        return response
 
 
 class Bot:
