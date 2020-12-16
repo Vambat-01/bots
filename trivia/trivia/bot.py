@@ -116,7 +116,8 @@ class RealTelegramApi(TelegramApi):
             "text": text
         }
         response = requests.post(url, json=body)
-        return response
+        log(f"TelegramAPI message_edit status code: {response.status_code}")
+        return MessageEdit(chat_id, message_id, text)
 
 
 class Bot:
