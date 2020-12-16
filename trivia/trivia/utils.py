@@ -1,6 +1,5 @@
 import textwrap
 import datetime
-import uuid
 
 
 def dedent_and_strip(text: str):
@@ -16,8 +15,4 @@ def log(message: str) -> None:
     time_now = datetime.datetime.now()
     print(f"{time_now} {message}")
 
-
-def make_uuid():
-    key_uuid = uuid.uuid4()
-    return key_uuid
 
