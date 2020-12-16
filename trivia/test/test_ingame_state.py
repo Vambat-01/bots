@@ -37,8 +37,6 @@ class InGameStateTest(TestCase):
 
             if len(conversation) == count:
                 expected_response = BotResponse(message=expected_bot_msg, new_state=expected_state)
-                if expected_response != response:
-                    print("foo")
                 self.assertEqual(expected_response, response)
             else:
                 expected_response = BotResponse(message=expected_bot_msg, new_state=None)

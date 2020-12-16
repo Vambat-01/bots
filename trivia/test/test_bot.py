@@ -40,7 +40,7 @@ class NewFakeState(BotState):
     def __str__(self):
         return self.__repr__()
 
-    def process_message(self, message: Optional[Message]) -> BotResponse:
+    def process_message(self, message: Message) -> BotResponse:
         return BotResponse(Message(CHAT_ID, "new fake state message response"))
 
     def process_command(self, command: Command) -> BotResponse:

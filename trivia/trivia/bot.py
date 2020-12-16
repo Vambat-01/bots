@@ -125,11 +125,6 @@ class Bot:
                                                    bot_response.message.keyboard
                                                    )
 
-                if bot_response.message_edit is not None:
-                    self.telegram_api.send_message(bot_response.message_edit.chat_id,
-                                                   bot_response.message_edit.text,
-                                                   )
-
                 if bot_response.new_state is not None:
                     new_state: BotState = bot_response.new_state
                     self.state = BotStateLoggingWrapper(new_state)
