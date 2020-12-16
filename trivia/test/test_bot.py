@@ -73,13 +73,13 @@ class FakeState(BotState):
     def process_message(self, message: Message) -> BotResponse:
         self.process_message_is_called = True
         message = Message(CHAT_ID, self.reply_text)
-        bot_response = BotResponse(message, self.next_state)
+        bot_response = BotResponse(message, new_state=self.next_state)
         return bot_response
 
     def process_command(self, command: Command) -> BotResponse:
         self.process_command_is_called = True
         message = Message(CHAT_ID, self.reply_text)
-        bot_response = BotResponse(message, self.next_state)
+        bot_response = BotResponse(message, new_state=self.next_state)
         return bot_response
 
     def on_enter(self, chat_id) -> Optional[Message]:
@@ -88,7 +88,7 @@ class FakeState(BotState):
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
         self.process_callback_query_is_called = True
         message = Message(CHAT_ID, self.reply_text)
-        bot_response = BotResponse(message, self.next_state)
+        bot_response = BotResponse(message, new_state=self.next_state)
         return bot_response
 
 

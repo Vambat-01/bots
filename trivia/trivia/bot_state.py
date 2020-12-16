@@ -1,35 +1,21 @@
 from abc import ABCMeta, abstractmethod
 from typing import List
-from trivia.models import Message, Command, Keyboard, Button, CallbackQuery
+from trivia.models import Message, Command, Keyboard, Button, CallbackQuery, MessageEdit
 from trivia.question_storage import Question, QuestionStorage
 from typing import Optional
 from trivia import format
 from trivia.utils import log, dedent_and_strip
+from dataclasses import dataclass
 
 
+@dataclass
 class BotResponse:
     """
         Ответ бота
     """
-
-    def __init__(self, message: Message, new_state: Optional["BotState"] = None):
-        self.new_state = new_state
-        self.message = message
-
-    def __eq__(self, other):
-        if type(other) is type(self):
-            return self.__dict__ == other.__dict__
-        return False
-
-    def __repr__(self):
-        return f"""
-                    BotResponse: 
-                        new_state: {self.new_state}
-                        message: {self.message}                        
-                 """
-
-    def __str__(self):
-        return self.__repr__()
+    message: Optional[Message] = None
+    message_edit: Optional[MessageEdit] = None
+    new_state: Optional["BotState"] = None
 
 
 class BotStateFactory:
@@ -221,7 +207,7 @@ class GreetingState(BotState):
         """
         idle_state = self.state_factory.create_idle_state()
         response_message = Message(message.chat_id, "<i>&#129417Trivia bot greeting you</i>", "HTML")
-        response = BotResponse(response_message, idle_state)
+        response = BotResponse(message=response_message, new_state=idle_state)
         return response
 
     def process_command(self, command: Command) -> BotResponse:
@@ -237,7 +223,7 @@ class GreetingState(BotState):
                                        "<i>&#129417Trivia bot greeting you. Enter command /start or /help </i>",
                                        "HTML"
                                        )
-            response = BotResponse(response_command, idle_state)
+            response = BotResponse(message=response_command, new_state=idle_state)
             return response
         else:
             response_command = Message(command.chat_id, "<i>Something went wrong. Try again</i>")
@@ -303,7 +289,7 @@ class IdleState(BotState):
                                        "<i>I did not  understand the command. Enter /start or /help</i>",
                                        "HTML"
                                        )
-        response = BotResponse(response_message, new_state)
+        response = BotResponse(message=response_message, new_state=new_state)
         return response
 
     def on_enter(self, chat_id: int) -> Optional[Message]:
@@ -366,7 +352,7 @@ class InGameState(BotState):
             new_state = idle_state
         else:
             response_message = Message(command.chat_id, "<i>Other commands are not available in the game</i>", "HTML")
-        response = BotResponse(response_message, new_state)
+        response = BotResponse(message=response_message, new_state=new_state)
         return response
 
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
@@ -394,7 +380,7 @@ class InGameState(BotState):
         return None
 
     def _process_answer(self, answer: str, chat_id: int) -> BotResponse:
-        new_state = None
+        new_state: Optional[BotState] = None
         num_of_resp = len(self.questions[self.current_question].answers)
         answer_id = self.parse_int(answer)
         if answer_id is None:
@@ -426,7 +412,7 @@ class InGameState(BotState):
                 message_text = format.get_response_for_valid_answer(is_answer_correct, game_score=self.game_score)
                 response_message = Message(chat_id, message_text, "HTML")
 
-        response = BotResponse(response_message, new_state)
+        response = BotResponse(message=response_message, new_state=new_state)
         return response
 
 

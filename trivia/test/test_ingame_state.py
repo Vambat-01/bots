@@ -36,10 +36,10 @@ class InGameStateTest(TestCase):
             count += 1
 
             if len(conversation) == count:
-                expected_response = BotResponse(expected_bot_msg, expected_state)
+                expected_response = BotResponse(message=expected_bot_msg, new_state=expected_state)
                 self.assertEqual(expected_response, response)
             else:
-                expected_response = BotResponse(expected_bot_msg, None)
+                expected_response = BotResponse(message=expected_bot_msg, new_state=None)
                 self.assertEqual(expected_response, response)
 
     def create_state_factory(self) -> BotStateFactory:
