@@ -2,7 +2,7 @@ from typing import Optional, List, Dict, Any
 from unittest import TestCase
 from requests.models import Response
 from trivia.bot_state import BotState, BotStateLoggingWrapper
-from trivia.models import Message, Command, Keyboard, CallbackQuery
+from trivia.models import Message, Command, Keyboard, CallbackQuery, MessageEdit
 from trivia.bot import Bot, TelegramApi
 import json
 from trivia.bot_state import BotResponse
@@ -97,6 +97,7 @@ class FakeTelegramApi(TelegramApi):
         self.sent_messages: List[str] = []
         self.response_body = response_body
         self.answer_callback_query_is_called = False
+        self.edit_message_is_called = False
 
     def get_updates(self, offset: int) -> Response:
         body = json.dumps(self.response_body)
@@ -115,6 +116,9 @@ class FakeTelegramApi(TelegramApi):
 
     def answer_callback_query(self, callback_query_id: str) -> None:
         self.answer_callback_query_is_called = True
+
+    def edit_message(self, chat_id: int, message_id: int, text: str) -> None:
+        self.edit_message_is_called = True
 
 
 class FixTelegramBotTest(TestCase):
