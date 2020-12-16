@@ -45,14 +45,14 @@ class TelegramApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def message_edit(self, chat_id: int, message_id: int, text: str) -> MessageEdit:
+    def edit_message(self, chat_id: int, message_id: int, text: str) -> None:
         """
             Метод для редактирования существующего сообщения в истории сообщений, вместо отправления нового сообщения.
             Telegram Api documentation ( https://core.telegram.org/bots/api#editmessagetext )
         :param chat_id: идентификатор чата
         :param message_id: идентификатор сообщения для редактирования
         :param text: новый текст редактируюмого сообщения
-        :return: отредактированное сообщение
+        :return: None
         """
         pass
 
@@ -108,7 +108,7 @@ class RealTelegramApi(TelegramApi):
         response = requests.post(url, json=body)
         log(f"TelegramAPI answer_callback_query status code: {response.status_code}")
 
-    def message_edit(self, chat_id: int, message_id: int, text: str) -> MessageEdit:
+    def edit_message(self, chat_id: int, message_id: int, text: str) -> None:
         url = f"https://api.telegram.org/bot{self.token}/editMessageText"
         body = {
             "chat_id": chat_id,
@@ -117,7 +117,6 @@ class RealTelegramApi(TelegramApi):
         }
         response = requests.post(url, json=body)
         log(f"TelegramAPI message_edit status code: {response.status_code}")
-        return MessageEdit(chat_id, message_id, text)
 
 
 class Bot:

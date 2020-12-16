@@ -116,9 +116,8 @@ class FakeTelegramApi(TelegramApi):
     def answer_callback_query(self, callback_query_id: str) -> None:
         self.answer_callback_query_is_called = True
 
-    def message_edit(self, chat_id: int, message_id: int, text: str) -> MessageEdit:
-        response = MessageEdit(chat_id, message_id, text)
-        return response
+    def edit_message(self, chat_id: int, message_id: int, text: str) -> None:
+        self.edit_message(chat_id, message_id, text)
 
 
 class FixTelegramBotTest(TestCase):
