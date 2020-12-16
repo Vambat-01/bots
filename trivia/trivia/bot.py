@@ -118,11 +118,17 @@ class Bot:
             self.last_update_id = update["update_id"]
             bot_response = self.process_update(update)
             if bot_response is not None:
-                self.telegram_api.send_message(bot_response.message.chat_id,
-                                               bot_response.message.text,
-                                               bot_response.message.parse_mode,
-                                               bot_response.message.keyboard
-                                               )
+                if bot_response.message is not None:
+                    self.telegram_api.send_message(bot_response.message.chat_id,
+                                                   bot_response.message.text,
+                                                   bot_response.message.parse_mode,
+                                                   bot_response.message.keyboard
+                                                   )
+
+                if bot_response.message_edit is not None:
+                    self.telegram_api.send_message(bot_response.message_edit.chat_id,
+                                                   bot_response.message_edit.text,
+                                                   )
 
                 if bot_response.new_state is not None:
                     new_state: BotState = bot_response.new_state
