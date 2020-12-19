@@ -53,32 +53,38 @@ class MakeKeyboardForQuestionTest(TestCase):
     def test_two_answers(self):
         buttons = [
             [
-                Button("1", "1"),
-                Button("2", "2")
+                Button("1", "123.0.1"),
+                Button("2", "123.0.2")
             ]
         ]
         expected = Keyboard(buttons)
-        actual = make_keyboard_for_question(2)
+        game_id = "123"
+        question_id = 0
+        actual = make_keyboard_for_question(2, game_id, question_id)
         self.assertEqual(expected, actual)
 
     def test_four_answers(self):
         buttons = [
             [
-                Button("1", "1"),
-                Button("2", "2")
+                Button("1", "123.0.1"),
+                Button("2", "123.0.2")
             ],
             [
-                Button("3", "3"),
-                Button("4", "4")
+                Button("3", "123.0.3"),
+                Button("4", "123.0.4")
             ],
         ]
         expected = Keyboard(buttons)
-        actual = make_keyboard_for_question(4)
+        game_id = "123"
+        question_id = 0
+        actual = make_keyboard_for_question(4, game_id, question_id)
         self.assertEqual(expected, actual)
 
     def test_five_answers(self):
-        buttons_1 = [[Button(str(i + 1), str(i + 1)) for i in range(5)]]
+        buttons_1 = [[Button(str(i + 1), str(f"{123}.{0}.{i + 1}")) for i in range(5)]]
         expected = Keyboard(buttons_1)
-        actual = make_keyboard_for_question(5)
+        game_id = "123"
+        question_id = 0
+        actual = make_keyboard_for_question(5, game_id, question_id)
         self.assertEqual(expected, actual)
 

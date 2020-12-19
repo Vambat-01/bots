@@ -30,7 +30,8 @@ class IdleStateTest(TestCase):
         command_resp = state.process_command(user_command)
         self.assertEqual("<i>Starting game</i>", command_resp.message.text)
         self.assertEqual(265, command_resp.message.chat_id)
-        self.assertEqual(InGameState(questions, state_factory), command_resp.new_state)
+        self.assertEqual(InGameState(questions, state_factory, command_resp.new_state.game_id),  # type: ignore
+                         command_resp.new_state)
 
     def test_process_command_help(self):
         chat_id = 270

@@ -137,6 +137,7 @@ class CallbackQuery:
     """
     data: str
     message: Message
+    message_id: int
 
 
 @dataclass
@@ -152,4 +153,5 @@ class MessageEdit:
     chat_id: int
     message_id: int
     text: str
+    parse_mode: Optional[str] = None
 

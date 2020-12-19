@@ -6,6 +6,7 @@ from typing import Optional
 from trivia import format
 from trivia.utils import log, dedent_and_strip
 from dataclasses import dataclass
+import uuid
 
 
 @dataclass
@@ -42,7 +43,8 @@ class BotStateFactory:
         """
         all_questions = self.questions_storage.load_questions()
         list_questions = select_questions(all_questions, 3)
-        in_game_state = InGameState(list_questions, self)
+        game_id = str(uuid.uuid4())
+        in_game_state = InGameState(list_questions, self, game_id)
         return in_game_state
 
 
@@ -305,11 +307,12 @@ class IdleState(BotState):
 
 class InGameState(BotState):
 
-    def __init__(self, questions: List[Question], state_factory: BotStateFactory):
+    def __init__(self, questions: List[Question], state_factory: BotStateFactory, game_id: str):
         self.questions = questions
         self.current_question = 0
         self.game_score = 0
         self.state_factory = state_factory
+        self.game_id = game_id
 
     def __eq__(self, other):
         if type(other) is type(self):
@@ -317,16 +320,17 @@ class InGameState(BotState):
         return False
 
     def __str__(self):
-        return f"""
-            InGameState: 
-                questions = {self.questions}
-                current_questions = {self.current_question} 
-                game_score = {self.game_score}
-                state_factory = {self.state_factory}
-        """
+        return self.__repr__()
 
     def __repr__(self):
-        return self.__str__()
+        return f"""
+                    InGameState: 
+                        questions = {self.questions}
+                        current_questions = {self.current_question} 
+                        game_score = {self.game_score}
+                        state_factory = {self.state_factory}
+                        game_id = {self.game_id}
+                """
 
     def process_message(self, message: Message) -> BotResponse:
         """
@@ -358,8 +362,18 @@ class InGameState(BotState):
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
         chat_id = callback_query.message.chat_id
         answer_string = callback_query.data
-        response = self._process_answer(answer_string, chat_id)
-        return response
+        callback = answer_string.split(".")
+        message_id = callback_query.message_id
+        quest_id = self.parse_int(callback[1])
+        if len(callback) == 3 and callback[0] == self.game_id and quest_id == self.current_question:
+            game_id, question_id, answer_id = answer_string.split(".")
+            answ_id = self.parse_int(answer_id)
+            response_message = self._process_answer(answer_id, chat_id)
+
+            response_message_edit = self._get_message_edit(quest_id, answ_id, chat_id, message_id)
+
+            return BotResponse(response_message.message, message_edit=response_message_edit)
+        return None
 
     def on_enter(self, chat_id: int) -> Optional[Message]:
         """
@@ -368,7 +382,7 @@ class InGameState(BotState):
         """
         quest = self.questions
         first_question = quest[0]
-        keyboard = make_keyboard_for_question(len(first_question.answers))
+        keyboard = make_keyboard_for_question(len(first_question.answers), self.game_id, self.current_question)
         string_text = format.get_text_questions_answers("Question", first_question.text, first_question.answers)
         message_text = string_text
         response_message = Message(chat_id, message_text, "HTML", keyboard)
@@ -403,7 +417,7 @@ class InGameState(BotState):
             if self.current_question < len(self.questions) - 1:
                 next_question = self.questions[self.current_question + 1]
                 self.current_question += 1
-                keyboard = make_keyboard_for_question(num_of_resp)
+                keyboard = make_keyboard_for_question(num_of_resp, self.game_id, self.current_question)
                 message_text = format.get_response_for_valid_answer(is_answer_correct, next_question=next_question)
                 response_message = Message(chat_id, message_text, "HTML", keyboard)
             else:
@@ -415,10 +429,32 @@ class InGameState(BotState):
         response = BotResponse(message=response_message, new_state=new_state)
         return response
 
+    def _get_message_edit(self, question_id: int,
+                          answer_id: Optional[int],
+                          chat_id: int,
+                          message_id: int) -> MessageEdit:
+        text_question = self.questions[question_id]
+        if answer_id == 1:
+            response_message_edit = MessageEdit(chat_id,
+                                            message_id,
+                                            f"<u>&#127774 Answer is correct on a question: {text_question.text}</u>",
+                                            "HTML"
+                                            )
+            return response_message_edit
 
-def make_keyboard_for_question(num_answers: int) -> Keyboard:
+        if answer_id != 1:
+            response_edit_message = MessageEdit(chat_id,
+                                        message_id,
+                                        f"<u>&#127783 Answer is not correct on a question: {text_question.text}</u>",
+                                        "HTML"
+                                        )
+            return response_edit_message
+        
+
+def make_keyboard_for_question(num_answers: int, game_id: str, question_id: int) -> Keyboard:
     def button(answer_id: int):
-        return Button(str(answer_id), str(answer_id))
+        callback_data = f"{game_id}.{question_id}.{answer_id}"
+        return Button(str(answer_id), str(callback_data))
 
     if num_answers == 2:
         return Keyboard([[button(1), button(2)]])
