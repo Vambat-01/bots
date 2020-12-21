@@ -369,11 +369,10 @@ class InGameState(BotState):
             game_id = payload[0]
             quest_id = self.parse_int(payload[1])
             answer_id = payload[2]
-            answ_id = self.parse_int(answer_id)
 
             if game_id == self.game_id and quest_id == self.current_question:
                 message, new_state = self._process_answer(answer_id, chat_id)
-                message_edit = self._get_message_edit(quest_id, answ_id, chat_id, message_id)
+                message_edit = self._get_message_edit(quest_id, answer_id, chat_id, message_id)
                 return BotResponse(message, message_edit=message_edit, new_state=new_state)
         return None
 
@@ -431,11 +430,12 @@ class InGameState(BotState):
         return response_message, new_state
 
     def _get_message_edit(self, question_id: int,
-                          answer_id: Optional[int],
+                          answer_id: str,
                           chat_id: int,
                           message_id: int) -> MessageEdit:
         text_question = self.questions[question_id]
-        if answer_id == 1:
+        answ_id = self.parse_int(answer_id)
+        if answ_id == 1:
             response_message_edit = MessageEdit(chat_id,
                                             message_id,
                                             f"<u>&#127774 Answer is correct on a question: {text_question.text}</u>",
