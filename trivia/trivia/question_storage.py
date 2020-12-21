@@ -1,27 +1,20 @@
 import json
 from typing import List
 from abc import ABCMeta, abstractmethod
+from dataclasses import dataclass
 
 
+@dataclass
 class Question:
     """
-    Представляет собой trivia bot  вопрос
-    """
-
-    def __init__(self, text: str, answers: List[str], points: int):
-        """
+        Представляет собой trivia bot  вопрос
         :param text: Текст вопроса, который мы показываем пользователю
         :param answers: Варианты ответов на вопрос, включая правильный
         :param points: Количество очков за правильный ответ
-        """
-        self.text = text
-        self.answers = answers
-        self.points = points
-
-    def __eq__(self, other):
-        if type(other) is type(self):
-            return self.__dict__ == other.__dict__
-        return False
+    """
+    text: str
+    answers: List[str]
+    points: int
 
 
 class QuestionStorage(metaclass=ABCMeta):

@@ -2,6 +2,7 @@ from unittest import TestCase
 from trivia.models import Message, Command
 from trivia.bot_state import IdleState, InGameState, BotStateFactory
 from trivia.question_storage import JsonQuestionStorage
+from typing import cast
 
 
 class IdleStateTest(TestCase):
@@ -28,9 +29,12 @@ class IdleStateTest(TestCase):
         state_factory = BotStateFactory(storage)
         state = IdleState(state_factory)
         command_resp = state.process_command(user_command)
+        self.assertTrue(isinstance(command_resp.new_state, InGameState))
+        new_state = cast(InGameState, command_resp.new_state)
         self.assertEqual("<i>Starting game</i>", command_resp.message.text)
         self.assertEqual(265, command_resp.message.chat_id)
-        self.assertEqual(InGameState(questions, state_factory), command_resp.new_state)
+        self.assertEqual(InGameState(questions, state_factory, new_state.game_id),
+                         command_resp.new_state)
 
     def test_process_command_help(self):
         chat_id = 270

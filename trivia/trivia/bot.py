@@ -45,13 +45,14 @@ class TelegramApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def edit_message(self, chat_id: int, message_id: int, text: str) -> None:
+    def edit_message(self, chat_id: int, message_id: int, text: str, parse_mode: Optional[str] = None) -> None:
         """
             Метод для редактирования существующего сообщения в истории сообщений, вместо отправления нового сообщения.
             Telegram Api documentation ( https://core.telegram.org/bots/api#editmessagetext )
         :param chat_id: идентификатор чата
         :param message_id: идентификатор сообщения для редактирования
         :param text: новый текст редактируюмого сообщения
+        :param parse_mode: режим для форматирования текста сообщения
         :return: None
         """
         pass
@@ -101,20 +102,23 @@ class RealTelegramApi(TelegramApi):
             log(f"TelegramAPI: Unexpected status code: {response.status_code}. Response body: {response.text}")
 
     def answer_callback_query(self, callback_query_id: str) -> None:
-        url = f"https://api.telegram.org/bot{self.token}/CallbackQuery"
+        url = f"https://api.telegram.org/bot{self.token}/answerCallbackQuery"
         body = {
             "callback_query_id": callback_query_id
         }
         response = requests.post(url, json=body)
         log(f"TelegramAPI answer_callback_query status code: {response.status_code}")
 
-    def edit_message(self, chat_id: int, message_id: int, text: str) -> None:
+    def edit_message(self, chat_id: int, message_id: int, text: str, parse_mode: Optional[str] = None) -> None:
         url = f"https://api.telegram.org/bot{self.token}/editMessageText"
         body = {
             "chat_id": chat_id,
             "message_id": message_id,
             "text": text
         }
+        if parse_mode is not None:
+            body["parse_mode"] = parse_mode
+
         response = requests.post(url, json=body)
         log(f"TelegramAPI message_edit status code: {response.status_code}")
 
@@ -145,6 +149,13 @@ class Bot:
                                                    bot_response.message.text,
                                                    bot_response.message.parse_mode,
                                                    bot_response.message.keyboard
+                                                   )
+
+                if bot_response.message_edit is not None:
+                    self.telegram_api.edit_message(bot_response.message_edit.chat_id,
+                                                   bot_response.message_edit.message_id,
+                                                   bot_response.message_edit.text,
+                                                   bot_response.message_edit.parse_mode
                                                    )
 
                 if bot_response.new_state is not None:
@@ -178,7 +189,8 @@ class Bot:
             message_text = update["callback_query"]["message"]["text"]
             message = Message(chat_id, message_text)
             callback_query_data = update["callback_query"]["data"]
-            callback_query = CallbackQuery(callback_query_data, message)
+            message_id = update["callback_query"]["message"]["message_id"]
+            callback_query = CallbackQuery(callback_query_data, message, message_id)
             self.telegram_api.answer_callback_query(callback_query_id)
             bot_response = self.state.process_callback_query(callback_query)
             return bot_response
