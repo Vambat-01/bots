@@ -138,19 +138,19 @@ class InGameStateTest(TestCase):
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
         callback_query = _make_callback_query("1879", "0", "1")
         callback_query_response = state.process_callback_query(callback_query)
-        self.assertEqual(None, callback_query_response)
+        self.assertIsNone(None, callback_query_response)
 
     def test_callback_query_when_len_data_is_not_correct(self):
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
         callback_query = _make_callback_query(GAME_ID, "0", "12.42.f")
         callback_query_response = state.process_callback_query(callback_query)
-        self.assertEqual(None, callback_query_response)
+        self.assertIsNone(None, callback_query_response)
 
     def test_callback_query_when_question_id_is_not_correct(self):
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
         callback_query = _make_callback_query(GAME_ID, "15", "1")
         callback_query_response = state.process_callback_query(callback_query)
-        self.assertEqual(None, callback_query_response)
+        self.assertIsNone(None, callback_query_response)
 
     def test_callback_query_when_answer_is_not_correct(self):
         message_text = "2"

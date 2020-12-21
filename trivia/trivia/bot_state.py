@@ -366,11 +366,12 @@ class InGameState(BotState):
         message_id = callback_query.message_id
 
         if len(payload) == 3:
+            game_id = payload[0]
             quest_id = self.parse_int(payload[1])
-            game_id, question_id, answer_id = answer_string.split(".")
+            answer_id = payload[2]
             answ_id = self.parse_int(answer_id)
 
-            if payload[0] == self.game_id and quest_id == self.current_question:
+            if game_id == self.game_id and quest_id == self.current_question:
                 message, new_state = self._process_answer(answer_id, chat_id)
                 message_edit = self._get_message_edit(quest_id, answ_id, chat_id, message_id)
                 return BotResponse(message, message_edit=message_edit, new_state=new_state)
