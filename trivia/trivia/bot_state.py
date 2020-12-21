@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import List
+from typing import List, Tuple
 from trivia.models import Message, Command, Keyboard, Button, CallbackQuery, MessageEdit
 from trivia.question_storage import Question, QuestionStorage
 from typing import Optional
@@ -339,8 +339,8 @@ class InGameState(BotState):
             :return: ответ бота
         """
         user_message = message.text
-        response = self._process_answer(user_message, message.chat_id)
-        return response
+        message, new_state = self._process_answer(user_message, message.chat_id)
+        return BotResponse(message, new_state=new_state)
 
     def process_command(self, command: Command) -> BotResponse:
         """
@@ -362,17 +362,18 @@ class InGameState(BotState):
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
         chat_id = callback_query.message.chat_id
         answer_string = callback_query.data
-        callback = answer_string.split(".")
+        payload = callback_query.data.split(".")
         message_id = callback_query.message_id
-        quest_id = self.parse_int(callback[1])
-        if len(callback) == 3 and callback[0] == self.game_id and quest_id == self.current_question:
+
+        if len(payload) == 3:
+            quest_id = self.parse_int(payload[1])
             game_id, question_id, answer_id = answer_string.split(".")
             answ_id = self.parse_int(answer_id)
-            response_message = self._process_answer(answer_id, chat_id)
 
-            response_message_edit = self._get_message_edit(quest_id, answ_id, chat_id, message_id)
-
-            return BotResponse(response_message.message, message_edit=response_message_edit)
+            if payload[0] == self.game_id and quest_id == self.current_question:
+                message, new_state = self._process_answer(answer_id, chat_id)
+                message_edit = self._get_message_edit(quest_id, answ_id, chat_id, message_id)
+                return BotResponse(message, message_edit=message_edit, new_state=new_state)
         return None
 
     def on_enter(self, chat_id: int) -> Optional[Message]:
@@ -393,7 +394,7 @@ class InGameState(BotState):
             return int(s)
         return None
 
-    def _process_answer(self, answer: str, chat_id: int) -> BotResponse:
+    def _process_answer(self, answer: str, chat_id: int) -> Tuple[Message, Optional[BotState]]:
         new_state: Optional[BotState] = None
         num_of_resp = len(self.questions[self.current_question].answers)
         answer_id = self.parse_int(answer)
@@ -426,8 +427,7 @@ class InGameState(BotState):
                 message_text = format.get_response_for_valid_answer(is_answer_correct, game_score=self.game_score)
                 response_message = Message(chat_id, message_text, "HTML")
 
-        response = BotResponse(message=response_message, new_state=new_state)
-        return response
+        return response_message, new_state
 
     def _get_message_edit(self, question_id: int,
                           answer_id: Optional[int],
@@ -442,19 +442,19 @@ class InGameState(BotState):
                                             )
             return response_message_edit
 
-        if answer_id != 1:
+        else:
             response_edit_message = MessageEdit(chat_id,
                                         message_id,
                                         f"<u>&#127783 Answer is not correct on a question: {text_question.text}</u>",
                                         "HTML"
                                         )
             return response_edit_message
-        
+
 
 def make_keyboard_for_question(num_answers: int, game_id: str, question_id: int) -> Keyboard:
     def button(answer_id: int):
         callback_data = f"{game_id}.{question_id}.{answer_id}"
-        return Button(str(answer_id), str(callback_data))
+        return Button(str(answer_id), callback_data)
 
     if num_answers == 2:
         return Keyboard([[button(1), button(2)]])

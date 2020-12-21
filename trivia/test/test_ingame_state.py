@@ -9,7 +9,7 @@ from trivia import format
 
 CHAT_ID = 300
 TEST_QUESTIONS_PATH = "resources/test_questions.json"
-GAME_ID = "3da730a4-b82d-4b2e-5d273458324b"
+GAME_ID = "123"
 
 
 class InGameStateTest(TestCase):
@@ -126,45 +126,29 @@ class InGameStateTest(TestCase):
                             "HTML",
                             make_keyboard_for_question(2, GAME_ID, question_id)
                            )
-        expected_edit_message = MessageEdit(CHAT_ID,
+        expected_message_edit = MessageEdit(CHAT_ID,
                                             message_id,
                                             "<u>&#127774 Answer is correct on a question: 7+3</u>",
                                             "HTML"
                                             )
-        expected = BotResponse(expected_message, message_edit=expected_edit_message)
+        expected = BotResponse(expected_message, message_edit=expected_message_edit)
         self.assertEqual(expected, callback_query_response)
 
     def test_callback_query_when_game_id_is_not_correct(self):
-        message_text = "1"
-        user_message = Message(CHAT_ID, message_text)
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
-        message_id = 750
-        current_question_id = 0
-        game_id = "4587"
-        data = f"{game_id}.{current_question_id}.{message_text}"
-        callback_query = CallbackQuery(data, user_message, message_id)
+        callback_query = _make_callback_query("1879", "0", "1")
         callback_query_response = state.process_callback_query(callback_query)
         self.assertEqual(None, callback_query_response)
 
     def test_callback_query_when_len_data_is_not_correct(self):
-        message_text = "12.42.f"
-        user_message = Message(CHAT_ID, message_text)
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
-        message_id = 750
-        current_question_id = 0
-        data = f"{GAME_ID}.{current_question_id}.{message_text}"
-        callback_query = CallbackQuery(data, user_message, message_id)
+        callback_query = _make_callback_query(GAME_ID, "0", "12.42.f")
         callback_query_response = state.process_callback_query(callback_query)
         self.assertEqual(None, callback_query_response)
 
     def test_callback_query_when_question_id_is_not_correct(self):
-        message_text = "1"
-        user_message = Message(CHAT_ID, message_text)
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
-        message_id = 750
-        current_question_id = 15
-        data = f"{GAME_ID}.{current_question_id}.{message_text}"
-        callback_query = CallbackQuery(data, user_message, message_id)
+        callback_query = _make_callback_query(GAME_ID, "15", "1")
         callback_query_response = state.process_callback_query(callback_query)
         self.assertEqual(None, callback_query_response)
 
@@ -183,10 +167,10 @@ class InGameStateTest(TestCase):
                                    "HTML",
                                    make_keyboard_for_question(2, GAME_ID, question_id)
                                    )
-        expected_edit_message = MessageEdit(CHAT_ID, message_id,
+        expected_message_edit = MessageEdit(CHAT_ID, message_id,
                                             "<u>&#127783 Answer is not correct on a question: 7+3</u>",
                                             "HTML")
-        expected = BotResponse(expected_message, message_edit=expected_edit_message)
+        expected = BotResponse(expected_message, message_edit=expected_message_edit)
         self.assertEqual(expected, callback_query_response)
 
     def test_when_all_user_answers_is_correct(self):
@@ -223,13 +207,14 @@ class InGameStateTest(TestCase):
         keyboard_2 = make_keyboard_for_question(2, GAME_ID, question_id + 1)
         keyboard_3 = make_keyboard_for_question(2, GAME_ID, question_id + 2)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
-        first_bot_message = Message(CHAT_ID, dedent_and_strip(text), "HTML", keyboard_1)
         text_1 = format.get_response_for_valid_answer(False, Question("17+3", ["20", "21"], 0))
-        message_1 = Message(CHAT_ID, text_1, "HTML", keyboard_2)
         text_2 = format.get_response_for_valid_answer(False, Question("27+3", ["30", "31"], 0))
-        message_2 = Message(CHAT_ID, text_2, "HTML", keyboard_3)
         text_3 = format.get_response_for_valid_answer(False, game_score=0)
+        first_bot_message = Message(CHAT_ID, dedent_and_strip(text), "HTML", keyboard_1)
+        message_1 = Message(CHAT_ID, text_1, "HTML", keyboard_2)
+        message_2 = Message(CHAT_ID, text_2, "HTML", keyboard_3)
         message_3 = Message(CHAT_ID, text_3, "HTML", None)
+
         conversation = [
                 ("2", message_1),
                 ('2', message_2),
@@ -248,8 +233,8 @@ class InGameStateTest(TestCase):
         question_id = 0
         keyboard = make_keyboard_for_question(2, GAME_ID, question_id)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
-        first_bot_message = Message(CHAT_ID, dedent_and_strip(text), "HTML", keyboard)
         text_1 = format.get_number_of_answers_help(2)
+        first_bot_message = Message(CHAT_ID, dedent_and_strip(text), "HTML", keyboard)
         message_1 = Message(CHAT_ID, text_1, "HTML", None)
         conversation = [
                 ("foo", message_1)
@@ -262,18 +247,18 @@ class InGameStateTest(TestCase):
 
         )
 
-    def test_when_user_answers_is_foo_and_is_correct(self):
+    def test_when_user_answers_is_other_and_is_correct(self):
         state_factory = self.create_state_factory()
         question_id = 0
         keyboard_1 = make_keyboard_for_question(2, GAME_ID, question_id)
         keyboard_2 = make_keyboard_for_question(2, GAME_ID, question_id + 1)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
-        first_bot_message = Message(CHAT_ID, dedent_and_strip(text), "HTML", keyboard_1)
         text_1 = format.get_number_of_answers_help(2)
-        message_1 = Message(CHAT_ID, text_1, "HTML", None)
         text_2 = format.get_number_of_answers_help(2)
-        message_2 = Message(CHAT_ID, text_2, "HTML", None)
         text_3 = format.get_response_for_valid_answer(True, Question("17+3", ["20", "21"], 0))
+        first_bot_message = Message(CHAT_ID, dedent_and_strip(text), "HTML", keyboard_1)
+        message_1 = Message(CHAT_ID, text_1, "HTML", None)
+        message_2 = Message(CHAT_ID, text_2, "HTML", None)
         message_3 = Message(CHAT_ID, text_3, "HTML", keyboard_2)
         conversation = [
                 ("foo", message_1),
@@ -293,12 +278,12 @@ class InGameStateTest(TestCase):
         keyboard_1 = make_keyboard_for_question(2, GAME_ID, question_id)
         keyboard_2 = make_keyboard_for_question(2, GAME_ID, question_id + 1)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
-        first_bot_message = Message(CHAT_ID, dedent_and_strip(text), "HTML", keyboard_1)
         text_1 = format.get_number_of_answers_help(2)
-        message_1 = Message(CHAT_ID, text_1, "HTML", None)
         text_2 = format.get_number_of_answers_help(2)
-        message_2 = Message(CHAT_ID, text_2, "HTML", None)
         text_3 = format.get_response_for_valid_answer(False, Question("17+3", ["20", "21"], 0))
+        first_bot_message = Message(CHAT_ID, dedent_and_strip(text), "HTML", keyboard_1)
+        message_1 = Message(CHAT_ID, text_1, "HTML", None)
+        message_2 = Message(CHAT_ID, text_2, "HTML", None)
         message_3 = Message(CHAT_ID, text_3, "HTML", keyboard_2)
         conversation = [
                 ("foo", message_1),
@@ -319,12 +304,12 @@ class InGameStateTest(TestCase):
         keyboard_1 = make_keyboard_for_question(2, GAME_ID, question_id)
         keyboard_2 = make_keyboard_for_question(2, GAME_ID, question_id + 1)
         text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
-        first_bot_message = Message(CHAT_ID, dedent_and_strip(text), "HTML", keyboard_1)
         text_1 = format.get_number_of_answers_help(2)
-        message_1 = Message(CHAT_ID, text_1, "HTML", None)
         text_2 = format.get_number_of_answers_help(2)
-        message_2 = Message(CHAT_ID, text_2, "HTML", None)
         text_3 = format.get_response_for_valid_answer(False, Question("17+3", ["20", "21"], 0))
+        first_bot_message = Message(CHAT_ID, dedent_and_strip(text), "HTML", keyboard_1)
+        message_1 = Message(CHAT_ID, text_1, "HTML", None)
+        message_2 = Message(CHAT_ID, text_2, "HTML", None)
         message_3 = Message(CHAT_ID, text_3, "HTML", keyboard_2)
         conversation = [
                 ("foo", message_1),
@@ -350,5 +335,13 @@ def _make_in_game_state(questions_file_path: str) -> InGameState:
     state_factory = BotStateFactory(storage)
     state = InGameState(questions, state_factory, GAME_ID)
     return state
+
+
+def _make_callback_query(game_id: str, current_question_id: str, message_text: str) -> CallbackQuery:
+    user_message = Message(CHAT_ID, message_text)
+    message_id = 750
+    data = f"{game_id}.{current_question_id}.{message_text}"
+    callback_query = CallbackQuery(data, user_message, message_id)
+    return callback_query
 
 

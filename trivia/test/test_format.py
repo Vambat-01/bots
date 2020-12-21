@@ -81,7 +81,7 @@ class MakeKeyboardForQuestionTest(TestCase):
         self.assertEqual(expected, actual)
 
     def test_five_answers(self):
-        buttons_1 = [[Button(str(i + 1), str(f"{123}.{0}.{i + 1}")) for i in range(5)]]
+        buttons_1 = [[Button(str(i + 1), str(f"123.0.{i + 1}")) for i in range(5)]]
         expected = Keyboard(buttons_1)
         game_id = "123"
         question_id = 0

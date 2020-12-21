@@ -120,8 +120,6 @@ class RealTelegramApi(TelegramApi):
             body["parse_mode"] = parse_mode
 
         response = requests.post(url, json=body)
-        if response.status_code == 400:
-            print("foo")
         log(f"TelegramAPI message_edit status code: {response.status_code}")
 
 
