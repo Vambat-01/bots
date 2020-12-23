@@ -52,10 +52,10 @@ def _get_answers(list_answers: List[str], correct_answer: Optional[int], answer_
 
     if answer_id is not None:
         if correct_answer == answer_id:
-            list_ans[answer_id] = f"{answer_id - 1}: {list_answers[answer_id - 1]} U+2714"
+            list_ans[answer_id - 1] = f"{answer_id}: {list_answers[answer_id - 1]} &#2714"
         else:
-            list_ans[0] = f"{1}: {list_answers[0]} U+26A0"
-            list_ans[int(answer_id) - 1] = f"{answer_id}: {list_answers[int(answer_id) - 1]} U+274C"
+            list_ans[0] = f"{1}: {list_answers[0]} &#26A0"
+            list_ans[answer_id - 1] = f"{answer_id }: {list_answers[answer_id - 1]} &#274C"
     return list_ans
 
 
