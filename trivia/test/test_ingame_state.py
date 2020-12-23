@@ -54,9 +54,8 @@ class InGameStateTest(TestCase):
         user_message = Message(CHAT_ID, text)
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
         message_resp = state.process_message(user_message)
-        check_text = format.get_response_for_valid_answer(True, Question("17+3", ["20", "21"], 0))
-        self.assertEqual(check_text, message_resp.message.text
-            )
+        check_text = format.get_response_for_valid_answer(True, None, Question("17+3", ["20", "21"], 0), None)
+        self.assertEqual(check_text, message_resp.message.text)
         self.assertEqual(CHAT_ID, message_resp.message.chat_id)
         self.assertEqual(None, message_resp.new_state)
 
@@ -65,7 +64,7 @@ class InGameStateTest(TestCase):
         user_message = Message(CHAT_ID, text)
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
         message_resp = state.process_message(user_message)
-        check_text = format.get_response_for_valid_answer(False, Question("17+3", ["20", "21"], 0))
+        check_text = format.get_response_for_valid_answer(False, None, Question("17+3", ["20", "21"], 0))
         self.assertEqual(dedent_and_strip(check_text), message_resp.message.text
         )
         self.assertEqual(CHAT_ID, message_resp.message.chat_id)
@@ -105,7 +104,7 @@ class InGameStateTest(TestCase):
     def test_on_enter(self):
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
         response = state.on_enter(CHAT_ID)
-        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
+        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"], None, None)
         check_text = dedent_and_strip(text)
         self.assertEqual(dedent_and_strip(check_text), response.text
         )
@@ -120,7 +119,7 @@ class InGameStateTest(TestCase):
         data = f"{GAME_ID}.{current_question_id}.{message_text}"
         callback_query = CallbackQuery(data, user_message, message_id)
         callback_query_response = state.process_callback_query(callback_query)
-        answer_text = format.get_response_for_valid_answer(True, Question("17+3", ["20", "21"], 0))
+        answer_text = format.get_response_for_valid_answer(1, 1, Question("17+3", ["20", "21"], 0), None)
         question_id = 1
         expected_message = Message(CHAT_ID, dedent_and_strip(answer_text),
                             "HTML",
@@ -128,7 +127,7 @@ class InGameStateTest(TestCase):
                            )
         expected_message_edit = MessageEdit(CHAT_ID,
                                             message_id,
-                                            "<u>&#127774 Answer is correct on a question: 7+3</u>",
+                                            "<b>&#10067Next question:</b>",
                                             "HTML"
                                             )
         expected = BotResponse(expected_message, message_edit=expected_message_edit)

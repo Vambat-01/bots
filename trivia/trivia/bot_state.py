@@ -361,7 +361,6 @@ class InGameState(BotState):
 
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
         chat_id = callback_query.message.chat_id
-        answer_string = callback_query.data
         payload = callback_query.data.split(".")
         message_id = callback_query.message_id
         correct_answer = 1
@@ -427,7 +426,7 @@ class InGameState(BotState):
                 self.current_question += 1
                 keyboard = make_keyboard_for_question(num_of_resp, self.game_id, self.current_question)
                 message_text = format.get_response_for_valid_answer(is_answer_correct,
-                                                                    answer_id,
+                                                                    None,
                                                                     next_question=next_question
                                                                     )
                 response_message = Message(chat_id, message_text, "HTML", keyboard)
@@ -435,7 +434,7 @@ class InGameState(BotState):
                 idle_state = self.state_factory.create_idle_state()
                 new_state = idle_state
                 message_text = format.get_response_for_valid_answer(is_answer_correct,
-                                                                    answer_id,
+                                                                    None,
                                                                     game_score=self.game_score
                                                                     )
                 response_message = Message(chat_id, message_text, "HTML")
