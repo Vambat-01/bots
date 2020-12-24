@@ -7,7 +7,7 @@ def get_number_of_answers_help(num_of_resp: int) -> str:
 
 
 def get_response_for_valid_answer(answer_correct: int,
-                                  answer_id: Optional[int],
+                                  answer_id: Optional[int] = None,
                                   next_question: Optional[Question] = None,
                                   game_score: Optional[int] = None) -> str:
 
