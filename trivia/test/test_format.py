@@ -23,7 +23,7 @@ class GetResponseForValidAnswerText(TestCase):
                  """
 
         self.assertEqual(dedent_and_strip(expected_text),
-                         format.get_response_for_valid_answer(True, None, Question("10+10", ["20", "45"], 0), None)
+                         format.get_response_for_valid_answer(True, None, Question("10+10", ["20", "45"], 0))
                          )
 
     def test_when_answer_is_not_correct_and_has_next_question(self):
@@ -35,16 +35,16 @@ class GetResponseForValidAnswerText(TestCase):
                      """
 
         self.assertEqual(dedent_and_strip(expected_text),
-                         format.get_response_for_valid_answer(False, None, Question("15+10", ["30", "28"], 0), 0)
-                        )
+                         format.get_response_for_valid_answer(False, next_question=Question("15+10", ["30", "28"], 0))
+                         )
 
     def test_when_answer_is_correct_and_score(self):
         expected_text = "<i>The game is over. Your points: 6</i>"
-        self.assertEqual(expected_text, format.get_response_for_valid_answer(True, None, game_score=6))
+        self.assertEqual(expected_text, format.get_response_for_valid_answer(True, game_score=6))
 
     def test_when_answer_is_not_correct_and_score(self):
         expected_text = "<i>The game is over. Your points: 2</i>"
-        self.assertEqual(expected_text, format.get_response_for_valid_answer(False, None, game_score=2))
+        self.assertEqual(expected_text, format.get_response_for_valid_answer(False, game_score=2))
 
 
 class MakeKeyboardForQuestionTest(TestCase):
@@ -85,4 +85,3 @@ class MakeKeyboardForQuestionTest(TestCase):
         question_id = 0
         actual = make_keyboard_for_question(5, game_id, question_id)
         self.assertEqual(expected, actual)
-

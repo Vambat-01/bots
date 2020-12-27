@@ -384,13 +384,11 @@ class InGameState(BotState):
         quest = self.questions
         first_question = quest[0]
         keyboard = make_keyboard_for_question(len(first_question.answers), self.game_id, self.current_question)
-        string_text = format.get_text_questions_answers("Question",
-                                                        first_question.text,
-                                                        first_question.answers,
-                                                        None,
-                                                        None
-                                                        )
-        message_text = string_text
+        text = format.get_text_questions_answers("Question",
+                                                 first_question.text,
+                                                 first_question.answers,
+                                                 )
+        message_text = text
         response_message = Message(chat_id, message_text, "HTML", keyboard)
         return response_message
 
@@ -403,7 +401,6 @@ class InGameState(BotState):
         new_state: Optional[BotState] = None
         num_of_resp = len(self.questions[self.current_question].answers)
         answer_id = self.parse_int(answer)
-        correct_answer = 1
         if answer_id is None:
             response_message = Message(
                 chat_id,
@@ -440,28 +437,28 @@ class InGameState(BotState):
         return response_message, new_state
 
     def _get_message_edit(self, question_id: int,
-                          answer_id: Optional[str],
+                          answer_text: Optional[str],
                           correct_answer: int,
                           chat_id: int,
                           message_id: int) -> MessageEdit:
         text_question = self.questions[question_id]
-        answ_id = self.parse_int(str(answer_id))
-        message_text = format.get_response_for_valid_answer(correct_answer, answ_id, text_question)
+        answer_id = self.parse_int(answer_text) if answer_text is not None else None
+        message_text = format.get_response_for_valid_answer(correct_answer, answer_id, text_question)
 
-        if answ_id == 1:
+        if answer_id == 1:
             response_message_edit = MessageEdit(chat_id,
-                                            message_id,
-                                            message_text,
-                                            "HTML"
-                                            )
+                                                message_id,
+                                                message_text,
+                                                "HTML"
+                                                )
             return response_message_edit
 
         else:
             response_edit_message = MessageEdit(chat_id,
-                                        message_id,
-                                        message_text,
-                                        "HTML"
-                                        )
+                                                message_id,
+                                                message_text,
+                                                "HTML"
+                                                )
             return response_edit_message
 
 
@@ -487,7 +484,4 @@ def select_questions(questions: List[Question], num_questions: int) -> List[Ques
         :return: Список вопросов
     """
     return questions[:num_questions]
-
-
-
 

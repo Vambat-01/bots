@@ -54,7 +54,7 @@ class InGameStateTest(TestCase):
         user_message = Message(CHAT_ID, text)
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
         message_resp = state.process_message(user_message)
-        check_text = format.get_response_for_valid_answer(True, None, Question("17+3", ["20", "21"], 0), None)
+        check_text = format.get_response_for_valid_answer(True, next_question=Question("17+3", ["20", "21"], 0))
         self.assertEqual(check_text, message_resp.message.text)
         self.assertEqual(CHAT_ID, message_resp.message.chat_id)
         self.assertEqual(None, message_resp.new_state)
@@ -64,7 +64,7 @@ class InGameStateTest(TestCase):
         user_message = Message(CHAT_ID, text)
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
         message_resp = state.process_message(user_message)
-        check_text = format.get_response_for_valid_answer(False, None, Question("17+3", ["20", "21"], 0))
+        check_text = format.get_response_for_valid_answer(False, next_question=Question("17+3", ["20", "21"], 0))
         self.assertEqual(dedent_and_strip(check_text), message_resp.message.text
         )
         self.assertEqual(CHAT_ID, message_resp.message.chat_id)
@@ -104,7 +104,7 @@ class InGameStateTest(TestCase):
     def test_on_enter(self):
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
         response = state.on_enter(CHAT_ID)
-        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"], None, None)
+        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
         check_text = dedent_and_strip(text)
         self.assertEqual(dedent_and_strip(check_text), response.text
         )
@@ -196,7 +196,7 @@ class InGameStateTest(TestCase):
         keyboard_1 = make_keyboard_for_question(2, GAME_ID, question_id)
         keyboard_2 = make_keyboard_for_question(2, GAME_ID, question_id + 1)
         keyboard_3 = make_keyboard_for_question(2, GAME_ID, question_id + 2)
-        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"],None, None)
+        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
         first_bot_message = Message(CHAT_ID, dedent_and_strip(text), "HTML", keyboard_1)
         text_1 = format.get_response_for_valid_answer(
             2,
@@ -229,7 +229,7 @@ class InGameStateTest(TestCase):
         keyboard_1 = make_keyboard_for_question(2, GAME_ID, question_id)
         keyboard_2 = make_keyboard_for_question(2, GAME_ID, question_id + 1)
         keyboard_3 = make_keyboard_for_question(2, GAME_ID, question_id + 2)
-        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"], question_id, None)
+        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"], question_id)
         text_1 = format.get_response_for_valid_answer(
             2,
             next_question=Question("17+3", ["20", "21"], 0)
@@ -261,7 +261,7 @@ class InGameStateTest(TestCase):
         state_factory = self.create_state_factory()
         question_id = 0
         keyboard = make_keyboard_for_question(2, GAME_ID, question_id)
-        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"], None, None)
+        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
         text_1 = format.get_number_of_answers_help(2)
         first_bot_message = Message(CHAT_ID, dedent_and_strip(text), "HTML", keyboard)
         message_1 = Message(CHAT_ID, text_1, "HTML", None)
@@ -281,7 +281,7 @@ class InGameStateTest(TestCase):
         question_id = 0
         keyboard_1 = make_keyboard_for_question(2, GAME_ID, question_id)
         keyboard_2 = make_keyboard_for_question(2, GAME_ID, question_id + 1)
-        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"], None, None)
+        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
         text_1 = format.get_number_of_answers_help(2)
         text_2 = format.get_number_of_answers_help(2)
         text_3 = format.get_response_for_valid_answer(
@@ -309,7 +309,7 @@ class InGameStateTest(TestCase):
         question_id = 0
         keyboard_1 = make_keyboard_for_question(2, GAME_ID, question_id)
         keyboard_2 = make_keyboard_for_question(2, GAME_ID, question_id + 1)
-        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"], None, None)
+        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
         text_1 = format.get_number_of_answers_help(2)
         text_2 = format.get_number_of_answers_help(2)
         text_3 = format.get_response_for_valid_answer(
@@ -333,7 +333,7 @@ class InGameStateTest(TestCase):
 
         )
 
-    def test_when_all_user_third_another_and_not_correct(self):
+    def test_when_all_user_answers_is_different(self):
         state_factory = self.create_state_factory()
         question_id = 0
         keyboard_1 = make_keyboard_for_question(2, GAME_ID, question_id)
@@ -381,5 +381,3 @@ def _make_callback_query(game_id: str, current_question_id: str, message_text: s
     data = f"{game_id}.{current_question_id}.{message_text}"
     callback_query = CallbackQuery(data, user_message, message_id)
     return callback_query
-
-
