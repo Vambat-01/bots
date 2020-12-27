@@ -338,7 +338,7 @@ class InGameStateTest(TestCase):
         question_id = 0
         keyboard_1 = make_keyboard_for_question(2, GAME_ID, question_id)
         keyboard_2 = make_keyboard_for_question(2, GAME_ID, question_id + 1)
-        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"], None, None)
+        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
         text_1 = format.get_number_of_answers_help(2)
         text_2 = format.get_number_of_answers_help(2)
         text_3 = format.get_response_for_valid_answer(

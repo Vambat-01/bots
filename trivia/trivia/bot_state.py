@@ -446,20 +446,17 @@ class InGameState(BotState):
         message_text = format.get_response_for_valid_answer(correct_answer, answer_id, text_question)
 
         if answer_id == 1:
-            response_message_edit = MessageEdit(chat_id,
-                                                message_id,
-                                                message_text,
-                                                "HTML"
-                                                )
-            return response_message_edit
+            return MessageEdit(chat_id,
+                               message_id,
+                               message_text,
+                               "HTML"
+                               )
 
-        else:
-            response_edit_message = MessageEdit(chat_id,
-                                                message_id,
-                                                message_text,
-                                                "HTML"
-                                                )
-            return response_edit_message
+        return MessageEdit(chat_id,
+                           message_id,
+                           message_text,
+                           "HTML"
+                           )
 
 
 def make_keyboard_for_question(num_answers: int, game_id: str, question_id: int) -> Keyboard:
