@@ -8,8 +8,7 @@ import json
 from trivia.bot_state import BotResponse
 from trivia.utils import dedent_and_strip
 from enum import Enum
-from trivia.random_utils import Random
-from random import shuffle
+
 
 CHAT_ID = 125
 
@@ -18,21 +17,6 @@ class UpdateType(Enum):
     MESSAGE = 1
     COMMAND = 2
     CALLBACK_QUERY = 3
-
-
-class RandomFake(Random):
-    """
-        Получение списка вариантов ответа на вопрос и возвращения перемешанного в произвольном порядке списка
-    варинтов ответа, и номер правильного ответа, для теста
-    """
-    def shuffle_answer(self, answers: List[str]) -> (List[str], int):
-        shuffle_ans = list(enumerate(answers))
-        shuffle(shuffle_ans)
-        correct_answer = 0
-        for i in range(len(shuffle_ans) - 1):
-            if shuffle_ans[i][i] == 0:
-                correct_answer = i + 1
-        return shuffle_ans, correct_answer
 
 
 class NewFakeState(BotState):
