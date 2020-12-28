@@ -4,8 +4,8 @@ from typing import Optional, List
 
 SMILE_THUMB_UP = '&#128077'
 SMILE_THUMB_DOWN = '&#128078'
-SMILE_THUMB_RIGHT = '&#128073'
-SMILE_EMPTY = '|&#8195|'
+SMILE_FINGER_RIGHT = '&#128073'
+SMILE_EMPTY = '&#8195'
 SMILE_HAT = '&#127891'
 SMILE_CHECK = '&#10004'
 SMILE_CROSS = '&#10006'
@@ -20,7 +20,7 @@ def get_response_for_valid_answer(correct_answer: int,
                                   next_question: Optional[Question] = None,
                                   game_score: Optional[int] = None) -> str:
     """
-    Получает следующий вопрос и в зависимости есть он или нет, возвращает следующий вопрос или что игра закончена.
+    Возвращает следующий вопрос или что игра закончена.
     :param correct_answer: номер правильного ответа
     :param answer_id: номер ответа, который дал пользователь
     :param next_question: следующий вопрос
@@ -46,13 +46,13 @@ def get_text_questions_answers(first_text: str,
                                answer_id: Optional[int] = None
                                ):
     """
-    Возаращает текст вопроса и варианты ответы
+    Возвращает текст вопроса и варианты ответов. Используется для редоктирует старого вопроса и создания нового.
     :param first_text: первый текст в сообщение
     :param question_text: текст вопроса
-    :param answers: Список вариантоа ответа
+    :param answers: Список вариантов ответа
     :param correct_answer: номер правильного ответа
     :param answer_id: номер ответа, который дал пользователь
-    :return: Возаращает текст вопроса и варианты ответы
+    :return: Возвращает текст вопроса и варианты ответов
     """
     rows = []
 
@@ -79,11 +79,11 @@ def _get_answers(list_answers: List[str], correct_answer: Optional[int], answer_
             elif correct_answer != answer_id and answer_id == i + 1:
                 possible_answers.append(f"{SMILE_THUMB_DOWN} {i + 1}: {list_answers[i]}")
             elif correct_answer == i + 1 and correct_answer != answer_id:
-                possible_answers.append(f"{SMILE_THUMB_RIGHT} {i + 1}: {list_answers[i]}")
+                possible_answers.append(f"{SMILE_FINGER_RIGHT} {i + 1}: {list_answers[i]}")
             else:
-                possible_answers.append(f"{SMILE_EMPTY} {i + 1}: {list_answers[i]}")
+                possible_answers.append(f"|{SMILE_EMPTY}| {i + 1}: {list_answers[i]}")
         else:
-            possible_answers.append(f"{SMILE_EMPTY} {i + 1}: {list_answers[i]}")
+            possible_answers.append(f"|{SMILE_EMPTY}| {i + 1}: {list_answers[i]}")
 
     return possible_answers
 
