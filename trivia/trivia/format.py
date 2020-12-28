@@ -6,6 +6,9 @@ SMILE_THUMB_UP = '&#128077'
 SMILE_THUMB_DOWN = '&#128078'
 SMILE_THUMB_RIGHT = '&#128073'
 SMILE_EMPTY = '|&#8195|'
+SMILE_HAT = '&#127891'
+SMILE_CHECK = '&#10004'
+SMILE_CROSS = '&#10006'
 
 
 def get_number_of_answers_help(num_of_resp: int) -> str:
@@ -54,13 +57,11 @@ def get_text_questions_answers(first_text: str,
     rows = []
 
     if answer_id is None:
-        rows.append(f"<b>&#127891 {first_text}:</b>")
+        rows.append(f"<b>{SMILE_HAT} {first_text}:</b>")
+    elif answer_id == correct_answer:
+        rows.append(f"<b>{SMILE_CHECK} {first_text}:</b>")
     else:
-        if answer_id == correct_answer:
-            rows.append(f"<b>&#10004 {first_text}:</b>")
-
-        if answer_id != correct_answer:
-            rows.append(f"<b>&#10006 {first_text}:</b>")
+        rows.append(f"<b>{SMILE_CROSS} {first_text}:</b>")
 
     rows.append(f"    <b>{question_text}</b>")
     answers = _get_answers(answers, correct_answer, answer_id)
@@ -73,37 +74,18 @@ def _get_answers(list_answers: List[str], correct_answer: Optional[int], answer_
     possible_answers = []
     for i in range(len(list_answers)):
         if answer_id is not None:
-            if answer_id == i + 1:
-                if answer_id == correct_answer:
-                    possible_answers.append(f"{SMILE_THUMB_UP} {i + 1}: {list_answers[i]}")
-                else:
-                    possible_answers.append(f"{SMILE_THUMB_DOWN} {i + 1}: {list_answers[i]}")
-
-            if correct_answer == i + 1 and correct_answer != answer_id:
+            if correct_answer == answer_id and answer_id == i + 1:
+                possible_answers.append(f"{SMILE_THUMB_UP} {i + 1}: {list_answers[i]}")
+            elif correct_answer != answer_id and answer_id == i + 1:
+                possible_answers.append(f"{SMILE_THUMB_DOWN} {i + 1}: {list_answers[i]}")
+            elif correct_answer == i + 1 and correct_answer != answer_id:
                 possible_answers.append(f"{SMILE_THUMB_RIGHT} {i + 1}: {list_answers[i]}")
-
-            if answer_id != i + 1 and correct_answer != i + 1:
+            else:
                 possible_answers.append(f"{SMILE_EMPTY} {i + 1}: {list_answers[i]}")
-
         else:
             possible_answers.append(f"{SMILE_EMPTY} {i + 1}: {list_answers[i]}")
-        return possible_answers
 
-    #     if answer_id is not None:
-    #         if correct_answer == answer_id and answer_id == i + 1:
-    #             possible_answers.append(f"{SMILE_THUMB_UP} {i + 1}: {list_answers[i]}")
-    #
-    #         if correct_answer != answer_id and answer_id == i + 1:
-    #             possible_answers.append(f"{SMILE_THUMB_DOWN} {i + 1}: {list_answers[i]}")
-    #
-    #         if correct_answer == i + 1 and correct_answer != answer_id:
-    #             possible_answers.append(f"{SMILE_THUMB_RIGHT} {i + 1}: {list_answers[i]}")
-    #
-    #         if answer_id != i + 1 and correct_answer != i + 1:
-    #             possible_answers.append(f"{SMILE_EMPTY} {i + 1}: {list_answers[i]}")
-    #
-    #     else:
-    #         possible_answers.append(f"{SMILE_EMPTY} {i + 1}: {list_answers[i]}")
-    # return possible_answers
+    return possible_answers
+
 
 
