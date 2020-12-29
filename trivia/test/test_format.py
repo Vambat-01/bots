@@ -35,7 +35,7 @@ class GetResponseForValidAnswerText(TestCase):
                      """
 
         self.assertEqual(dedent_and_strip(expected_text),
-                         format.make_message(False, next_question=Question("15+10", ["30", "28"], 0))
+                         format.make_message(False, question=Question("15+10", ["30", "28"], 0))
                          )
 
     def test_when_answer_is_correct_and_score(self):

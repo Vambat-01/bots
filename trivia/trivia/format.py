@@ -17,24 +17,24 @@ def get_number_of_answers_help(num_of_resp: int) -> str:
 
 def make_message(correct_answer: int,
                  answer_id: Optional[int] = None,
-                 next_question: Optional[Question] = None,
+                 question: Optional[Question] = None,
                  game_score: Optional[int] = None) -> str:
     """
-    Используется для редактирования предыдущего сообщения бота и для сборки нового ответа пользователю.
-    Если "next_question" присутствует, а "game_score" отсутствуют, собирается следующий вопрос.
-    Если "game_score" присутствуют, а "next_question" отсутствует, тогда выводится последнее сообщение в игре.
-    :param correct_answer: номер правильного ответа
-    :param answer_id: опциональный ответ пользователя. Если ответ присутствуеи, редактируется старое сообщение и
-    собирается новое. Если ответ отсутствует, предыдущие сообщение пользоватебя не редактируется, собирается новое.
-    :param next_question: следующее сообщение
-    :param game_score: игровые очки пользователя
+    Используется для редактирования предыдущего сообщения бота и для сборки нового.
+    Наличие "question" и отсутствие "game_score" - собирает следующий вопрос.
+    Наличие "game_score" и отсутствие "next_question" - выводит последнее сообщение в игре.
+    :param correct_answer: правильный ответ
+    :param answer_id: опциональный ответ пользователя. Наличие "answer_id" означает редактирование.
+    Отсутствие - создание нового вопроса.
+    :param question: опциональный вопрос
+    :param game_score: опциональные очки пользователя
     :return: текст следующего вопроса или конечная фраза игры
     """
 
-    if next_question is not None:
+    if question is not None:
         return make_question("Next question",
-                             next_question.text,
-                             next_question.answers,
+                             question.text,
+                             question.answers,
                              correct_answer,
                              answer_id
                              )
@@ -50,15 +50,13 @@ def make_question(first_text: str,
                   ):
     """
     Возвращает текст вопроса и варианты ответов. Используется для редактирует старого вопроса и создания нового.
-    Если "answer_id" отсутствует, выводится первый текст сообщения со смайлом шляпа.
-    Если "answer_id" присутсвует и он верный, выводится первый текст сообщения со смайлом "галочка".
-    Если "answer_id" присутсвует и он не верный, выводится первый текст сообщеня со смайлом "крестик"
+    Наличие `answer_id` означает редактирование. Отсутствие - создание нового вопроса.
     :param first_text: первый текст в сообщение
     :param question_text: текст вопроса
-    :param answers: Список вариантов ответа
+    :param answers: список вариантов ответа
     :param correct_answer: опциональный правильного ответа
     :param answer_id: опциональный ответ пользователя
-    :return: Возвращает текст вопроса и варианты ответов
+    :return: возвращает текст вопроса и варианты ответов
     """
     rows = []
 

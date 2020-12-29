@@ -9,6 +9,9 @@ from dataclasses import dataclass
 import uuid
 
 
+CORRECT_ANSWER = 1
+
+
 @dataclass
 class BotResponse:
     """
@@ -423,13 +426,13 @@ class InGameState(BotState):
                 self.current_question += 1
                 keyboard = make_keyboard_for_question(num_of_resp, self.game_id, self.current_question)
                 message_text = format.make_message(is_answer_correct,
-                                                   next_question=next_question
+                                                   question=next_question
                                                    )
                 response_message = Message(chat_id, message_text, "HTML", keyboard)
             else:
                 idle_state = self.state_factory.create_idle_state()
                 new_state = idle_state
-                message_text = format.make_message(is_answer_correct,
+                message_text = format.make_message(CORRECT_ANSWER,
                                                    game_score=self.game_score
                                                    )
                 response_message = Message(chat_id, message_text, "HTML")
