@@ -9,6 +9,9 @@ from dataclasses import dataclass
 import uuid
 
 
+CORRECT_ANSWER = 1
+
+
 @dataclass
 class BotResponse:
     """
@@ -361,9 +364,9 @@ class InGameState(BotState):
 
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
         chat_id = callback_query.message.chat_id
-        answer_string = callback_query.data
         payload = callback_query.data.split(".")
         message_id = callback_query.message_id
+        correct_answer = 1
 
         if len(payload) == 3:
             game_id = payload[0]
@@ -372,7 +375,7 @@ class InGameState(BotState):
 
             if game_id == self.game_id and quest_id == self.current_question:
                 message, new_state = self._process_answer(answer_id, chat_id)
-                message_edit = self._get_message_edit(quest_id, answer_id, chat_id, message_id)
+                message_edit = self._get_message_edit(quest_id, answer_id, correct_answer, chat_id, message_id)
                 return BotResponse(message, message_edit=message_edit, new_state=new_state)
         return None
 
@@ -384,8 +387,11 @@ class InGameState(BotState):
         quest = self.questions
         first_question = quest[0]
         keyboard = make_keyboard_for_question(len(first_question.answers), self.game_id, self.current_question)
-        string_text = format.get_text_questions_answers("Question", first_question.text, first_question.answers)
-        message_text = string_text
+        text = format.make_question("Question",
+                                    first_question.text,
+                                    first_question.answers,
+                                    )
+        message_text = text
         response_message = Message(chat_id, message_text, "HTML", keyboard)
         return response_message
 
@@ -419,37 +425,41 @@ class InGameState(BotState):
                 next_question = self.questions[self.current_question + 1]
                 self.current_question += 1
                 keyboard = make_keyboard_for_question(num_of_resp, self.game_id, self.current_question)
-                message_text = format.get_response_for_valid_answer(is_answer_correct, next_question=next_question)
+                message_text = format.make_message(is_answer_correct,
+                                                   question=next_question
+                                                   )
                 response_message = Message(chat_id, message_text, "HTML", keyboard)
             else:
                 idle_state = self.state_factory.create_idle_state()
                 new_state = idle_state
-                message_text = format.get_response_for_valid_answer(is_answer_correct, game_score=self.game_score)
+                message_text = format.make_message(CORRECT_ANSWER,
+                                                   game_score=self.game_score
+                                                   )
                 response_message = Message(chat_id, message_text, "HTML")
 
         return response_message, new_state
 
     def _get_message_edit(self, question_id: int,
-                          answer_id: str,
+                          answer_text: Optional[str],
+                          correct_answer: int,
                           chat_id: int,
                           message_id: int) -> MessageEdit:
         text_question = self.questions[question_id]
-        answ_id = self.parse_int(answer_id)
-        if answ_id == 1:
-            response_message_edit = MessageEdit(chat_id,
-                                            message_id,
-                                            f"<u>&#127774 Answer is correct on a question: {text_question.text}</u>",
-                                            "HTML"
-                                            )
-            return response_message_edit
+        answer_id = self.parse_int(answer_text) if answer_text is not None else None
+        message_text = format.make_message(correct_answer, answer_id, text_question)
 
-        else:
-            response_edit_message = MessageEdit(chat_id,
-                                        message_id,
-                                        f"<u>&#127783 Answer is not correct on a question: {text_question.text}</u>",
-                                        "HTML"
-                                        )
-            return response_edit_message
+        if answer_id == 1:
+            return MessageEdit(chat_id,
+                               message_id,
+                               message_text,
+                               "HTML"
+                               )
+
+        return MessageEdit(chat_id,
+                           message_id,
+                           message_text,
+                           "HTML"
+                           )
 
 
 def make_keyboard_for_question(num_answers: int, game_id: str, question_id: int) -> Keyboard:
@@ -474,7 +484,4 @@ def select_questions(questions: List[Question], num_questions: int) -> List[Ques
         :return: Список вопросов
     """
     return questions[:num_questions]
-
-
-
 

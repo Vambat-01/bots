@@ -16,37 +16,35 @@ class GetNumbersOfAnswersHelpTest(TestCase):
 class GetResponseForValidAnswerText(TestCase):
     def test_when_answer_is_correct_and_has_next_question(self):
         expected_text = """
-                    <i>&#127774 Answer is correct!</i> <b>&#10067Next question:</b>
+                    <b>&#127891 Next question:</b>
                         <b>10+10</b>
-                    <i>Choose answer:</i>
-                    1: 20
-                    2: 45
+                    |&#8195| 1: 20
+                    |&#8195| 2: 45
                  """
 
         self.assertEqual(dedent_and_strip(expected_text),
-                         format.get_response_for_valid_answer(True, Question("10+10", ["20", "45"], 0))
+                         format.make_message(True, None, Question("10+10", ["20", "45"], 0))
                          )
 
     def test_when_answer_is_not_correct_and_has_next_question(self):
         expected_text = """
-                        <i>&#127783 Answer is not correct!</i> <b>&#10067Next question:</b>
+                        <b>&#127891 Next question:</b>
                             <b>15+10</b>
-                        <i>Choose answer:</i>
-                        1: 30
-                        2: 28
+                        |&#8195| 1: 30
+                        |&#8195| 2: 28
                      """
 
         self.assertEqual(dedent_and_strip(expected_text),
-                         format.get_response_for_valid_answer(False, Question("15+10", ["30", "28"], 0))
-                        )
+                         format.make_message(False, question=Question("15+10", ["30", "28"], 0))
+                         )
 
     def test_when_answer_is_correct_and_score(self):
-        expected_text = "<i>&#127774 Answer is correct!</i> <i>The game is over. Your points: 6</i>"
-        self.assertEqual(expected_text, format.get_response_for_valid_answer(True, game_score=6))
+        expected_text = "<i>The game is over. Your points: 6</i>"
+        self.assertEqual(expected_text, format.make_message(True, game_score=6))
 
     def test_when_answer_is_not_correct_and_score(self):
-        expected_text = "<i>&#127783 Answer is not correct!</i> <i>The game is over. Your points: 2</i>"
-        self.assertEqual(expected_text, format.get_response_for_valid_answer(False, game_score=2))
+        expected_text = "<i>The game is over. Your points: 2</i>"
+        self.assertEqual(expected_text, format.make_message(False, game_score=2))
 
 
 class MakeKeyboardForQuestionTest(TestCase):
@@ -87,4 +85,3 @@ class MakeKeyboardForQuestionTest(TestCase):
         question_id = 0
         actual = make_keyboard_for_question(5, game_id, question_id)
         self.assertEqual(expected, actual)
-
