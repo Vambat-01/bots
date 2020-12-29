@@ -54,7 +54,7 @@ class InGameStateTest(TestCase):
         user_message = Message(CHAT_ID, text)
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
         message_resp = state.process_message(user_message)
-        check_text = format.get_response_for_valid_answer(True, next_question=Question("17+3", ["20", "21"], 0))
+        check_text = format.make_message(True, next_question=Question("17+3", ["20", "21"], 0))
         self.assertEqual(check_text, message_resp.message.text)
         self.assertEqual(CHAT_ID, message_resp.message.chat_id)
         self.assertEqual(None, message_resp.new_state)
@@ -64,7 +64,7 @@ class InGameStateTest(TestCase):
         user_message = Message(CHAT_ID, text)
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
         message_resp = state.process_message(user_message)
-        check_text = format.get_response_for_valid_answer(False, next_question=Question("17+3", ["20", "21"], 0))
+        check_text = format.make_message(False, next_question=Question("17+3", ["20", "21"], 0))
         self.assertEqual(dedent_and_strip(check_text), message_resp.message.text
         )
         self.assertEqual(CHAT_ID, message_resp.message.chat_id)
@@ -104,7 +104,7 @@ class InGameStateTest(TestCase):
     def test_on_enter(self):
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
         response = state.on_enter(CHAT_ID)
-        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
+        text = format.make_question("Question", "7+3", ["10", "11"])
         check_text = dedent_and_strip(text)
         self.assertEqual(dedent_and_strip(check_text), response.text
         )
@@ -122,7 +122,7 @@ class InGameStateTest(TestCase):
 
         next_question_id = 1
         expected_message = Message(CHAT_ID,
-                                   format.get_response_for_valid_answer(
+                                   format.make_message(
                                        1,
                                        next_question=Question("17+3", ["20", "21"], 0)
                                    ),
@@ -131,7 +131,7 @@ class InGameStateTest(TestCase):
                                    )
         expected_message_edit = MessageEdit(CHAT_ID,
                                             prev_message_id,
-                                            format.get_response_for_valid_answer(
+                                            format.make_message(
                                                 1,
                                                 1,
                                                 Question("7+3", ["10", "11"], 0)
@@ -171,7 +171,7 @@ class InGameStateTest(TestCase):
 
         next_question_id = 1
         expected_message = Message(CHAT_ID,
-                                   format.get_response_for_valid_answer(
+                                   format.make_message(
                                        2,
                                        next_question=Question("17+3", ["20", "21"], 0)
                                    ),
@@ -180,7 +180,7 @@ class InGameStateTest(TestCase):
                                    )
         expected_message_edit = MessageEdit(CHAT_ID,
                                             prev_message_id,
-                                            format.get_response_for_valid_answer(
+                                            format.make_message(
                                                 1,
                                                 2,
                                                 Question("7+3", ["10", "11"], 0)
@@ -196,19 +196,19 @@ class InGameStateTest(TestCase):
         keyboard_1 = make_keyboard_for_question(2, GAME_ID, question_id)
         keyboard_2 = make_keyboard_for_question(2, GAME_ID, question_id + 1)
         keyboard_3 = make_keyboard_for_question(2, GAME_ID, question_id + 2)
-        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
+        text = format.make_question("Question", "7+3", ["10", "11"])
         first_bot_message = Message(CHAT_ID, dedent_and_strip(text), "HTML", keyboard_1)
-        text_1 = format.get_response_for_valid_answer(
+        text_1 = format.make_message(
             2,
             next_question=Question("17+3", ["20", "21"], 0)
         )
         message_1 = Message(CHAT_ID, text_1, "HTML", keyboard_2)
-        text_2 = format.get_response_for_valid_answer(
+        text_2 = format.make_message(
             2,
             next_question=Question("27+3", ["30", "31"], 0)
         )
         message_2 = Message(CHAT_ID, text_2, "HTML", keyboard_3)
-        text_3 = format.get_response_for_valid_answer(2, game_score=6)
+        text_3 = format.make_message(2, game_score=6)
         message_3 = Message(CHAT_ID, text_3, "HTML", None)
         conversation = [
                 ("1", message_1),
@@ -229,16 +229,16 @@ class InGameStateTest(TestCase):
         keyboard_1 = make_keyboard_for_question(2, GAME_ID, question_id)
         keyboard_2 = make_keyboard_for_question(2, GAME_ID, question_id + 1)
         keyboard_3 = make_keyboard_for_question(2, GAME_ID, question_id + 2)
-        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"], question_id)
-        text_1 = format.get_response_for_valid_answer(
+        text = format.make_question("Question", "7+3", ["10", "11"], question_id)
+        text_1 = format.make_message(
             2,
             next_question=Question("17+3", ["20", "21"], 0)
         )
-        text_2 = format.get_response_for_valid_answer(
+        text_2 = format.make_message(
             2,
             next_question=Question("27+3", ["30", "31"], 0)
         )
-        text_3 = format.get_response_for_valid_answer(2, None, game_score=0)
+        text_3 = format.make_message(2, None, game_score=0)
         first_bot_message = Message(CHAT_ID, dedent_and_strip(text), "HTML", keyboard_1)
         message_1 = Message(CHAT_ID, text_1, "HTML", keyboard_2)
         message_2 = Message(CHAT_ID, text_2, "HTML", keyboard_3)
@@ -261,7 +261,7 @@ class InGameStateTest(TestCase):
         state_factory = self.create_state_factory()
         question_id = 0
         keyboard = make_keyboard_for_question(2, GAME_ID, question_id)
-        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
+        text = format.make_question("Question", "7+3", ["10", "11"])
         text_1 = format.get_number_of_answers_help(2)
         first_bot_message = Message(CHAT_ID, dedent_and_strip(text), "HTML", keyboard)
         message_1 = Message(CHAT_ID, text_1, "HTML", None)
@@ -281,10 +281,10 @@ class InGameStateTest(TestCase):
         question_id = 0
         keyboard_1 = make_keyboard_for_question(2, GAME_ID, question_id)
         keyboard_2 = make_keyboard_for_question(2, GAME_ID, question_id + 1)
-        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
+        text = format.make_question("Question", "7+3", ["10", "11"])
         text_1 = format.get_number_of_answers_help(2)
         text_2 = format.get_number_of_answers_help(2)
-        text_3 = format.get_response_for_valid_answer(
+        text_3 = format.make_message(
             1,
             next_question=Question("17+3", ["20", "21"], 0)
         )
@@ -309,10 +309,10 @@ class InGameStateTest(TestCase):
         question_id = 0
         keyboard_1 = make_keyboard_for_question(2, GAME_ID, question_id)
         keyboard_2 = make_keyboard_for_question(2, GAME_ID, question_id + 1)
-        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
+        text = format.make_question("Question", "7+3", ["10", "11"])
         text_1 = format.get_number_of_answers_help(2)
         text_2 = format.get_number_of_answers_help(2)
-        text_3 = format.get_response_for_valid_answer(
+        text_3 = format.make_message(
             2,
             next_question=Question("17+3", ["20", "21"], 0)
         )
@@ -338,10 +338,10 @@ class InGameStateTest(TestCase):
         question_id = 0
         keyboard_1 = make_keyboard_for_question(2, GAME_ID, question_id)
         keyboard_2 = make_keyboard_for_question(2, GAME_ID, question_id + 1)
-        text = format.get_text_questions_answers("Question", "7+3", ["10", "11"])
+        text = format.make_question("Question", "7+3", ["10", "11"])
         text_1 = format.get_number_of_answers_help(2)
         text_2 = format.get_number_of_answers_help(2)
-        text_3 = format.get_response_for_valid_answer(
+        text_3 = format.make_message(
             2,
             next_question=Question("17+3", ["20", "21"], 0)
         )

@@ -384,10 +384,10 @@ class InGameState(BotState):
         quest = self.questions
         first_question = quest[0]
         keyboard = make_keyboard_for_question(len(first_question.answers), self.game_id, self.current_question)
-        text = format.get_text_questions_answers("Question",
-                                                 first_question.text,
-                                                 first_question.answers,
-                                                 )
+        text = format.make_question("Question",
+                                    first_question.text,
+                                    first_question.answers,
+                                    )
         message_text = text
         response_message = Message(chat_id, message_text, "HTML", keyboard)
         return response_message
@@ -422,16 +422,16 @@ class InGameState(BotState):
                 next_question = self.questions[self.current_question + 1]
                 self.current_question += 1
                 keyboard = make_keyboard_for_question(num_of_resp, self.game_id, self.current_question)
-                message_text = format.get_response_for_valid_answer(is_answer_correct,
-                                                                    next_question=next_question
-                                                                    )
+                message_text = format.make_message(is_answer_correct,
+                                                   next_question=next_question
+                                                   )
                 response_message = Message(chat_id, message_text, "HTML", keyboard)
             else:
                 idle_state = self.state_factory.create_idle_state()
                 new_state = idle_state
-                message_text = format.get_response_for_valid_answer(is_answer_correct,
-                                                                    game_score=self.game_score
-                                                                    )
+                message_text = format.make_message(is_answer_correct,
+                                                   game_score=self.game_score
+                                                   )
                 response_message = Message(chat_id, message_text, "HTML")
 
         return response_message, new_state
@@ -443,7 +443,7 @@ class InGameState(BotState):
                           message_id: int) -> MessageEdit:
         text_question = self.questions[question_id]
         answer_id = self.parse_int(answer_text) if answer_text is not None else None
-        message_text = format.get_response_for_valid_answer(correct_answer, answer_id, text_question)
+        message_text = format.make_message(correct_answer, answer_id, text_question)
 
         if answer_id == 1:
             return MessageEdit(chat_id,

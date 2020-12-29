@@ -15,43 +15,49 @@ def get_number_of_answers_help(num_of_resp: int) -> str:
     return f"<i>I don't understand you. You can enter a number from 1 to {num_of_resp}</i>"
 
 
-def get_response_for_valid_answer(correct_answer: int,
-                                  answer_id: Optional[int] = None,
-                                  next_question: Optional[Question] = None,
-                                  game_score: Optional[int] = None) -> str:
+def make_message(correct_answer: int,
+                 answer_id: Optional[int] = None,
+                 next_question: Optional[Question] = None,
+                 game_score: Optional[int] = None) -> str:
     """
-    Возвращает следующий вопрос или что игра закончена.
+    Используется для редактирования предыдущего сообщения бота и для сборки нового ответа пользователю.
+    Если "next_question" присутствует, а "game_score" отсутствуют, собирается следующий вопрос.
+    Если "game_score" присутствуют, а "next_question" отсутствует, тогда выводится последнее сообщение в игре.
     :param correct_answer: номер правильного ответа
-    :param answer_id: номер ответа, который дал пользователь
-    :param next_question: следующий вопрос
+    :param answer_id: опциональный ответ пользователя. Если ответ присутствуеи, редактируется старое сообщение и
+    собирается новое. Если ответ отсутствует, предыдущие сообщение пользоватебя не редактируется, собирается новое.
+    :param next_question: следующее сообщение
     :param game_score: игровые очки пользователя
     :return: текст следующего вопроса или конечная фраза игры
     """
 
     if next_question is not None:
-        return get_text_questions_answers("Next question",
-                                          next_question.text,
-                                          next_question.answers,
-                                          correct_answer,
-                                          answer_id
-                                          )
+        return make_question("Next question",
+                             next_question.text,
+                             next_question.answers,
+                             correct_answer,
+                             answer_id
+                             )
 
     return f"<i>The game is over. Your points: {game_score}</i>"
 
 
-def get_text_questions_answers(first_text: str,
-                               question_text,
-                               answers: List[str],
-                               correct_answer: Optional[int] = None,
-                               answer_id: Optional[int] = None
-                               ):
+def make_question(first_text: str,
+                  question_text,
+                  answers: List[str],
+                  correct_answer: Optional[int] = None,
+                  answer_id: Optional[int] = None
+                  ):
     """
-    Возвращает текст вопроса и варианты ответов. Используется для редоктирует старого вопроса и создания нового.
+    Возвращает текст вопроса и варианты ответов. Используется для редактирует старого вопроса и создания нового.
+    Если "answer_id" отсутствует, выводится первый текст сообщения со смайлом шляпа.
+    Если "answer_id" присутсвует и он верный, выводится первый текст сообщения со смайлом "галочка".
+    Если "answer_id" присутсвует и он не верный, выводится первый текст сообщеня со смайлом "крестик"
     :param first_text: первый текст в сообщение
     :param question_text: текст вопроса
     :param answers: Список вариантов ответа
-    :param correct_answer: номер правильного ответа
-    :param answer_id: номер ответа, который дал пользователь
+    :param correct_answer: опциональный правильного ответа
+    :param answer_id: опциональный ответ пользователя
     :return: Возвращает текст вопроса и варианты ответов
     """
     rows = []
