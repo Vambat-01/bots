@@ -1,5 +1,6 @@
 from trivia.question_storage import Question
 from typing import Optional, List
+from trivia.random_utils import RandomBot
 
 
 SMILE_THUMB_UP = '&#128077'

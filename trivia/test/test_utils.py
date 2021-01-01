@@ -1,16 +1,26 @@
 from trivia.random_utils import Random
 from abc import abstractmethod
 from typing import List
+from trivia.question_storage import Question
 
 
 class DoNothingRandom(Random):
-    @abstractmethod
-    def shuffle_answer(self, answers: List[str]) -> (List[str], int):
-        pass
+    def shuffle_one_question(self, question: Question) -> Question:
+        return question
+
+    def shuffle_questions(self, questions: List[Question]) -> List[Question]:
+        return questions
 
 
 class ReversedShuffleRandom(Random):
-    @abstractmethod
-    def shuffle_answer(self, answers: List[str]) -> (List[str], int):
-        answers.reverse()
-        return answers, 1
+    def shuffle_one_question(self, question: Question) -> Question:
+        question.answers.reverse()
+        question.correct_answer = len(question.answers)
+        return question
+
+    def shuffle_questions(self, questions: List[Question]) -> List[Question]:
+        for i in range(len(questions)):
+            questions[i].answers.reverse()
+        return questions
+
+

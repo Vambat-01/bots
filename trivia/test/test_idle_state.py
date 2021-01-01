@@ -3,6 +3,7 @@ from trivia.models import Message, Command
 from trivia.bot_state import IdleState, InGameState, BotStateFactory
 from trivia.question_storage import JsonQuestionStorage
 from typing import cast
+from test.test_utils import DoNothingRandom
 
 
 class IdleStateTest(TestCase):
@@ -12,7 +13,8 @@ class IdleStateTest(TestCase):
         user_message = Message(chat_id, text)
         json_file = "resources/test_questions.json"
         storage = JsonQuestionStorage(json_file)
-        state_factory = BotStateFactory(storage)
+        random = DoNothingRandom()
+        state_factory = BotStateFactory(storage, random)
         state = IdleState(state_factory)
         message_resp = state.process_message(user_message)
         self.assertEqual("<i>I did not  understand the command. Enter /start or /help</i>", message_resp.message.text)
@@ -26,7 +28,8 @@ class IdleStateTest(TestCase):
         json_file = "resources/test_questions.json"
         storage = JsonQuestionStorage(json_file)
         questions = storage.load_questions()
-        state_factory = BotStateFactory(storage)
+        random = DoNothingRandom()
+        state_factory = BotStateFactory(storage, random)
         state = IdleState(state_factory)
         command_resp = state.process_command(user_command)
         self.assertTrue(isinstance(command_resp.new_state, InGameState))
@@ -42,7 +45,8 @@ class IdleStateTest(TestCase):
         user_command = Command(chat_id, text)
         json_file = "resources/test_questions.json"
         storage = JsonQuestionStorage(json_file)
-        state_factory = BotStateFactory(storage)
+        random = DoNothingRandom()
+        state_factory = BotStateFactory(storage, random)
         state = IdleState(state_factory)
         command_resp = state.process_command(user_command)
         self.assertEqual("<i>Enter /start or /help</i>", command_resp.message.text)
@@ -55,7 +59,8 @@ class IdleStateTest(TestCase):
         user_command = Command(chat_id, text)
         json_file = "resources/test_questions.json"
         storage = JsonQuestionStorage(json_file)
-        state_factory = BotStateFactory(storage)
+        random = DoNothingRandom()
+        state_factory = BotStateFactory(storage, random)
         state = IdleState(state_factory)
         command_resp = state.process_command(user_command)
         self.assertEqual("<i>I did not  understand the command. Enter /start or /help</i>", command_resp.message.text)

@@ -5,6 +5,7 @@ from trivia.question_storage import Question, JsonQuestionStorage
 from typing import List, Tuple, Optional
 from trivia.utils import dedent_and_strip
 from trivia import format
+from test.test_utils import DoNothingRandom
 
 
 CHAT_ID = 300
@@ -46,7 +47,8 @@ class InGameStateTest(TestCase):
     def create_state_factory(self) -> BotStateFactory:
         json_file = "resources/test_questions.json"
         storage = JsonQuestionStorage(json_file)
-        state_factory = BotStateFactory(storage)
+        random = DoNothingRandom()
+        state_factory = BotStateFactory(storage, random)
         return state_factory
 
     def test_process_message_int_correct(self):
@@ -85,7 +87,8 @@ class InGameStateTest(TestCase):
         json_file = "resources/test_questions.json"
         storage = JsonQuestionStorage(json_file)
         questions = storage.load_questions()
-        state_factory = BotStateFactory(storage)
+        random = DoNothingRandom()
+        state_factory = BotStateFactory(storage, random)
         state = InGameState(questions, state_factory, GAME_ID)
         command_resp = state.process_command(user_command)
         self.assertEqual("<i>The game is over.</i>", command_resp.message.text)
@@ -370,7 +373,8 @@ def _make_in_game_state(questions_file_path: str) -> InGameState:
     """
     storage = JsonQuestionStorage(questions_file_path)
     questions = storage.load_questions()
-    state_factory = BotStateFactory(storage)
+    random = DoNothingRandom()
+    state_factory = BotStateFactory(storage, random)
     state = InGameState(questions, state_factory, GAME_ID)
     return state
 
@@ -381,3 +385,4 @@ def _make_callback_query(game_id: str, current_question_id: str, message_text: s
     data = f"{game_id}.{current_question_id}.{message_text}"
     callback_query = CallbackQuery(data, user_message, message_id)
     return callback_query
+

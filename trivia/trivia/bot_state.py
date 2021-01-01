@@ -7,6 +7,7 @@ from trivia import format
 from trivia.utils import log, dedent_and_strip
 from dataclasses import dataclass
 import uuid
+from trivia.random_utils import Random, RandomBot
 
 
 CORRECT_ANSWER = 1
@@ -27,8 +28,26 @@ class BotStateFactory:
         Служит для создания состояний бота
     """
 
-    def __init__(self, questions_storage: QuestionStorage):
+    def __init__(self, questions_storage: QuestionStorage, random: Random):
         self.questions_storage = questions_storage
+        self.random = random
+
+    def __eq__(self, other):
+        if type(other) is type(self):
+            return self.__dict__ == other.__dict__
+        return False
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        return f"""
+                    BotStateFactory: 
+                        questions_storage = {self.questions_storage}
+                        random = {self.random} 
+                """
+
+
 
     def create_idle_state(self):
         """
@@ -47,7 +66,8 @@ class BotStateFactory:
         all_questions = self.questions_storage.load_questions()
         list_questions = select_questions(all_questions, 3)
         game_id = str(uuid.uuid4())
-        in_game_state = InGameState(list_questions, self, game_id)
+        shuffle_questions = self.random.shuffle_questions(list_questions)
+        in_game_state = InGameState(shuffle_questions, self, game_id)
         return in_game_state
 
 
@@ -366,12 +386,19 @@ class InGameState(BotState):
         chat_id = callback_query.message.chat_id
         payload = callback_query.data.split(".")
         message_id = callback_query.message_id
-        correct_answer = 1
 
         if len(payload) == 3:
             game_id = payload[0]
             quest_id = self.parse_int(payload[1])
+
+            if quest_id is None:
+                return None
+
             answer_id = payload[2]
+            if quest_id >= len(self.questions):
+                return None
+
+            correct_answer = self.questions[quest_id].correct_answer
 
             if game_id == self.game_id and quest_id == self.current_question:
                 message, new_state = self._process_answer(answer_id, chat_id)
@@ -390,6 +417,7 @@ class InGameState(BotState):
         text = format.make_question("Question",
                                     first_question.text,
                                     first_question.answers,
+                                    first_question.correct_answer
                                     )
         message_text = text
         response_message = Message(chat_id, message_text, "HTML", keyboard)
