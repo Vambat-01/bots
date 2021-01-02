@@ -47,8 +47,6 @@ class BotStateFactory:
                         random = {self.random} 
                 """
 
-
-
     def create_idle_state(self):
         """
             Создает IdleState()
@@ -60,14 +58,30 @@ class BotStateFactory:
 
     def create_in_game_state(self):
         """
-                Создает InGameState()
+            Создает InGameState()
         :return: InGameState
         """
         all_questions = self.questions_storage.load_questions()
         list_questions = select_questions(all_questions, 3)
         game_id = str(uuid.uuid4())
-        shuffle_questions = self.random.shuffle_questions(list_questions)
-        in_game_state = InGameState(shuffle_questions, self, game_id)
+
+        for i in range(len(list_questions)):
+            shuffle_answers = list(enumerate(list_questions[i].answers))
+            self.random.shuffle(shuffle_answers)
+            correct_answer = 0
+            answer = []
+
+            for j in range(len(shuffle_answers)):
+                if shuffle_answers[j][0] == 0:
+                    correct_answer = j + 1
+
+            for k in range(len(shuffle_answers)):
+                answer.append((shuffle_answers[k][1]))
+
+            list_questions[i].answers = answer
+            list_questions[i].correct_answer = correct_answer
+
+        in_game_state = InGameState(list_questions, self, game_id)
         return in_game_state
 
 
