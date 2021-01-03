@@ -7,10 +7,7 @@ from trivia import format
 from trivia.utils import log, dedent_and_strip
 from dataclasses import dataclass
 import uuid
-from trivia.random_utils import Random, RandomBot
-
-
-CORRECT_ANSWER = 1
+from trivia.random_utils import Random
 
 
 @dataclass
@@ -66,19 +63,21 @@ class BotStateFactory:
         game_id = str(uuid.uuid4())
 
         for i in range(len(list_questions)):
-            shuffle_answers = list(enumerate(list_questions[i].answers))
-            self.random.shuffle(shuffle_answers)
+            indexed_answers = list(enumerate(list_questions[i].answers))
+            self.random.shuffle(indexed_answers)
             correct_answer = 0
-            answer = []
+            answers = []
 
-            for j in range(len(shuffle_answers)):
-                if shuffle_answers[j][0] == 0:
-                    correct_answer = j + 1
+            count_index = 0
+            for j, answer in indexed_answers:
+                if j == 0:
+                    correct_answer = count_index + 1
+                count_index += 1
 
-            for k in range(len(shuffle_answers)):
-                answer.append((shuffle_answers[k][1]))
+            for k, ans in indexed_answers:
+                answers.append(ans)
 
-            list_questions[i].answers = answer
+            list_questions[i].answers = answers
             list_questions[i].correct_answer = correct_answer
 
         in_game_state = InGameState(list_questions, self, game_id)
@@ -474,9 +473,7 @@ class InGameState(BotState):
             else:
                 idle_state = self.state_factory.create_idle_state()
                 new_state = idle_state
-                message_text = format.make_message(CORRECT_ANSWER,
-                                                   game_score=self.game_score
-                                                   )
+                message_text = format.make_message(1, game_score=self.game_score)
                 response_message = Message(chat_id, message_text, "HTML")
 
         return response_message, new_state

@@ -1,7 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import List
 from random import shuffle
-from trivia.question_storage import Question
 
 
 class Random(metaclass=ABCMeta):
@@ -19,7 +17,7 @@ class Random(metaclass=ABCMeta):
         pass
 
 
-class RandomBot(Random):
+class RandomImpl(Random):
 
     def shuffle(self, data: list) -> None:
         shuffle(data)

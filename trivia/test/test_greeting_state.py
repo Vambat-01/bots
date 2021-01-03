@@ -2,7 +2,7 @@ from unittest import TestCase
 from trivia.models import Message, Command
 from trivia.bot_state import GreetingState, IdleState, BotStateFactory
 from trivia.question_storage import JsonQuestionStorage
-from trivia.random_utils import RandomBot
+from test.test_utils import DoNothingRandom
 
 
 class GreetingStateTest(TestCase):
@@ -12,7 +12,7 @@ class GreetingStateTest(TestCase):
         user_message = Message(chat_id, text)
         json_file = "resources/test_questions.json"
         storage = JsonQuestionStorage(json_file)
-        random = RandomBot()
+        random = DoNothingRandom()
         state_factory = BotStateFactory(storage, random)
         state = GreetingState(state_factory)
         message_resp = state.process_message(user_message)
@@ -26,7 +26,7 @@ class GreetingStateTest(TestCase):
         user_command = Command(chat_id, text)
         json_file = "resources/test_questions.json"
         storage = JsonQuestionStorage(json_file)
-        random = RandomBot()
+        random = DoNothingRandom()
         state_factory = BotStateFactory(storage, random)
         state = GreetingState(state_factory)
         command_resp = state.process_command(user_command)
@@ -42,7 +42,7 @@ class GreetingStateTest(TestCase):
         user_command = Command(chat_id, text)
         json_file = "resources/test_questions.json"
         storage = JsonQuestionStorage(json_file)
-        random = RandomBot()
+        random = DoNothingRandom()
         state_factory = BotStateFactory(storage, random)
         state = GreetingState(state_factory)
         command_resp = state.process_command(user_command)
