@@ -59,28 +59,26 @@ class BotStateFactory:
         :return: InGameState
         """
         all_questions = self.questions_storage.load_questions()
-        list_questions = select_questions(all_questions, 3)
+        game_questions = select_questions(all_questions, 3)
         game_id = str(uuid.uuid4())
 
-        for i in range(len(list_questions)):
-            indexed_answers = list(enumerate(list_questions[i].answers))
+        for i in range(len(game_questions)):
+            indexed_answers = list(enumerate(game_questions[i].answers))
             self.random.shuffle(indexed_answers)
             correct_answer = 0
             answers = []
 
-            count_index = 0
-            for j, answer in indexed_answers:
-                if j == 0:
-                    correct_answer = count_index + 1
-                count_index += 1
+            for (index, (original_index, answer)) in enumerate(indexed_answers):
+                if original_index == 0:
+                    correct_answer = index + 1
 
-            for k, ans in indexed_answers:
-                answers.append(ans)
+            for index, answer in indexed_answers:
+                answers.append(answer)
 
-            list_questions[i].answers = answers
-            list_questions[i].correct_answer = correct_answer
+            game_questions[i].answers = answers
+            game_questions[i].correct_answer = correct_answer
 
-        in_game_state = InGameState(list_questions, self, game_id)
+        in_game_state = InGameState(game_questions, self, game_id)
         return in_game_state
 
 
