@@ -71,8 +71,6 @@ class BotStateFactory:
             for (index, (original_index, answer)) in enumerate(indexed_answers):
                 if original_index == 0:
                     correct_answer = index + 1
-
-            for index, answer in indexed_answers:
                 answers.append(answer)
 
             game_questions[i].answers = answers
