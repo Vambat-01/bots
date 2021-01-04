@@ -1,11 +1,12 @@
 import requests
-from trivia.bot_state import BotState, BotResponse, BotStateLoggingWrapper
+from trivia.bot_state import BotState, BotResponse, BotStateLoggingWrapper, BotStateFactory, GreetingState
 from trivia.models import Message, Command, Keyboard, CallbackQuery, MessageEdit
 from requests.models import Response
 from abc import ABCMeta, abstractmethod
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Callable
 from trivia.utils import log
 from trivia.random_utils import Random
+from trivia.question_storage import JsonQuestionStorage
 
 
 class TelegramApi(metaclass=ABCMeta):
@@ -128,10 +129,11 @@ class Bot:
     """
         Обрабатывает полученные команды и сообщения от пользователя
     """
-    def __init__(self, telegram_api: TelegramApi, state: BotState):
+    def __init__(self, telegram_api: TelegramApi, create_initial_state: Callable[[], BotState]):
         self.telegram_api = telegram_api
-        self.state = BotStateLoggingWrapper(state)
         self.last_update_id = 0
+        self.create_initial_state = create_initial_state
+        self.user_states: Dict[int, BotState] = {}
 
     def process_updates(self) -> None:
         """
@@ -144,6 +146,7 @@ class Bot:
         for update in result:
             self.last_update_id = update["update_id"]
             bot_response = self.process_update(update)
+            state = self._get_state_for_user()
             if bot_response is not None:
                 if bot_response.message is not None:
                     self.telegram_api.send_message(bot_response.message.chat_id,
@@ -185,7 +188,6 @@ class Bot:
                 return bot_response
         elif "callback_query" in update:
             callback_query_id = update["callback_query"]["id"]
-            # TODO: message is optional
             chat_id = update["callback_query"]["message"]["chat"]["id"]
             message_text = update["callback_query"]["message"]["text"]
             message = Message(chat_id, message_text)
@@ -206,4 +208,17 @@ class Bot:
             chat_id = update["message"]["chat"]["id"]
         return chat_id
 
+    def _get_state_for_user(self, chat_id: int) -> BotState:
+        state = self.state
+        if state is None:
+            state = self._get_greeting_state()
+            self.user_states[chat_id] = state
+        return state
+
+    def _get_greeting_state(self):
+        json_file = "resources/questions_for_bot.json"
+        storage = JsonQuestionStorage(json_file)
+        state_factory = BotStateFactory(storage)
+        state = GreetingState(state_factory)
+        return state
 

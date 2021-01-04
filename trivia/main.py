@@ -1,5 +1,5 @@
 from trivia.bot import Bot, RealTelegramApi
-from trivia.bot_state import BotStateFactory, GreetingState, TestState
+from trivia.bot_state import BotStateFactory, GreetingState, TestState, BotState
 from trivia.question_storage import JsonQuestionStorage
 from trivia.random_utils import RandomImpl
 
@@ -11,7 +11,7 @@ state_factory = BotStateFactory(storage, random)
 state = GreetingState(state_factory)
 test_state = TestState()
 telegram_api = RealTelegramApi(token)
-bot = Bot(telegram_api, state)
+bot = Bot(telegram_api, lambda: GreetingState(state_factory))
 
 while True:
     bot.process_updates()
