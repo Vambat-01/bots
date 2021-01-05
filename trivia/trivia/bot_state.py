@@ -370,8 +370,9 @@ class InGameState(BotState):
             :param message: сообщение от пользователя
             :return: ответ бота
         """
+        correct_answer = self.questions[self.current_question].correct_answer
         user_message = message.text
-        message, new_state = self._process_answer(user_message, message.chat_id, 1)
+        message, new_state = self._process_answer(user_message, message.chat_id, correct_answer)
         return BotResponse(message, new_state=new_state)
 
     def process_command(self, command: Command) -> BotResponse:
