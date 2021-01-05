@@ -145,8 +145,9 @@ class Bot:
         result = data["result"]
         for update in result:
             self.last_update_id = update["update_id"]
-            bot_response = self.process_update(update)
-            state = self._get_state_for_user()
+            chat_id = self._get_chat_id(update)
+            state = self._get_state_for_user(chat_id)
+            bot_response = self.process_update(update, state)
             if bot_response is not None:
                 if bot_response.message is not None:
                     self.telegram_api.send_message(bot_response.message.chat_id,
@@ -164,8 +165,8 @@ class Bot:
 
                 if bot_response.new_state is not None:
                     new_state: BotState = bot_response.new_state
-                    self.state = BotStateLoggingWrapper(new_state)
-                    first_message = self.state.on_enter(self._get_chat_id(update))
+                    state = BotStateLoggingWrapper(new_state)
+                    first_message = state.on_enter(self._get_chat_id(update))
                     if first_message is not None:
                         self.telegram_api.send_message(first_message.chat_id,
                                                        first_message.text,
@@ -173,18 +174,18 @@ class Bot:
                                                        first_message.keyboard
                                                        )
 
-    def process_update(self, update: Dict[str, Any]) -> Optional[BotResponse]:
+    def process_update(self, update: Dict[str, Any], state: BotState) -> Optional[BotResponse]:
         if "message" in update:
             chat_id = self._get_chat_id(update)
             message_text = update["message"]["text"]
             log(f"chat_id : {chat_id}. text: {message_text} ")
             if message_text.startswith("/"):
                 user_command = Command(chat_id, message_text)
-                bot_response: Optional[BotResponse] = self.state.process_command(user_command)
+                bot_response: Optional[BotResponse] = state.process_command(user_command)
                 return bot_response
             else:
                 user_message = Message(chat_id, message_text)
-                bot_response = self.state.process_message(user_message)
+                bot_response = state.process_message(user_message)
                 return bot_response
         elif "callback_query" in update:
             callback_query_id = update["callback_query"]["id"]
@@ -195,7 +196,7 @@ class Bot:
             message_id = update["callback_query"]["message"]["message_id"]
             callback_query = CallbackQuery(callback_query_data, message, message_id)
             self.telegram_api.answer_callback_query(callback_query_id)
-            bot_response = self.state.process_callback_query(callback_query)
+            bot_response = state.process_callback_query(callback_query)
             return bot_response
         else:
             log("skipping update")
@@ -209,7 +210,7 @@ class Bot:
         return chat_id
 
     def _get_state_for_user(self, chat_id: int) -> BotState:
-        state = self.state
+        state = self.user_states
         if state is None:
             state = self._get_greeting_state()
             self.user_states[chat_id] = state
