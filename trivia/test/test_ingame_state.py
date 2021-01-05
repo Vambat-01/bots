@@ -215,7 +215,7 @@ class InGameStateTest(TestCase):
         message_3 = Message(CHAT_ID, text_3, "HTML", None)
         conversation = [
                 ("1", message_1),
-                ('1', message_2),
+                ("1", message_2),
                 ("1", message_3)
             ]
 

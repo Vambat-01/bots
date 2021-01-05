@@ -371,7 +371,7 @@ class InGameState(BotState):
             :return: ответ бота
         """
         user_message = message.text
-        message, new_state = self._process_answer(user_message, message.chat_id)
+        message, new_state = self._process_answer(user_message, message.chat_id, 1)
         return BotResponse(message, new_state=new_state)
 
     def process_command(self, command: Command) -> BotResponse:
@@ -410,7 +410,7 @@ class InGameState(BotState):
             correct_answer = self.questions[quest_id].correct_answer
 
             if game_id == self.game_id and quest_id == self.current_question:
-                message, new_state = self._process_answer(answer_id, chat_id)
+                message, new_state = self._process_answer(answer_id, chat_id, correct_answer)
                 message_edit = self._get_message_edit(quest_id, answer_id, correct_answer, chat_id, message_id)
                 return BotResponse(message, message_edit=message_edit, new_state=new_state)
         return None
@@ -437,10 +437,15 @@ class InGameState(BotState):
             return int(s)
         return None
 
-    def _process_answer(self, answer: str, chat_id: int) -> Tuple[Message, Optional[BotState]]:
+    def _process_answer(self,
+                        answer: str,
+                        chat_id: int,
+                        correct_answer: int
+                        ) -> Tuple[Message, Optional[BotState]]:
         new_state: Optional[BotState] = None
         num_of_resp = len(self.questions[self.current_question].answers)
         answer_id = self.parse_int(answer)
+
         if answer_id is None:
             response_message = Message(
                 chat_id,
@@ -454,15 +459,14 @@ class InGameState(BotState):
                 "HTML"
             )
         else:
-            is_answer_correct = answer_id == 1
-            if is_answer_correct:
+            if correct_answer == answer_id:
                 self.game_score += self.questions[self.current_question].points
 
             if self.current_question < len(self.questions) - 1:
                 next_question = self.questions[self.current_question + 1]
                 self.current_question += 1
                 keyboard = make_keyboard_for_question(num_of_resp, self.game_id, self.current_question)
-                message_text = format.make_message(is_answer_correct,
+                message_text = format.make_message(correct_answer,
                                                    question=next_question
                                                    )
                 response_message = Message(chat_id, message_text, "HTML", keyboard)
