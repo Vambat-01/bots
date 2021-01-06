@@ -1,7 +1,7 @@
 from typing import Optional, List, Dict, Any
 from unittest import TestCase
 from requests.models import Response
-from trivia.bot_state import BotState, BotStateLoggingWrapper
+from trivia.bot_state import BotState, BotStateLoggingWrapper, GreetingState
 from trivia.models import Message, Command, Keyboard, CallbackQuery, MessageEdit
 from trivia.bot import Bot, TelegramApi
 import json
@@ -127,9 +127,9 @@ class FixTelegramBotTest(TestCase):
         telegram_api = FakeTelegramApi(response_body)
         next_state = NewFakeState()
         state = FakeState("bot message", next_state)
-        bot = Bot(telegram_api, state)
+        bot = Bot(telegram_api, lambda: state)
         bot.process_updates()
-        self.assertEqual(bot.state, BotStateLoggingWrapper(next_state))
+        self.assertEqual(bot.user_states, BotStateLoggingWrapper(next_state))
         self.assertTrue(next_state.on_enter_is_called)
         self.assertEqual(["bot message", "text message on_enter"], telegram_api.sent_messages)
         if update_type == UpdateType.MESSAGE:
@@ -156,9 +156,9 @@ class FixTelegramBotTest(TestCase):
         response = make_message_update(user_message)
         telegram_api = FakeTelegramApi(response)
         state = FakeState("bot message")
-        bot = Bot(telegram_api, state)
+        bot = Bot(telegram_api, lambda: state)
         bot.process_updates()
-        self.assertEqual(bot.state, BotStateLoggingWrapper(state))
+        self.assertEqual(bot.user_states, BotStateLoggingWrapper(state))
         self.assertEqual(["bot message"], telegram_api.sent_messages)
         if is_command:
             self.assertTrue(state.process_command_is_called)
