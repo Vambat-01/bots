@@ -164,7 +164,8 @@ class Bot:
             self.last_update_id = update["update_id"]
             chat_id = self._get_chat_id(update)
             state = self._get_state_for_user(chat_id)
-            bot_response = self.process_update(update, state)
+            wrapped_state = self.user_states[chat_id]
+            bot_response = self.process_update(update, wrapped_state)
             if bot_response is not None:
                 if bot_response.message is not None:
                     self.telegram_api.send_message(bot_response.message.chat_id,
@@ -184,7 +185,7 @@ class Bot:
                     new_state: BotState = bot_response.new_state
                     wrapped_new_state = BotStateLoggingWrapper(new_state)
                     self.user_states[chat_id] = wrapped_new_state
-                    first_message = state.on_enter(chat_id)
+                    first_message = wrapped_new_state.on_enter(chat_id)
                     if first_message is not None:
                         self.telegram_api.send_message(first_message.chat_id,
                                                        first_message.text,
