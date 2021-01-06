@@ -9,6 +9,7 @@ from trivia.bot_state import BotResponse
 from trivia.utils import dedent_and_strip
 from enum import Enum
 
+
 CHAT_ID = 125
 
 

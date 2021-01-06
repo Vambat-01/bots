@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import List, Optional
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 
@@ -11,10 +11,12 @@ class Question:
         :param text: Текст вопроса, который мы показываем пользователю
         :param answers: Варианты ответов на вопрос, включая правильный
         :param points: Количество очков за правильный ответ
+        :param correct_answer: Опциональный правильный ответ. Правильный ответ по умолчаию на все вопросы 1.
     """
     text: str
     answers: List[str]
     points: int
+    correct_answer: int = 1
 
 
 class QuestionStorage(metaclass=ABCMeta):

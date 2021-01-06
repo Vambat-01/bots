@@ -5,6 +5,7 @@ from requests.models import Response
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Dict, Any
 from trivia.utils import log
+from trivia.random_utils import Random
 
 
 class TelegramApi(metaclass=ABCMeta):
