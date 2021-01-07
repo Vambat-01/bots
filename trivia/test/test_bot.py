@@ -10,7 +10,8 @@ from trivia.utils import dedent_and_strip
 from enum import Enum
 
 
-CHAT_ID = 1379887547
+CHAT_ID_1 = 125
+CHAT_ID_2 = 150
 
 
 class UpdateType(Enum):
@@ -42,14 +43,14 @@ class NewFakeState(BotState):
         return self.__repr__()
 
     def process_message(self, message: Message) -> BotResponse:
-        return BotResponse(Message(CHAT_ID, "new fake state message response"))
+        return BotResponse(Message(CHAT_ID_1, "new fake state message response"))
 
     def process_command(self, command: Command) -> BotResponse:
-        return BotResponse(Message(CHAT_ID, "text command"))
+        return BotResponse(Message(CHAT_ID_1, "text command"))
 
     def on_enter(self, chat_id) -> Optional[Message]:
         self.on_enter_is_called = True
-        return Message(CHAT_ID, "text message on_enter")
+        return Message(CHAT_ID_1, "text message on_enter")
 
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
         return None
@@ -73,13 +74,13 @@ class FakeState(BotState):
 
     def process_message(self, message: Message) -> BotResponse:
         self.process_message_is_called = True
-        message = Message(CHAT_ID, self.reply_text)
+        message = Message(CHAT_ID_1, self.reply_text)
         bot_response = BotResponse(message, new_state=self.next_state)
         return bot_response
 
     def process_command(self, command: Command) -> BotResponse:
         self.process_command_is_called = True
-        message = Message(CHAT_ID, self.reply_text)
+        message = Message(CHAT_ID_1, self.reply_text)
         bot_response = BotResponse(message, new_state=self.next_state)
         return bot_response
 
@@ -88,7 +89,7 @@ class FakeState(BotState):
 
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
         self.process_callback_query_is_called = True
-        message = Message(CHAT_ID, self.reply_text)
+        message = Message(CHAT_ID_1, self.reply_text)
         bot_response = BotResponse(message, new_state=self.next_state)
         return bot_response
 
@@ -129,7 +130,7 @@ class FixTelegramBotTest(TestCase):
         state = FakeState("bot message", next_state)
         bot = Bot(telegram_api, lambda: state)
         bot.process_updates()
-        expected = {CHAT_ID: BotStateLoggingWrapper(next_state)}
+        expected = {CHAT_ID_1: BotStateLoggingWrapper(next_state)}
         self.assertEqual(expected, bot.user_states)
         self.assertTrue(next_state.on_enter_is_called)
         self.assertEqual(["bot message", "text message on_enter"], telegram_api.sent_messages)
@@ -142,24 +143,24 @@ class FixTelegramBotTest(TestCase):
             self.assertTrue(telegram_api.answer_callback_query_is_called)
 
     def test_message_state_transition(self):
-        response = make_message_update("1")
+        response = make_message_update("1", CHAT_ID_1)
         self.check_transition(UpdateType.MESSAGE, response)
 
     def test_command_state_transition(self):
-        response = make_message_update("/command")
+        response = make_message_update("/command", CHAT_ID_1)
         self.check_transition(UpdateType.COMMAND, response)
 
     def test_callback_query_state_transition(self):
-        response = make_callback_query_update("2")
+        response = make_callback_query_update("2", CHAT_ID_1)
         self.check_transition(UpdateType.CALLBACK_QUERY, response)
 
     def check_command_without_state_transition(self, user_message: str, is_command: bool):
-        response = make_message_update(user_message)
+        response = make_message_update(user_message, CHAT_ID_1)
         telegram_api = FakeTelegramApi(response)
         state = FakeState("bot message")
         bot = Bot(telegram_api, lambda: state)
         bot.process_updates()
-        expected = {CHAT_ID: state}
+        expected = {CHAT_ID_1: state}
         self.assertEqual(expected, bot.user_states)
         self.assertEqual(["bot message"], telegram_api.sent_messages)
         if is_command:
@@ -174,11 +175,24 @@ class FixTelegramBotTest(TestCase):
         self.check_command_without_state_transition("/command", True)
 
 
-def make_message_update(text: str) -> Dict[str, Any]:
+class SavingBotState(TestCase):
+    def test_saving_bot_state_for_two_users(self):
+        telegram_api_1 = FakeTelegramApi(make_message_update("1", CHAT_ID_1))
+        telegram_api_2 = FakeTelegramApi(make_message_update("/command", CHAT_ID_2))
+        state_1 = NewFakeState()
+        state_2 = FakeState("bot message", state_1)
+        bot = Bot(telegram_api_1, lambda: state_1)
+        bot.process_updates()
+        expected = {CHAT_ID_1: state_1, CHAT_ID_2: state_2}
+        self.assertEqual(expected, bot.user_states)
+
+
+def make_message_update(text: str, chat_id: int) -> Dict[str, Any]:
     """
         Создает Telegram update состоящий из одного сообщения. В зависимости от `text` это сообщение представляет собой
         либо сообщение либо команду от пользователя.
     :param text: текст или команда полученные от пользователя
+    :param chat_id: идентификатор чата
     :return: json объект
     """
     data = {
@@ -197,7 +211,7 @@ def make_message_update(text: str) -> Dict[str, Any]:
                         "language_code": "en"
                     },
                     "chat": {
-                        "id": CHAT_ID,
+                        "id": chat_id,
                         "first_name": "Степан",
                         "last_name": "Капуста",
                         "username": "степка",
@@ -212,10 +226,11 @@ def make_message_update(text: str) -> Dict[str, Any]:
     return data
 
 
-def make_callback_query_update(callback_data: str) -> Dict[str, Any]:
+def make_callback_query_update(callback_data: str, chat_id) -> Dict[str, Any]:
     """
         Создает Telegram update состоящий из одного CallbackQuery.
     :param callback_data: ответ при нажатие на кнопку встроенной клавиатуры
+    :param chat_id: идентификатор чата
     :return: json объект
     """
     data = {
@@ -242,7 +257,7 @@ def make_callback_query_update(callback_data: str) -> Dict[str, Any]:
                             "username": "easy_programing_bot"
                         },
                         "chat": {
-                            "id": CHAT_ID,
+                            "id": CHAT_ID_1,
                             "first_name": "Степан",
                             "last_name": "Капуста",
                             "username": "степка",
