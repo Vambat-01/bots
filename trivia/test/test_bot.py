@@ -10,7 +10,7 @@ from trivia.utils import dedent_and_strip
 from enum import Enum
 
 
-CHAT_ID = 125
+CHAT_ID = 1379887547
 
 
 class UpdateType(Enum):
@@ -129,7 +129,8 @@ class FixTelegramBotTest(TestCase):
         state = FakeState("bot message", next_state)
         bot = Bot(telegram_api, lambda: state)
         bot.process_updates()
-        self.assertEqual(bot.user_states, BotStateLoggingWrapper(next_state))
+        expected = {CHAT_ID: BotStateLoggingWrapper(next_state)}
+        self.assertEqual(expected, bot.user_states)
         self.assertTrue(next_state.on_enter_is_called)
         self.assertEqual(["bot message", "text message on_enter"], telegram_api.sent_messages)
         if update_type == UpdateType.MESSAGE:
@@ -158,7 +159,8 @@ class FixTelegramBotTest(TestCase):
         state = FakeState("bot message")
         bot = Bot(telegram_api, lambda: state)
         bot.process_updates()
-        self.assertEqual(bot.user_states, BotStateLoggingWrapper(state))
+        expected = {CHAT_ID: state}
+        self.assertEqual(expected, bot.user_states)
         self.assertEqual(["bot message"], telegram_api.sent_messages)
         if is_command:
             self.assertTrue(state.process_command_is_called)
@@ -195,7 +197,7 @@ def make_message_update(text: str) -> Dict[str, Any]:
                         "language_code": "en"
                     },
                     "chat": {
-                        "id": 1379887547,
+                        "id": CHAT_ID,
                         "first_name": "Степан",
                         "last_name": "Капуста",
                         "username": "степка",
@@ -240,10 +242,10 @@ def make_callback_query_update(callback_data: str) -> Dict[str, Any]:
                             "username": "easy_programing_bot"
                         },
                         "chat": {
-                            "id": 13798532547,
-                            "first_name": "Евгений",
-                            "last_name": "Васильев",
-                            "username": "zenja09",
+                            "id": CHAT_ID,
+                            "first_name": "Степан",
+                            "last_name": "Капуста",
+                            "username": "степка",
                             "type": "private"
                         },
                         "date": 1605131894,
