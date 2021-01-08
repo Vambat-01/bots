@@ -95,14 +95,16 @@ class FakeState(BotState):
 
 
 class FakeTelegramApi(TelegramApi):
-    def __init__(self, response_body: Dict[str, Any]):
+    def __init__(self, response_bodies: List[Dict[str, Any]]):
         self.sent_messages: List[str] = []
-        self.response_body = response_body
+        self.response_bodies = response_bodies
         self.answer_callback_query_is_called = False
         self.edit_message_is_called = False
+        self.current_response_index = 0
 
     def get_updates(self, offset: int) -> Response:
-        body = json.dumps(self.response_body)
+        body = json.dumps(self.response_bodies[self.current_response_index])
+        self.current_response_index += 1
         content = body.encode('utf-8')
         response = Response()
         response.status_code = 200
@@ -125,7 +127,7 @@ class FakeTelegramApi(TelegramApi):
 
 class FixTelegramBotTest(TestCase):
     def check_transition(self, update_type: UpdateType, response_body: Dict[str, Any]):
-        telegram_api = FakeTelegramApi(response_body)
+        telegram_api = FakeTelegramApi([response_body])
         next_state = NewFakeState()
         state = FakeState("bot message", next_state)
         bot = Bot(telegram_api, lambda: state)
@@ -156,7 +158,7 @@ class FixTelegramBotTest(TestCase):
 
     def check_command_without_state_transition(self, user_message: str, is_command: bool):
         response = make_message_update(user_message, CHAT_ID_1)
-        telegram_api = FakeTelegramApi(response)
+        telegram_api = FakeTelegramApi([response])
         state = FakeState("bot message")
         bot = Bot(telegram_api, lambda: state)
         bot.process_updates()
@@ -176,14 +178,28 @@ class FixTelegramBotTest(TestCase):
 
 
 class SavingBotState(TestCase):
+    class CreateInitialState:
+        def __init__(self):
+            self.state1 = FakeState("user1 for bot")
+            self.state2 = FakeState("user2 for bot")
+            self.state_index = 0
+
+        def __call__(self):
+            if self.state_index == 0:
+                self.state_index += 1
+                return self.state1
+            else:
+                return self.state2
+
     def test_saving_bot_state_for_two_users(self):
-        telegram_api_1 = FakeTelegramApi(make_message_update("1", CHAT_ID_1))
-        telegram_api_2 = FakeTelegramApi(make_message_update("/command", CHAT_ID_2))
-        state_1 = NewFakeState()
-        state_2 = FakeState("bot message", state_1)
-        bot = Bot(telegram_api_1, lambda: state_1)
+        initial_create_state = SavingBotState.CreateInitialState()
+        user1 = make_message_update("user 1", CHAT_ID_1)
+        user2 = make_message_update("user 2", CHAT_ID_2)
+        telegram_api = FakeTelegramApi(get_response_for_two_user(user1, user2))
+        bot = Bot(telegram_api, initial_create_state)
         bot.process_updates()
-        expected = {CHAT_ID_1: state_1, CHAT_ID_2: state_2}
+        bot.process_updates()
+        expected = {CHAT_ID_1: initial_create_state.state1, CHAT_ID_2: initial_create_state.state2}
         self.assertEqual(expected, bot.user_states)
 
 
@@ -224,6 +240,10 @@ def make_message_update(text: str, chat_id: int) -> Dict[str, Any]:
         ]
     }
     return data
+
+
+def get_response_for_two_user(user1: Dict[str, Any], user2: Dict[str, Any]):
+    return [user1, user2]
 
 
 def make_callback_query_update(callback_data: str, chat_id) -> Dict[str, Any]:
