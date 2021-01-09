@@ -1,12 +1,10 @@
 import requests
-from trivia.bot_state import BotState, BotResponse, BotStateLoggingWrapper, BotStateFactory, GreetingState
-from trivia.models import Message, Command, Keyboard, CallbackQuery, MessageEdit
+from trivia.bot_state import BotState, BotResponse, BotStateLoggingWrapper
+from trivia.models import Message, Command, Keyboard, CallbackQuery
 from requests.models import Response
 from abc import ABCMeta, abstractmethod
 from typing import Optional, Dict, Any, Callable
 from trivia.utils import log
-from trivia.random_utils import Random
-from trivia.question_storage import JsonQuestionStorage
 
 
 class TelegramApi(metaclass=ABCMeta):
@@ -133,24 +131,7 @@ class Bot:
         self.telegram_api = telegram_api
         self.last_update_id = 0
         self.create_initial_state = create_initial_state
-        self.user_states: Dict[int, BotState] = {}
-
-    def __eq__(self, other):
-        if type(other) is type(self):
-            return self.__dict__ == other.__dict__
-        return False
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self):
-        return f"""
-                       Bot: 
-                           telegram_api = {self.telegram_api}
-                           last_update_id = {self.last_update_id} 
-                           create_initial_state = {self.create_initial_state}
-                           user_states = {self.user_states}
-                   """
+        self.chat_states: Dict[int, BotState] = {}
 
     def process_updates(self) -> None:
         """
@@ -163,8 +144,8 @@ class Bot:
         for update in result:
             self.last_update_id = update["update_id"]
             chat_id = self._get_chat_id(update)
-            state = self._get_state_for_user(chat_id)
-            wrapped_state = self.user_states[chat_id]
+            state = self._get_state_for_chat(chat_id)
+            wrapped_state = self.chat_states[chat_id]
             bot_response = self.process_update(update, wrapped_state)
             if bot_response is not None:
                 if bot_response.message is not None:
@@ -184,7 +165,7 @@ class Bot:
                 if bot_response.new_state is not None:
                     new_state: BotState = bot_response.new_state
                     wrapped_new_state = BotStateLoggingWrapper(new_state)
-                    self.user_states[chat_id] = wrapped_new_state
+                    self.chat_states[chat_id] = wrapped_new_state
                     first_message = wrapped_new_state.on_enter(chat_id)
                     if first_message is not None:
                         self.telegram_api.send_message(first_message.chat_id,
@@ -228,13 +209,12 @@ class Bot:
             chat_id = update["message"]["chat"]["id"]
         return chat_id
 
-    def _get_state_for_user(self, chat_id: int) -> BotState:
-        if chat_id in self.user_states:
-            state = self.user_states[chat_id]
+    def _get_state_for_chat(self, chat_id: int) -> BotState:
+        if chat_id in self.chat_states:
+            state = self.chat_states[chat_id]
         else:
-            initial_state = self.create_initial_state()
-            self.user_states[chat_id] = initial_state
-            state = self.user_states[chat_id]
+            state = self.create_initial_state()
+            self.chat_states[chat_id] = state
         return state
 
 

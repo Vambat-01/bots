@@ -1,8 +1,8 @@
 from typing import Optional, List, Dict, Any
 from unittest import TestCase
 from requests.models import Response
-from trivia.bot_state import BotState, BotStateLoggingWrapper, GreetingState
-from trivia.models import Message, Command, Keyboard, CallbackQuery, MessageEdit
+from trivia.bot_state import BotState, BotStateLoggingWrapper
+from trivia.models import Message, Command, Keyboard, CallbackQuery
 from trivia.bot import Bot, TelegramApi
 import json
 from trivia.bot_state import BotResponse
@@ -126,6 +126,19 @@ class FakeTelegramApi(TelegramApi):
 
 
 class FixTelegramBotTest(TestCase):
+    class CreateInitialState:
+        def __init__(self):
+            self.state1 = FakeState("user1 for bot")
+            self.state2 = FakeState("user2 for bot")
+            self.state_index = 0
+
+        def __call__(self):
+            if self.state_index == 0:
+                self.state_index += 1
+                return self.state1
+            else:
+                return self.state2
+
     def check_transition(self, update_type: UpdateType, response_body: Dict[str, Any]):
         telegram_api = FakeTelegramApi([response_body])
         next_state = NewFakeState()
@@ -133,7 +146,7 @@ class FixTelegramBotTest(TestCase):
         bot = Bot(telegram_api, lambda: state)
         bot.process_updates()
         expected = {CHAT_ID_1: BotStateLoggingWrapper(next_state)}
-        self.assertEqual(expected, bot.user_states)
+        self.assertEqual(expected, bot.chat_states)
         self.assertTrue(next_state.on_enter_is_called)
         self.assertEqual(["bot message", "text message on_enter"], telegram_api.sent_messages)
         if update_type == UpdateType.MESSAGE:
@@ -163,7 +176,7 @@ class FixTelegramBotTest(TestCase):
         bot = Bot(telegram_api, lambda: state)
         bot.process_updates()
         expected = {CHAT_ID_1: state}
-        self.assertEqual(expected, bot.user_states)
+        self.assertEqual(expected, bot.chat_states)
         self.assertEqual(["bot message"], telegram_api.sent_messages)
         if is_command:
             self.assertTrue(state.process_command_is_called)
@@ -176,31 +189,20 @@ class FixTelegramBotTest(TestCase):
     def test_message_without_transition(self):
         self.check_command_without_state_transition("/command", True)
 
-
-class SavingBotState(TestCase):
-    class CreateInitialState:
-        def __init__(self):
-            self.state1 = FakeState("user1 for bot")
-            self.state2 = FakeState("user2 for bot")
-            self.state_index = 0
-
-        def __call__(self):
-            if self.state_index == 0:
-                self.state_index += 1
-                return self.state1
-            else:
-                return self.state2
-
     def test_saving_bot_state_for_two_users(self):
-        initial_create_state = SavingBotState.CreateInitialState()
-        user1 = make_message_update("user 1", CHAT_ID_1)
-        user2 = make_message_update("user 2", CHAT_ID_2)
-        telegram_api = FakeTelegramApi(get_response_for_two_user(user1, user2))
-        bot = Bot(telegram_api, initial_create_state)
+        """
+        В тесте bot.process_updates() вызывается дважды, чтобы передать боту два апдейта. И проверить, что Bot
+        сохраняет состояние разных пользователей
+        """
+        create_initial_state = FixTelegramBotTest.CreateInitialState()
+        update1 = make_message_update("user 1", CHAT_ID_1)
+        update2 = make_message_update("user 2", CHAT_ID_2)
+        telegram_api = FakeTelegramApi([update1, update2])
+        bot = Bot(telegram_api, create_initial_state)
         bot.process_updates()
         bot.process_updates()
-        expected = {CHAT_ID_1: initial_create_state.state1, CHAT_ID_2: initial_create_state.state2}
-        self.assertEqual(expected, bot.user_states)
+        expected = {CHAT_ID_1: create_initial_state.state1, CHAT_ID_2: create_initial_state.state2}
+        self.assertEqual(expected, bot.chat_states)
 
 
 def make_message_update(text: str, chat_id: int) -> Dict[str, Any]:
@@ -242,11 +244,7 @@ def make_message_update(text: str, chat_id: int) -> Dict[str, Any]:
     return data
 
 
-def get_response_for_two_user(user1: Dict[str, Any], user2: Dict[str, Any]):
-    return [user1, user2]
-
-
-def make_callback_query_update(callback_data: str, chat_id) -> Dict[str, Any]:
+def make_callback_query_update(callback_data: str, chat_id: int) -> Dict[str, Any]:
     """
         Создает Telegram update состоящий из одного CallbackQuery.
     :param callback_data: ответ при нажатие на кнопку встроенной клавиатуры
@@ -277,7 +275,7 @@ def make_callback_query_update(callback_data: str, chat_id) -> Dict[str, Any]:
                             "username": "easy_programing_bot"
                         },
                         "chat": {
-                            "id": CHAT_ID_1,
+                            "id": chat_id,
                             "first_name": "Степан",
                             "last_name": "Капуста",
                             "username": "степка",
