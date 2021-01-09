@@ -125,7 +125,7 @@ class FakeTelegramApi(TelegramApi):
         self.edit_message_is_called = True
 
 
-class FixTelegramBotTest(TestCase):
+class BotTest(TestCase):
     class CreateInitialState:
         def __init__(self):
             self.state1 = FakeState("user1 for bot")
@@ -189,12 +189,12 @@ class FixTelegramBotTest(TestCase):
     def test_message_without_transition(self):
         self.check_command_without_state_transition("/command", True)
 
-    def test_saving_bot_state_for_two_users(self):
+    def test_separate_states_for_separate_chats(self):
         """
         В тесте bot.process_updates() вызывается дважды, чтобы передать боту два апдейта. И проверить, что Bot
         сохраняет состояние разных пользователей
         """
-        create_initial_state = FixTelegramBotTest.CreateInitialState()
+        create_initial_state = BotTest.CreateInitialState()
         update1 = make_message_update("user 1", CHAT_ID_1)
         update2 = make_message_update("user 2", CHAT_ID_2)
         telegram_api = FakeTelegramApi([update1, update2])

@@ -145,8 +145,7 @@ class Bot:
             self.last_update_id = update["update_id"]
             chat_id = self._get_chat_id(update)
             state = self._get_state_for_chat(chat_id)
-            wrapped_state = self.chat_states[chat_id]
-            bot_response = self.process_update(update, wrapped_state)
+            bot_response = self.process_update(update, state)
             if bot_response is not None:
                 if bot_response.message is not None:
                     self.telegram_api.send_message(bot_response.message.chat_id,
