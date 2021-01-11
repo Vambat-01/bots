@@ -3,7 +3,7 @@ from unittest import TestCase
 from requests.models import Response
 from trivia.bot_state import BotState, BotStateLoggingWrapper
 from trivia.models import Message, Command, Keyboard, CallbackQuery
-from trivia.bot import Bot, TelegramApi
+from core.bot import Bot, TelegramApi
 import json
 from trivia.bot_state import BotResponse
 from trivia.utils import dedent_and_strip

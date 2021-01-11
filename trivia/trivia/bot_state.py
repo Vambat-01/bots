@@ -1,23 +1,13 @@
-from abc import ABCMeta, abstractmethod
 from typing import List, Tuple
 from trivia.models import Message, Command, Keyboard, Button, CallbackQuery, MessageEdit
 from trivia.question_storage import Question, QuestionStorage
 from typing import Optional
 from trivia import format
 from trivia.utils import log, dedent_and_strip
-from dataclasses import dataclass
 import uuid
 from trivia.random_utils import Random
-
-
-@dataclass
-class BotResponse:
-    """
-        Ответ бота
-    """
-    message: Optional[Message] = None
-    message_edit: Optional[MessageEdit] = None
-    new_state: Optional["BotState"] = None
+from core.bot_state import BotState
+from core.bot_response import BotResponse
 
 
 class BotStateFactory:
@@ -78,46 +68,6 @@ class BotStateFactory:
 
         in_game_state = InGameState(game_questions, self, game_id)
         return in_game_state
-
-
-class BotState(metaclass=ABCMeta):
-    """
-        Интерфейс состояния бота
-    """
-
-    @abstractmethod
-    def process_message(self, message: Message) -> BotResponse:
-        """
-            Обрабатывает текстовое сообщение
-        :param message: сообщение от пользователя
-        :return: ответ бота
-        """
-        pass
-
-    @abstractmethod
-    def process_command(self, command: Command) -> BotResponse:
-        """
-            Обрабатывает команду
-        :param command: команда от пользователя
-        :return: ответ бота
-        """
-        pass
-
-    @abstractmethod
-    def on_enter(self, chat_id) -> Optional[Message]:
-        """
-            Дает BotState возможность отправить сообщение в чат при смене состояния бота для этого чата
-            :return: опциональное сообщение для отправки в чат
-        """
-        pass
-
-    @abstractmethod
-    def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
-        """
-            Обрабатывает входящий запрос от кнопки на встроенной клавиатуре
-        :param callback_query: входящий запрос от кнопки
-        :return: ответ бота
-        """
 
 
 class BotStateLoggingWrapper(BotState):
