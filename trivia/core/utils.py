@@ -1,5 +1,5 @@
-import textwrap
 import datetime
+import textwrap
 
 
 def dedent_and_strip(text: str):
@@ -14,5 +14,3 @@ def log(message: str) -> None:
     """
     time_now = datetime.datetime.now()
     print(f"{time_now} {message}")
-
-

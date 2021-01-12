@@ -21,5 +21,3 @@ class RandomImpl(Random):
 
     def shuffle(self, data: list) -> None:
         shuffle(data)
-
-

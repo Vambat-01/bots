@@ -1,5 +1,6 @@
 from unittest import TestCase
-from trivia.models import Button, Keyboard
+from core.button import Button
+from core.keyboard import Keyboard
 
 
 class KeyboardTest(TestCase):
