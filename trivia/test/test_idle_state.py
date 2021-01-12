@@ -1,5 +1,6 @@
 from unittest import TestCase
-from trivia.models import Message, Command
+from core.message import Message
+from core.command import Command
 from trivia.bot_state import IdleState, InGameState, BotStateFactory
 from trivia.question_storage import JsonQuestionStorage
 from typing import cast

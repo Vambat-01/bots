@@ -1,9 +1,12 @@
 from unittest import TestCase
-from trivia.models import Message, Command, CallbackQuery, MessageEdit
+from core.message import Message
+from core.command import Command
+from core.callback_query import CallbackQuery
+from core.message_edit import MessageEdit
 from trivia.bot_state import IdleState, InGameState, BotStateFactory, BotState, BotResponse, make_keyboard_for_question
 from trivia.question_storage import Question, JsonQuestionStorage
 from typing import List, Tuple, Optional
-from trivia.utils import dedent_and_strip
+from core.utils import dedent_and_strip
 from trivia import format
 from test.test_utils import DoNothingRandom
 

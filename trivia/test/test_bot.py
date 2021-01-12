@@ -1,12 +1,16 @@
 from typing import Optional, List, Dict, Any
 from unittest import TestCase
 from requests.models import Response
-from trivia.bot_state import BotState, BotStateLoggingWrapper
-from trivia.models import Message, Command, Keyboard, CallbackQuery
+from core.bot_state import BotState
+from core.bot_state_logging_wrapper import BotStateLoggingWrapper
+from core.message import Message
+from core.command import Command
+from core.callback_query import CallbackQuery
+from core.keyboard import Keyboard
 from core.bot import Bot, TelegramApi
 import json
 from trivia.bot_state import BotResponse
-from trivia.utils import dedent_and_strip
+from core.utils import dedent_and_strip
 from enum import Enum
 
 
@@ -315,6 +319,3 @@ def make_callback_query_update(callback_data: str, chat_id: int) -> Dict[str, An
         ]
     }
     return data
-
-
-

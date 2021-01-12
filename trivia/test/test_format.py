@@ -1,8 +1,9 @@
 from unittest import TestCase
 from trivia import format
 from trivia.question_storage import Question
-from trivia.utils import dedent_and_strip
-from trivia.models import Button, Keyboard
+from core.utils import dedent_and_strip
+from core.button import Button
+from core.keyboard import Keyboard
 from trivia.bot_state import make_keyboard_for_question
 
 

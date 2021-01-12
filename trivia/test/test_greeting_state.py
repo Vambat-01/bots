@@ -1,5 +1,6 @@
 from unittest import TestCase
-from trivia.models import Message, Command
+from core.message import Message
+from core.command import Command
 from trivia.bot_state import GreetingState, IdleState, BotStateFactory
 from trivia.question_storage import JsonQuestionStorage
 from test.test_utils import DoNothingRandom
