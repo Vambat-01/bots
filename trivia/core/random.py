@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+from random import shuffle
 
 
 class Random(metaclass=ABCMeta):
@@ -14,3 +15,9 @@ class Random(metaclass=ABCMeta):
         :return: None
         """
         pass
+
+
+class RandomImpl(Random):
+
+    def shuffle(self, data: list) -> None:
+        shuffle(data)

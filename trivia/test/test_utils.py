@@ -1,4 +1,4 @@
-from trivia.random_utils import Random
+from core.random import Random
 
 
 class DoNothingRandom(Random):

@@ -6,7 +6,7 @@ from core.utils import log
 from core.telegram_api import TelegramApi
 
 
-class RealTelegramApi(TelegramApi):
+class LiveTelegramApi(TelegramApi):
     def __init__(self, token: str):
         self.token = token
 
