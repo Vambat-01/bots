@@ -9,8 +9,7 @@ from typing import Optional
 from core.button import Button
 import uuid
 from core.random import Random
-from core.bot_state import BotState
-from core.bot_response import BotResponse
+from core.bot_state import BotState, BotResponse
 from trivia import format
 
 

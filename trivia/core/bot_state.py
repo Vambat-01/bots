@@ -3,7 +3,18 @@ from core.message import Message
 from core.command import Command
 from core.callback_query import CallbackQuery
 from typing import Optional
-from core.bot_response import BotResponse
+from dataclasses import dataclass
+from core.message_edit import MessageEdit
+
+
+@dataclass
+class BotResponse:
+    """
+        Ответ бота
+    """
+    message: Optional[Message] = None
+    message_edit: Optional[MessageEdit] = None
+    new_state: Optional["BotState"] = None
 
 
 class BotState(metaclass=ABCMeta):

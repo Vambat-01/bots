@@ -1,8 +1,7 @@
 from typing import Optional, Dict, Any, Callable
 from core.utils import log
 from core.telegram_api import TelegramApi
-from core.bot_state import BotState
-from core.bot_response import BotResponse
+from core.bot_state import BotState, BotResponse
 from core.message import Message
 from core.callback_query import CallbackQuery
 from core.command import Command

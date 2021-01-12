@@ -1,9 +1,8 @@
 from typing import Optional
-from core.bot_state import BotState
+from core.bot_state import BotState, BotResponse
 from core.utils import dedent_and_strip, log
 from core.message import Message
 from core.callback_query import CallbackQuery
-from core.bot_response import BotResponse
 from core.command import Command
 
 
