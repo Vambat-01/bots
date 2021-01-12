@@ -1,4 +1,5 @@
-from trivia.models import Message, MessageEdit
+from core.message import Message
+from core.message_edit import MessageEdit
 from typing import Optional
 from dataclasses import dataclass
 from core.bot_state import BotState

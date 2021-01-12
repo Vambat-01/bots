@@ -1,8 +1,12 @@
-from trivia.bot_state import BotState, BotResponse, BotStateLoggingWrapper
-from trivia.models import Message, Command, CallbackQuery
 from typing import Optional, Dict, Any, Callable
-from trivia.utils import log
+from core.utils import log
 from core.telegram_api import TelegramApi
+from core.bot_state import BotState
+from core.bot_response import BotResponse
+from core.message import Message
+from core.callback_query import CallbackQuery
+from core.command import Command
+from core.bot_state_logging_wrapper import BotStateLoggingWrapper
 
 
 class Bot:
@@ -97,5 +101,3 @@ class Bot:
             state = self.create_initial_state()
             self.chat_states[chat_id] = state
         return state
-
-

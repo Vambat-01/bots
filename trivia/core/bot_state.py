@@ -1,7 +1,9 @@
 from abc import ABCMeta, abstractmethod
-from trivia.models import Message, Command, CallbackQuery
+from core.message import Message
+from core.command import Command
+from core.callback_query import CallbackQuery
 from typing import Optional
-from trivia.bot_state import BotResponse
+from core.bot_response import BotResponse
 
 
 class BotState(metaclass=ABCMeta):

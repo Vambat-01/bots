@@ -1,8 +1,8 @@
 import requests
-from trivia.models import Keyboard
+from core.keyboard import Keyboard
 from requests.models import Response
 from typing import Optional
-from trivia.utils import log
+from core.utils import log
 from core.telegram_api import TelegramApi
 
 
@@ -69,4 +69,3 @@ class RealTelegramApi(TelegramApi):
 
         response = requests.post(url, json=body)
         log(f"TelegramAPI message_edit status code: {response.status_code}")
-

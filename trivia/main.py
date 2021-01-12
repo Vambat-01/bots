@@ -1,4 +1,5 @@
-from core.bot import Bot, RealTelegramApi
+from core.bot import Bot
+from core.real_telegram_api import RealTelegramApi
 from trivia.bot_state import BotStateFactory, GreetingState, TestState
 from trivia.question_storage import JsonQuestionStorage
 from trivia.random_utils import RandomImpl

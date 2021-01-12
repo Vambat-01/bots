@@ -1,7 +1,7 @@
 import json
 from typing import List
+from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-from core.question_storage import QuestionStorage
 
 
 @dataclass
@@ -17,6 +17,20 @@ class Question:
     answers: List[str]
     points: int
     correct_answer: int = 1
+
+
+class QuestionStorage(metaclass=ABCMeta):
+    """
+        Интерфейс для доступа к вопросам
+    """
+
+    @abstractmethod
+    def load_questions(self) -> List[Question]:
+        """
+            Считывает список вопросов
+        :return: список вопросов
+        """
+        pass
 
 
 class JsonQuestionStorage(QuestionStorage):

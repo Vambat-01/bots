@@ -1,13 +1,17 @@
 from typing import List, Tuple
-from trivia.models import Message, Command, Keyboard, Button, CallbackQuery, MessageEdit
+from core.keyboard import Keyboard
+from core.message import Message
+from core.command import Command
+from core.callback_query import CallbackQuery
+from core.message_edit import MessageEdit
 from trivia.question_storage import Question, QuestionStorage
 from typing import Optional
-from trivia import format
-from trivia.utils import log, dedent_and_strip
+from core.button import Button
 import uuid
-from trivia.random_utils import Random
+from core.random import Random
 from core.bot_state import BotState
 from core.bot_response import BotResponse
+from trivia import format
 
 
 class BotStateFactory:
@@ -68,41 +72,6 @@ class BotStateFactory:
 
         in_game_state = InGameState(game_questions, self, game_id)
         return in_game_state
-
-
-class BotStateLoggingWrapper(BotState):
-    def __init__(self, inner: BotState):
-        self.inner = inner
-
-    def __eq__(self, other):
-        if type(other) is type(self):
-            return self.__dict__ == other.__dict__
-        return False
-
-    def __repr__(self):
-        return dedent_and_strip(f"""
-                      BotStateLoggingWrapper: 
-                          inner: {self.inner}
-                   """)
-
-    def __str__(self):
-        return self.__repr__()
-
-    def process_message(self, message: Message) -> BotResponse:
-        log(f"{type(self.inner).__name__} process_message is called")
-        return self.inner.process_message(message)
-
-    def process_command(self, command: Command) -> BotResponse:
-        log(f"{type(self.inner).__name__} process_command is called")
-        return self.inner.process_command(command)
-
-    def on_enter(self, chat_id: int) -> Optional[Message]:
-        log(f"{type(self.inner).__name__} on_enter is called")
-        return self.inner.on_enter(chat_id)
-
-    def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
-        log(f"{type(self.inner).__name__} callback_query is called")
-        return self.inner.process_callback_query(callback_query)
 
 
 class TestState(BotState):
@@ -474,5 +443,3 @@ def select_questions(questions: List[Question], num_questions: int) -> List[Ques
         :return: Список вопросов
     """
     return questions[:num_questions]
-
-

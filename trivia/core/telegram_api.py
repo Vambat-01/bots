@@ -1,4 +1,4 @@
-from trivia.models import Keyboard
+from core.keyboard import Keyboard
 from requests.models import Response
 from abc import ABCMeta, abstractmethod
 from typing import Optional
@@ -53,4 +53,3 @@ class TelegramApi(metaclass=ABCMeta):
         :return: None
         """
         pass
-

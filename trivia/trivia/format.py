@@ -90,6 +90,3 @@ def _get_answers(list_answers: List[str], correct_answer: Optional[int], answer_
             possible_answers.append(f"|{SMILE_EMPTY}| {i + 1}: {list_answers[i]}")
 
     return possible_answers
-
-
-
