@@ -192,6 +192,14 @@ class GreetingState(BotState):
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
         return None
 
+    def save(self) -> dict:
+        return {
+            "state_factory": self.state_factory
+        }
+
+    def load(self, data: dict) -> None:
+        self.state_factory = data["state_factory"]
+
 
 class IdleState(BotState):
     """
@@ -253,6 +261,14 @@ class IdleState(BotState):
 
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
         return None
+
+    def save(self) -> dict:
+        return {
+            "state_factory": self.state_factory
+        }
+
+    def load(self, data: dict) -> None:
+        self.state_factory = data["state_factory"]
 
 
 class InGameState(BotState):
@@ -350,6 +366,22 @@ class InGameState(BotState):
         message_text = text
         response_message = Message(chat_id, message_text, "HTML", keyboard)
         return response_message
+
+    def save(self) -> dict:
+        return {
+            "questions": self.questions,
+            "current_question": self.current_question,
+            "game_score": self.game_score,
+            "state_factory": self.state_factory,
+            "game_id": self.game_id
+        }
+
+    def load(self, data: dict) -> None:
+        self.questions = data["questions"]
+        self.current_question = data["current_question"]
+        self.game_score = data["game_score"]
+        self.state_factory = data["state_factory"]
+        self.game_id = data["game_id"]
 
     def parse_int(self, s: str) -> Optional[int]:
         if s.isdigit():
