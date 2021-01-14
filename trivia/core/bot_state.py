@@ -55,3 +55,20 @@ class BotState(metaclass=ABCMeta):
         :param callback_query: входящий запрос от кнопки
         :return: ответ бота
         """
+        pass
+
+    def save(self) -> dict:
+        """
+        Сохраняет состояние в словарь. Словарь может быть использован для дальнейшего восстановления
+        :return: dict
+        """
+        return {}
+
+    def load(self, data: dict) -> None:
+        """
+        Загружает состояние из сохраненного ранее словаря
+        :param data: dict
+        :return: None
+        """
+        pass
+

@@ -351,6 +351,20 @@ class InGameState(BotState):
         response_message = Message(chat_id, message_text, "HTML", keyboard)
         return response_message
 
+    def save(self) -> dict:
+        return {
+            "questions": self.questions,
+            "current_question": self.current_question,
+            "game_score": self.game_score,
+            "game_id": self.game_id
+        }
+
+    def load(self, data: dict) -> None:
+        self.questions = data["questions"]
+        self.current_question = data["current_question"]
+        self.game_score = data["game_score"]
+        self.game_id = data["game_id"]
+
     def parse_int(self, s: str) -> Optional[int]:
         if s.isdigit():
             return int(s)
