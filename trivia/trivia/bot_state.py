@@ -193,9 +193,7 @@ class GreetingState(BotState):
         return None
 
     def save(self) -> dict:
-        return {
-            "state_factory": self.state_factory
-        }
+        return {}
 
     def load(self, data: dict) -> None:
         self.state_factory = data["state_factory"]
@@ -263,9 +261,7 @@ class IdleState(BotState):
         return None
 
     def save(self) -> dict:
-        return {
-            "state_factory": self.state_factory
-        }
+        return {}
 
     def load(self, data: dict) -> None:
         self.state_factory = data["state_factory"]
@@ -372,7 +368,6 @@ class InGameState(BotState):
             "questions": self.questions,
             "current_question": self.current_question,
             "game_score": self.game_score,
-            "state_factory": self.state_factory,
             "game_id": self.game_id
         }
 
@@ -380,7 +375,6 @@ class InGameState(BotState):
         self.questions = data["questions"]
         self.current_question = data["current_question"]
         self.game_score = data["game_score"]
-        self.state_factory = data["state_factory"]
         self.game_id = data["game_id"]
 
     def parse_int(self, s: str) -> Optional[int]:

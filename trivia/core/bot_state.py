@@ -59,15 +59,15 @@ class BotState(metaclass=ABCMeta):
 
     def save(self) -> dict:
         """
-        Сохраняет состояние бота в файл типа json
+        Сохраняет состояние бота
         :return: dict
         """
         return {}
 
     def load(self, data: dict) -> None:
         """
-
-        :param data: словарь сохраненных состояний бота разных пользователей
+        Загружает состояние бота
+        :param data: dict
         :return: None
         """
         pass

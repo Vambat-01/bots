@@ -26,7 +26,9 @@ class BijectionTest(TestCase):
         self.assertEqual(idle_state, decoded)
 
     def test_in_game_state(self):
-        in_game_state = _make_in_game_state(TEST_QUESTIONS_PATH)
+        state_factory = _make_state_factory(TEST_QUESTIONS_PATH)
+        questions = state_factory.questions_storage.load_questions()
+        in_game_state = InGameState(questions, state_factory, "125")
         bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
         encoded = bijection.forward(in_game_state)
         decoded = bijection.backward(encoded)
@@ -38,12 +40,3 @@ def _make_state_factory(questions_file_path: str) -> BotStateFactory:
     random = DoNothingRandom()
     state_factory = BotStateFactory(storage, random)
     return state_factory
-
-
-def _make_in_game_state(questions_file_path: str) -> InGameState:
-    storage = JsonQuestionStorage(questions_file_path)
-    questions = storage.load_questions()
-    random = DoNothingRandom()
-    state_factory = BotStateFactory(storage, random)
-    state = InGameState(questions, state_factory, "125")
-    return state

@@ -1,9 +1,16 @@
-from core.bijection import Bijection
+from core.bot_state_to_dict_bijection import Bijection
 from core.bot_state import BotState
 from trivia.bot_state import GreetingState, IdleState, InGameState, BotStateFactory
 
 
+class StateSaveException(Exception):
+    pass
+
+
 class BotStateToDictBijection(Bijection[BotState, dict]):
+    """
+    Переход BotState из одного состония в другое
+    """
     def __init__(self, bot_state_factory: BotStateFactory):
         self.bot_state_factory = bot_state_factory
 
@@ -16,7 +23,7 @@ class BotStateToDictBijection(Bijection[BotState, dict]):
         elif isinstance(obj, InGameState):
             bot_state_type = "InGameState"
         else:
-            raise Exception(f"Unknown BotState type")
+            raise StateSaveException(f"Unknown BotState type")
 
         return {
             "bot_state_type": bot_state_type,
@@ -34,7 +41,7 @@ class BotStateToDictBijection(Bijection[BotState, dict]):
         elif bot_state_type == "InGameState":
             bot_state = self.bot_state_factory.create_in_game_state()
         else:
-            raise Exception(f"Unknown bot_state type: {bot_state_type}")
+            raise StateSaveException(f"Unknown bot_state type: {bot_state_type}")
 
         bot_state.load(bot_state_data)
         return bot_state
