@@ -12,7 +12,7 @@ class Bijection(Generic[T, U], metaclass=ABCMeta):
     @abstractmethod
     def forward(self, obj: T) -> U:
         """
-        Транформирует тип T в U
+        Трансформирует тип T в U
         :param obj: T
         :return: U
         """
@@ -21,7 +21,7 @@ class Bijection(Generic[T, U], metaclass=ABCMeta):
     @abstractmethod
     def backward(self, obj: U) -> T:
         """
-        Обратно транформирует тип U в T
+        Обратно трансформирует тип U в T
         :param obj: U
         :return: T
         """
