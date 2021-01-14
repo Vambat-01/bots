@@ -4,12 +4,15 @@ from trivia.bot_state import GreetingState, IdleState, InGameState, BotStateFact
 
 
 class StateSaveException(Exception):
+    """
+    Обработка исключений
+    """
     pass
 
 
 class BotStateToDictBijection(Bijection[BotState, dict]):
     """
-    Переход BotState из одного состония в другое
+    Биекция для сохранения состояния бота в словарь.
     """
     def __init__(self, bot_state_factory: BotStateFactory):
         self.bot_state_factory = bot_state_factory

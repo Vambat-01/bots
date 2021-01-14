@@ -7,10 +7,22 @@ U = TypeVar('U')
 
 class Bijection(Generic[T, U], metaclass=ABCMeta):
     """
-    Переход из одного состояния обьекта в другое
+    Биекция определяет обратимую трансформацию между типами T и U
     """
     @abstractmethod
-    def forward(self, obj: T) -> U: pass
+    def forward(self, obj: T) -> U:
+        """
+        Транформирует тип T в U
+        :param obj: T
+        :return: U
+        """
+        pass
 
     @abstractmethod
-    def backward(self, obj: U) -> T: pass
+    def backward(self, obj: U) -> T:
+        """
+        Обратно транформирует тип U в T
+        :param obj: U
+        :return: T
+        """
+        pass

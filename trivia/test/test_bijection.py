@@ -27,9 +27,8 @@ class BijectionTest(TestCase):
 
     def test_in_game_state(self):
         state_factory = _make_state_factory(TEST_QUESTIONS_PATH)
-        questions = state_factory.questions_storage.load_questions()
-        in_game_state = InGameState(questions, state_factory, "125")
-        bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
+        in_game_state = state_factory.create_in_game_state()
+        bijection = BotStateToDictBijection(state_factory)
         encoded = bijection.forward(in_game_state)
         decoded = bijection.backward(encoded)
         self.assertEqual(in_game_state, decoded)

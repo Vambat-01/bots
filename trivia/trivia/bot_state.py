@@ -192,12 +192,6 @@ class GreetingState(BotState):
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
         return None
 
-    def save(self) -> dict:
-        return {}
-
-    def load(self, data: dict) -> None:
-        self.state_factory = data["state_factory"]
-
 
 class IdleState(BotState):
     """
@@ -259,12 +253,6 @@ class IdleState(BotState):
 
     def process_callback_query(self, callback_query: CallbackQuery) -> Optional[BotResponse]:
         return None
-
-    def save(self) -> dict:
-        return {}
-
-    def load(self, data: dict) -> None:
-        self.state_factory = data["state_factory"]
 
 
 class InGameState(BotState):
