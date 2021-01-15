@@ -32,7 +32,8 @@ class InGameStateTest(TestCase):
         json_file = "resources/test_questions.json"
         storage = JsonQuestionStorage(json_file)
         questions = storage.load_questions()
-        state = InGameState(questions, state_factory, GAME_ID)
+        game_state = InGameState.State(questions, GAME_ID)
+        state = InGameState(state_factory, game_state)
         message = state.on_enter(CHAT_ID)
         self.assertEqual(first_bot_message, message)
         count = 0
@@ -70,8 +71,7 @@ class InGameStateTest(TestCase):
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
         message_resp = state.process_message(user_message)
         check_text = format.make_message(False, question=Question("17+3", ["20", "21"], 0))
-        self.assertEqual(dedent_and_strip(check_text), message_resp.message.text
-        )
+        self.assertEqual(dedent_and_strip(check_text), message_resp.message.text)
         self.assertEqual(CHAT_ID, message_resp.message.chat_id)
         self.assertEqual(None, message_resp.new_state)
 
@@ -87,16 +87,11 @@ class InGameStateTest(TestCase):
     def test_process_command_stop(self):
         text = "/stop"
         user_command = Command(CHAT_ID, text)
-        json_file = "resources/test_questions.json"
-        storage = JsonQuestionStorage(json_file)
-        questions = storage.load_questions()
-        random = DoNothingRandom()
-        state_factory = BotStateFactory(storage, random)
-        state = InGameState(questions, state_factory, GAME_ID)
+        state = _make_in_game_state(TEST_QUESTIONS_PATH)
         command_resp = state.process_command(user_command)
         self.assertEqual("<i>The game is over.</i>", command_resp.message.text)
         self.assertEqual(CHAT_ID, command_resp.message.chat_id)
-        self.assertEqual(IdleState(state_factory), command_resp.new_state)
+        self.assertEqual(IdleState(state.state_factory), command_resp.new_state)
 
     def test_process_command_another(self):
         text = "/start"
@@ -112,8 +107,7 @@ class InGameStateTest(TestCase):
         response = state.on_enter(CHAT_ID)
         text = format.make_question("Question", "7+3", ["10", "11"])
         check_text = dedent_and_strip(text)
-        self.assertEqual(dedent_and_strip(check_text), response.text
-        )
+        self.assertEqual(dedent_and_strip(check_text), response.text)
         self.assertEqual(CHAT_ID, response.chat_id)
 
     def test_callback_query_when_answer_is_correct(self):
@@ -378,7 +372,8 @@ def _make_in_game_state(questions_file_path: str) -> InGameState:
     questions = storage.load_questions()
     random = DoNothingRandom()
     state_factory = BotStateFactory(storage, random)
-    state = InGameState(questions, state_factory, GAME_ID)
+    game_state = InGameState.State(questions, GAME_ID)
+    state = InGameState(state_factory, game_state)
     return state
 
 
@@ -388,4 +383,3 @@ def _make_callback_query(game_id: str, current_question_id: str, message_text: s
     data = f"{game_id}.{current_question_id}.{message_text}"
     callback_query = CallbackQuery(data, user_message, message_id)
     return callback_query
-

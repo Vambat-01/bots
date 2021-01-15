@@ -11,6 +11,8 @@ import uuid
 from core.random import Random
 from core.bot_state import BotState, BotResponse
 from trivia import format
+from dataclasses import dataclass
+from dataclasses_json import dataclass_json
 
 
 class BotStateFactory:
@@ -69,7 +71,8 @@ class BotStateFactory:
             game_questions[i].answers = answers
             game_questions[i].correct_answer = correct_answer
 
-        in_game_state = InGameState(game_questions, self, game_id)
+        game_state = InGameState.State(game_questions, game_id)
+        in_game_state = InGameState(self, game_state)
         return in_game_state
 
 
@@ -256,13 +259,27 @@ class IdleState(BotState):
 
 
 class InGameState(BotState):
+    """
+    Состояние бота в котором происходит игра
+    """
+    @dataclass_json
+    @dataclass
+    class State:
+        """
+        Вспомогательный класс для хранения парамметров class InGameState
+        :param questions: список вопросов
+        :param game_id: идентификатор игры
+        :param current_question: номер текущего вопроса
+        :param game_score: очки пользователя
+        """
+        questions: List[Question]
+        game_id: str
+        current_question: int = 0
+        game_score: int = 0
 
-    def __init__(self, questions: List[Question], state_factory: BotStateFactory, game_id: str):
-        self.questions = questions
-        self.current_question = 0
-        self.game_score = 0
+    def __init__(self, state_factory: BotStateFactory, state: State):
         self.state_factory = state_factory
-        self.game_id = game_id
+        self.state = state
 
     def __eq__(self, other):
         if type(other) is type(self):
@@ -274,12 +291,9 @@ class InGameState(BotState):
 
     def __repr__(self):
         return f"""
-                    InGameState: 
-                        questions = {self.questions}
-                        current_questions = {self.current_question} 
-                        game_score = {self.game_score}
+                    InGameState:
                         state_factory = {self.state_factory}
-                        game_id = {self.game_id}
+                        state = {self.state}
                 """
 
     def process_message(self, message: Message) -> BotResponse:
@@ -288,7 +302,7 @@ class InGameState(BotState):
             :param message: сообщение от пользователя
             :return: ответ бота
         """
-        correct_answer = self.questions[self.current_question].correct_answer
+        correct_answer = self.state.questions[self.state.current_question].correct_answer
         user_message = message.text
         message, new_state = self._process_answer(user_message, message.chat_id, correct_answer)
         return BotResponse(message, new_state=new_state)
@@ -323,12 +337,12 @@ class InGameState(BotState):
                 return None
 
             answer_id = payload[2]
-            if quest_id >= len(self.questions):
+            if quest_id >= len(self.state.questions):
                 return None
 
-            correct_answer = self.questions[quest_id].correct_answer
+            correct_answer = self.state.questions[quest_id].correct_answer
 
-            if game_id == self.game_id and quest_id == self.current_question:
+            if game_id == self.state.game_id and quest_id == self.state.current_question:
                 message, new_state = self._process_answer(answer_id, chat_id, correct_answer)
                 message_edit = self._get_message_edit(quest_id, answer_id, correct_answer, chat_id, message_id)
                 return BotResponse(message, message_edit=message_edit, new_state=new_state)
@@ -339,9 +353,12 @@ class InGameState(BotState):
             Возвращает первый вопрос и варианты ответов
             :return: опциональное сообщение для отправки в чат
         """
-        quest = self.questions
+        quest = self.state.questions
         first_question = quest[0]
-        keyboard = make_keyboard_for_question(len(first_question.answers), self.game_id, self.current_question)
+        keyboard = make_keyboard_for_question(len(first_question.answers),
+                                              self.state.game_id,
+                                              self.state.current_question
+                                              )
         text = format.make_question("Question",
                                     first_question.text,
                                     first_question.answers,
@@ -352,18 +369,10 @@ class InGameState(BotState):
         return response_message
 
     def save(self) -> dict:
-        return {
-            "questions": self.questions,
-            "current_question": self.current_question,
-            "game_score": self.game_score,
-            "game_id": self.game_id
-        }
+        return self.state.to_dict()    # type: ignore
 
     def load(self, data: dict) -> None:
-        self.questions = data["questions"]
-        self.current_question = data["current_question"]
-        self.game_score = data["game_score"]
-        self.game_id = data["game_id"]
+        self.state = InGameState.State.from_dict(data)   # type: ignore
 
     def parse_int(self, s: str) -> Optional[int]:
         if s.isdigit():
@@ -376,7 +385,7 @@ class InGameState(BotState):
                         correct_answer: int
                         ) -> Tuple[Message, Optional[BotState]]:
         new_state: Optional[BotState] = None
-        num_of_resp = len(self.questions[self.current_question].answers)
+        num_of_resp = len(self.state.questions[self.state.current_question].answers)
         answer_id = self.parse_int(answer)
 
         if answer_id is None:
@@ -393,12 +402,12 @@ class InGameState(BotState):
             )
         else:
             if correct_answer == answer_id:
-                self.game_score += self.questions[self.current_question].points
+                self.state.game_score += self.state.questions[self.state.current_question].points
 
-            if self.current_question < len(self.questions) - 1:
-                next_question = self.questions[self.current_question + 1]
-                self.current_question += 1
-                keyboard = make_keyboard_for_question(num_of_resp, self.game_id, self.current_question)
+            if self.state.current_question < len(self.state.questions) - 1:
+                next_question = self.state.questions[self.state.current_question + 1]
+                self.state.current_question += 1
+                keyboard = make_keyboard_for_question(num_of_resp, self.state.game_id, self.state.current_question)
                 message_text = format.make_message(correct_answer,
                                                    question=next_question
                                                    )
@@ -406,7 +415,7 @@ class InGameState(BotState):
             else:
                 idle_state = self.state_factory.create_idle_state()
                 new_state = idle_state
-                message_text = format.make_message(1, game_score=self.game_score)
+                message_text = format.make_message(1, game_score=self.state.game_score)
                 response_message = Message(chat_id, message_text, "HTML")
 
         return response_message, new_state
@@ -416,7 +425,7 @@ class InGameState(BotState):
                           correct_answer: int,
                           chat_id: int,
                           message_id: int) -> MessageEdit:
-        text_question = self.questions[question_id]
+        text_question = self.state.questions[question_id]
         answer_id = self.parse_int(answer_text) if answer_text is not None else None
         message_text = format.make_message(correct_answer, answer_id, text_question)
 

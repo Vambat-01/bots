@@ -17,6 +17,4 @@ class BotStateFactoryTest(TestCase):
                           Question("17+3", ["21", "20"], 2, 2),
                           Question("27+3", ["31", "30"], 3, 2)
                           ]
-        self.assertEqual(questions_list, actual.questions)
-
-
+        self.assertEqual(questions_list, actual.state.questions)
