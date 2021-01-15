@@ -71,8 +71,8 @@ class BotStateFactory:
             game_questions[i].answers = answers
             game_questions[i].correct_answer = correct_answer
 
-        state = InGameState.State(game_questions, game_id)
-        in_game_state = InGameState(self, state)
+        game_state = InGameState.State(game_questions, game_id)
+        in_game_state = InGameState(self, game_state)
         return in_game_state
 
 
@@ -259,10 +259,19 @@ class IdleState(BotState):
 
 
 class InGameState(BotState):
-
+    """
+    Состояние бота в котором происходит игра
+    """
     @dataclass_json
     @dataclass
     class State:
+        """
+        Вспомогательный класс для хранения парамметров class InGameState
+        :param questions: список вопросов
+        :param game_id: идентификатор игры
+        :param current_question: номер текущего вопроса
+        :param game_score: очки пользователя
+        """
         questions: List[Question]
         game_id: str
         current_question: int = 0
@@ -282,12 +291,9 @@ class InGameState(BotState):
 
     def __repr__(self):
         return f"""
-                    InGameState: 
-                        questions = {self.state.questions}
-                        current_questions = {self.state.current_question} 
-                        game_score = {self.state.game_score}
+                    InGameState:
                         state_factory = {self.state_factory}
-                        game_id = {self.state.game_id}
+                        state = {self.state}
                 """
 
     def process_message(self, message: Message) -> BotResponse:

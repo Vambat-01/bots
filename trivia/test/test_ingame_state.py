@@ -71,8 +71,7 @@ class InGameStateTest(TestCase):
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
         message_resp = state.process_message(user_message)
         check_text = format.make_message(False, question=Question("17+3", ["20", "21"], 0))
-        self.assertEqual(dedent_and_strip(check_text), message_resp.message.text
-                         )
+        self.assertEqual(dedent_and_strip(check_text), message_resp.message.text)
         self.assertEqual(CHAT_ID, message_resp.message.chat_id)
         self.assertEqual(None, message_resp.new_state)
 
@@ -108,8 +107,7 @@ class InGameStateTest(TestCase):
         response = state.on_enter(CHAT_ID)
         text = format.make_question("Question", "7+3", ["10", "11"])
         check_text = dedent_and_strip(text)
-        self.assertEqual(dedent_and_strip(check_text), response.text
-                         )
+        self.assertEqual(dedent_and_strip(check_text), response.text)
         self.assertEqual(CHAT_ID, response.chat_id)
 
     def test_callback_query_when_answer_is_correct(self):
