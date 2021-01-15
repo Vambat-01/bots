@@ -51,4 +51,3 @@ def _make_in_game_state(state_factory: BotStateFactory) -> InGameState:
     game_state = InGameState.State(questions_list, GAME_ID, 1, 2)
     state = InGameState(state_factory, game_state)
     return state
-
