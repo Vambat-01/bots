@@ -363,7 +363,7 @@ class InGameState(BotState):
         return response_message
 
     def save(self) -> dict:
-        return self.state.to_json()    # type: ignore
+        return self.state.to_dict()    # type: ignore
 
     def load(self, data: dict) -> None:
         self.state = InGameState.State.from_dict(data)   # type: ignore
