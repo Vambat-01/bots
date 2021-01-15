@@ -33,14 +33,12 @@ class IdleStateTest(TestCase):
         state_factory = BotStateFactory(storage, random)
         state = IdleState(state_factory)
         command_resp = state.process_command(user_command)
-        # game_state = InGameState.State(questions, "125")
         self.assertTrue(isinstance(command_resp.new_state, InGameState))
         new_state = cast(InGameState, command_resp.new_state)
+        game_state = InGameState.State(questions, new_state.state.game_id)
         self.assertEqual("<i>Starting game</i>", command_resp.message.text)
         self.assertEqual(265, command_resp.message.chat_id)
-        self.assertEqual(InGameState(questions, state_factory, new_state.game_id),
-                         command_resp.new_state)
-        # self.assertEqual(InGameState(state_factory, game_state), command_resp.new_state)
+        self.assertEqual(InGameState(state_factory, game_state), command_resp.new_state)
 
     def test_process_command_help(self):
         chat_id = 270

@@ -12,6 +12,7 @@ from core.random import Random
 from core.bot_state import BotState, BotResponse
 from trivia import format
 from dataclasses import dataclass
+from dataclasses_json import dataclass_json
 
 
 class BotStateFactory:
@@ -259,7 +260,7 @@ class IdleState(BotState):
 
 class InGameState(BotState):
 
-    @staticmethod
+    @dataclass_json
     @dataclass
     class State:
         questions: List[Question]
@@ -362,18 +363,10 @@ class InGameState(BotState):
         return response_message
 
     def save(self) -> dict:
-        return {
-            "questions": self.state.questions,
-            "current_question": self.state.current_question,
-            "game_score": self.state.game_score,
-            "game_id": self.state.game_id
-        }
+        return self.state.to_json()    # type: ignore
 
     def load(self, data: dict) -> None:
-        self.state.questions = data["questions"]
-        self.state.current_question = data["current_question"]
-        self.state.game_score = data["game_score"]
-        self.state.game_id = data["game_id"]
+        self.state = InGameState.State.from_dict(data)   # type: ignore
 
     def parse_int(self, s: str) -> Optional[int]:
         if s.isdigit():

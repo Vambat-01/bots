@@ -3,9 +3,11 @@ from trivia.bot_state import BotStateFactory, GreetingState, IdleState, InGameSt
 from trivia.question_storage import JsonQuestionStorage
 from test.test_utils import DoNothingRandom
 from trivia.bijection import BotStateToDictBijection
+from trivia.question_storage import Question
 
 
 TEST_QUESTIONS_PATH = "resources/test_questions.json"
+GAME_ID = "125"
 
 
 class BijectionTest(TestCase):
@@ -27,7 +29,7 @@ class BijectionTest(TestCase):
 
     def test_in_game_state(self):
         state_factory = _make_state_factory(TEST_QUESTIONS_PATH)
-        in_game_state = state_factory.create_in_game_state()
+        in_game_state = _make_in_game_state(state_factory)
         bijection = BotStateToDictBijection(state_factory)
         encoded = bijection.forward(in_game_state)
         decoded = bijection.backward(encoded)
@@ -39,3 +41,13 @@ def _make_state_factory(questions_file_path: str) -> BotStateFactory:
     random = DoNothingRandom()
     state_factory = BotStateFactory(storage, random)
     return state_factory
+
+
+def _make_in_game_state(state_factory: BotStateFactory) -> InGameState:
+    questions_list = [Question("7+3", ["10", "11"], 1, 2),
+                      Question("17+3", ["20", "21"], 2, 2),
+                      Question("27+3", ["30", "31"], 3, 2)
+                      ]
+    game_state = InGameState.State(questions_list, GAME_ID, 1, 2)
+    state = InGameState(state_factory, game_state)
+    return state
