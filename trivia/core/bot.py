@@ -6,28 +6,41 @@ from core.message import Message
 from core.callback_query import CallbackQuery
 from core.command import Command
 from core.bot_state_logging_wrapper import BotStateLoggingWrapper
+from trivia.bijection import Bijection
+from dataclasses import dataclass, field
+from dataclasses_json import dataclass_json
 
 
 class Bot:
     """
         Обрабатывает полученные команды и сообщения от пользователя
     """
-    def __init__(self, telegram_api: TelegramApi, create_initial_state: Callable[[], BotState]):
+    @dataclass_json
+    @dataclass
+    class State:
+        last_update_id: int = 0
+        chat_states: Dict[int, BotState] = field(default_factory=dict)
+
+    def __init__(self, telegram_api: TelegramApi,
+                 create_initial_state: Callable[[], BotState],
+                 bijection: Bijection[BotState, dict],
+                 state: State
+                 ):
         self.telegram_api = telegram_api
-        self.last_update_id = 0
         self.create_initial_state = create_initial_state
-        self.chat_states: Dict[int, BotState] = {}
+        self.bijection = bijection
+        self.state = state
 
     def process_updates(self) -> None:
         """
            Обрабатывает полученные команды и сообщения от пользователя
         :return: None
         """
-        response = self.telegram_api.get_updates(self.last_update_id + 1)
+        response = self.telegram_api.get_updates(self.state.last_update_id + 1)
         data = response.json()
         result = data["result"]
         for update in result:
-            self.last_update_id = update["update_id"]
+            self.state.last_update_id = update["update_id"]
             chat_id = self._get_chat_id(update)
             state = self._get_state_for_chat(chat_id)
             bot_response = self.process_update(update, state)
@@ -49,7 +62,7 @@ class Bot:
                 if bot_response.new_state is not None:
                     new_state: BotState = bot_response.new_state
                     wrapped_new_state = BotStateLoggingWrapper(new_state)
-                    self.chat_states[chat_id] = wrapped_new_state
+                    self.state.chat_states[chat_id] = wrapped_new_state
                     first_message = wrapped_new_state.on_enter(chat_id)
                     if first_message is not None:
                         self.telegram_api.send_message(first_message.chat_id,
@@ -86,6 +99,12 @@ class Bot:
             log("skipping update")
             return None
 
+    def save(self) -> dict:
+        return self.state.to_dict()    # type: ignore
+
+    def load(self, data: dict) -> None:
+        self.state = Bot.State.from_dict(data)  # type: ignore
+
     def _get_chat_id(self, update: Dict[str, Any]) -> int:
         if "callback_query" in update:
             chat_id = update["callback_query"]["message"]["chat"]["id"]
@@ -94,9 +113,9 @@ class Bot:
         return chat_id
 
     def _get_state_for_chat(self, chat_id: int) -> BotState:
-        if chat_id in self.chat_states:
-            state = self.chat_states[chat_id]
+        if chat_id in self.state.chat_states:
+            state = self.state.chat_states[chat_id]
         else:
             state = self.create_initial_state()
-            self.chat_states[chat_id] = state
+            self.state.chat_states[chat_id] = state
         return state

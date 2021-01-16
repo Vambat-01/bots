@@ -12,10 +12,17 @@ import json
 from trivia.bot_state import BotResponse
 from core.utils import dedent_and_strip
 from enum import Enum
+from trivia.bot_state import BotStateFactory
+from test.test_utils import DoNothingRandom
+from trivia.question_storage import JsonQuestionStorage, Question
+from trivia.bijection import BotStateToDictBijection
+from trivia.bot_state import IdleState, InGameState, GreetingState
 
 
 CHAT_ID_1 = 125
 CHAT_ID_2 = 150
+TEST_QUESTIONS_PATH = "resources/test_questions.json"
+GAME_ID = "125"
 
 
 class UpdateType(Enum):
@@ -147,10 +154,12 @@ class BotTest(TestCase):
         telegram_api = FakeTelegramApi([response_body])
         next_state = NewFakeState()
         state = FakeState("bot message", next_state)
-        bot = Bot(telegram_api, lambda: state)
+        bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
+        game_state = Bot.State()
+        bot = Bot(telegram_api, lambda: state, bijection, game_state)
         bot.process_updates()
         expected = {CHAT_ID_1: BotStateLoggingWrapper(next_state)}
-        self.assertEqual(expected, bot.chat_states)
+        self.assertEqual(expected, bot.state.chat_states)
         self.assertTrue(next_state.on_enter_is_called)
         self.assertEqual(["bot message", "text message on_enter"], telegram_api.sent_messages)
         if update_type == UpdateType.MESSAGE:
@@ -177,10 +186,12 @@ class BotTest(TestCase):
         response = make_message_update(user_message, CHAT_ID_1)
         telegram_api = FakeTelegramApi([response])
         state = FakeState("bot message")
-        bot = Bot(telegram_api, lambda: state)
+        bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
+        game_state = Bot.State()
+        bot = Bot(telegram_api, lambda: state, bijection, game_state)
         bot.process_updates()
         expected = {CHAT_ID_1: state}
-        self.assertEqual(expected, bot.chat_states)
+        self.assertEqual(expected, bot.state.chat_states)
         self.assertEqual(["bot message"], telegram_api.sent_messages)
         if is_command:
             self.assertTrue(state.process_command_is_called)
@@ -202,12 +213,49 @@ class BotTest(TestCase):
         update1 = make_message_update("user 1", CHAT_ID_1)
         update2 = make_message_update("user 2", CHAT_ID_2)
         telegram_api = FakeTelegramApi([update1, update2])
-        bot = Bot(telegram_api, create_initial_state)
+        bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
+        game_state = Bot.State()
+        bot = Bot(telegram_api, create_initial_state, bijection, game_state)
         bot.process_updates()
         bot.process_updates()
         expected = {CHAT_ID_1: create_initial_state.state1, CHAT_ID_2: create_initial_state.state2}
-        self.assertEqual(expected, bot.chat_states)
+        self.assertEqual(expected, bot.state.chat_states)
 
+    def test_forward_and_backward_idle_state_for_bot(self):
+        response = make_message_update("1", CHAT_ID_1)
+        telegram_api = FakeTelegramApi([response])
+        state_factory = _make_state_factory(TEST_QUESTIONS_PATH)
+        idle_state = IdleState(state_factory)
+        bijection = BotStateToDictBijection(state_factory)
+        game_state = Bot.State()
+        bot = Bot(telegram_api, lambda: idle_state, bijection, game_state)
+        encoded = bot.bijection.forward(idle_state)
+        decoded = bot.bijection.backward(encoded)
+        self.assertEqual(idle_state, decoded)
+
+    def test_forward_and_backward_greeting_state_for_bot(self):
+        response = make_message_update("1", CHAT_ID_1)
+        telegram_api = FakeTelegramApi([response])
+        state_factory = _make_state_factory(TEST_QUESTIONS_PATH)
+        greeting_state = GreetingState(state_factory)
+        bijection = BotStateToDictBijection(state_factory)
+        game_state = Bot.State()
+        bot = Bot(telegram_api, lambda: greeting_state, bijection, game_state)
+        encoded = bot.bijection.forward(greeting_state)
+        decoded = bot.bijection.backward(encoded)
+        self.assertEqual(greeting_state, decoded)
+
+    def test_forward_and_backward_in_game_state_for_bot(self):
+        response = make_message_update("1", CHAT_ID_1)
+        telegram_api = FakeTelegramApi([response])
+        state_factory = _make_state_factory(TEST_QUESTIONS_PATH)
+        in_game_state = _make_in_game_state(state_factory)
+        bijection = BotStateToDictBijection(state_factory)
+        game_state = Bot.State()
+        bot = Bot(telegram_api, lambda: in_game_state, bijection, game_state)
+        encoded = bot.bijection.forward(in_game_state)
+        decoded = bot.bijection.backward(encoded)
+        self.assertEqual(in_game_state, decoded)
 
 def make_message_update(text: str, chat_id: int) -> Dict[str, Any]:
     """
@@ -319,3 +367,20 @@ def make_callback_query_update(callback_data: str, chat_id: int) -> Dict[str, An
         ]
     }
     return data
+
+
+def _make_state_factory(questions_file_path: str) -> BotStateFactory:
+    storage = JsonQuestionStorage(questions_file_path)
+    random = DoNothingRandom()
+    state_factory = BotStateFactory(storage, random)
+    return state_factory
+
+
+def _make_in_game_state(state_factory: BotStateFactory) -> InGameState:
+    questions_list = [Question("7+3", ["10", "11"], 1, 2),
+                      Question("17+3", ["20", "21"], 2, 2),
+                      Question("27+3", ["30", "31"], 3, 2)
+                      ]
+    game_state = InGameState.State(questions_list, GAME_ID, 1, 2)
+    state = InGameState(state_factory, game_state)
+    return state
