@@ -15,21 +15,45 @@ class Bot:
     """
         Обрабатывает полученные команды и сообщения от пользователя
     """
+
     @dataclass_json
     @dataclass
     class State:
+        """
+        Вспомогательный класс для хранения парамметров class InGameState
+        :param last_update_id: идентификатор последнего обновления
+        :param chat_state: словарь для хранения состояния бота
+        """
         last_update_id: int = 0
         chat_states: Dict[int, BotState] = field(default_factory=dict)
 
-    def __init__(self, telegram_api: TelegramApi,
+    def __init__(self,
+                 telegram_api: TelegramApi,
                  create_initial_state: Callable[[], BotState],
-                 bijection: Bijection[BotState, dict],
-                 state: State
+                 state_to_dict_bijection: Bijection[BotState, dict],
+                 state: State = State()
                  ):
         self.telegram_api = telegram_api
         self.create_initial_state = create_initial_state
-        self.bijection = bijection
+        self.state_to_dict_bijection = state_to_dict_bijection
         self.state = state
+
+    def __eq__(self, other):
+        if type(other) is type(self):
+            return self.__dict__ == other.__dict__
+        return False
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        return f"""
+                Bot:
+                    telegram_api = {self.telegram_api}
+                    create_initial_state = {self.create_initial_state}
+                    state_to_dict_bijection = {self.state_to_dict_bijection}
+                    state = {self.state}
+                """
 
     def process_updates(self) -> None:
         """
@@ -100,9 +124,18 @@ class Bot:
             return None
 
     def save(self) -> dict:
+        """
+        Сохраняет состояние в словарь. Словарь может быть использован для дальнейшего восстановления
+        :return: dict
+        """
         return self.state.to_dict()    # type: ignore
 
     def load(self, data: dict) -> None:
+        """
+        Загружает состояние из сохраненного ранее словаря
+        :param data: dict
+        :return: None
+        """
         self.state = Bot.State.from_dict(data)  # type: ignore
 
     def _get_chat_id(self, update: Dict[str, Any]) -> int:

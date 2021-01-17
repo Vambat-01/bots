@@ -17,6 +17,11 @@ class BotStateToDictBijection(Bijection[BotState, dict]):
     def __init__(self, bot_state_factory: BotStateFactory):
         self.bot_state_factory = bot_state_factory
 
+    def __eq__(self, other):
+        if type(other) is type(self):
+            return self.__dict__ == other.__dict__
+        return False
+
     def forward(self, obj: BotState) -> dict:
         bot_state_data = obj.save()
         if isinstance(obj, GreetingState):

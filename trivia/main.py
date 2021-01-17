@@ -3,7 +3,6 @@ from core.live_telegram_api import LiveTelegramApi
 from trivia.bot_state import BotStateFactory, GreetingState, TestState
 from trivia.question_storage import JsonQuestionStorage
 from core.random import RandomImpl
-from core.bot_state import BotState
 from trivia.bijection import BotStateToDictBijection
 
 token = "1162468954:AAEk6dzuhBqfgRm0WO_3QRbZWe0WnYv0_Qs"
@@ -14,9 +13,9 @@ state_factory = BotStateFactory(storage, random)
 state = GreetingState(state_factory)
 test_state = TestState()
 telegram_api = LiveTelegramApi(token)
-bijection = BotStateToDictBijection(state_factory)
+botStateToDictBijection = BotStateToDictBijection(state_factory)
 game_state = Bot.State()
-bot = Bot(telegram_api, lambda: GreetingState(state_factory), bijection, game_state)
+bot = Bot(telegram_api, lambda: GreetingState(state_factory), botStateToDictBijection, game_state)
 
 while True:
     bot.process_updates()
