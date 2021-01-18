@@ -268,7 +268,9 @@ class BotTest(TestCase):
         bot2 = Bot(telegram_api, create_initial_state, bot_state_to_dict_bijection, Bot.State())
         self.assertNotEqual(bot1, bot2)
         encoded = bot1.save()
-        bot2.load(encoded)
+        json_encoded = json.dumps(encoded)
+        json_decoded = json.loads(json_encoded)
+        bot2.load(json_decoded)
         self.assertEqual(bot1, bot2)
 
 

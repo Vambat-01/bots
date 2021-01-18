@@ -15,8 +15,6 @@ class Bot:
     """
         Обрабатывает полученные команды и сообщения от пользователя
     """
-
-    @dataclass_json
     @dataclass
     class State:
         """
@@ -26,6 +24,12 @@ class Bot:
         """
         last_update_id: int = 0
         chat_states: Dict[int, BotState] = field(default_factory=dict)
+
+    # @dataclass_json
+    # @dataclass
+    # class ProtoState:
+    #     last_update_id: int
+    #     chat_states: dict
 
     def __init__(self,
                  telegram_api: TelegramApi,
@@ -128,7 +132,13 @@ class Bot:
         Сохраняет состояние в словарь. Словарь может быть использован для дальнейшего восстановления
         :return: dict
         """
-        return self.state.to_dict()    # type: ignore
+        dict_to_state = {}
+        ch_states = self.state.chat_states
+        for i, state in ch_states.items():
+            state_for_dict = self.state_to_dict_bijection.forward(state)
+            dict_to_state[i] = state_for_dict
+
+        return Bot.ProtoState(Bot.State.last_update_id, dict_to_state).to_dict()    # type: ignore
 
     def load(self, data: dict) -> None:
         """
@@ -136,7 +146,9 @@ class Bot:
         :param data: dict
         :return: None
         """
-        self.state = Bot.State.from_dict(data)  # type: ignore
+        last_id, dict_int_state = data
+
+        self.state = Bot.ProtoState.from_dict(data)     # type: ignore
 
     def _get_chat_id(self, update: Dict[str, Any]) -> int:
         if "callback_query" in update:
