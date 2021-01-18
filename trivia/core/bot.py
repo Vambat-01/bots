@@ -133,12 +133,15 @@ class Bot:
         :return: dict
         """
         dict_to_state = {}
-        ch_states = self.state.chat_states
-        for i, state in ch_states.items():
+        chat_states = self.state.chat_states
+        for chat_id, state in chat_states.items():
             state_for_dict = self.state_to_dict_bijection.forward(state)
-            dict_to_state[i] = state_for_dict
+            dict_to_state[str(chat_id)] = state_for_dict
 
-        return Bot.ProtoState(Bot.State.last_update_id, dict_to_state).to_dict()    # type: ignore
+        return {
+            "last_update_id": self.state.last_update_id,
+            "chat_states": dict_to_state
+        }
 
     def load(self, data: dict) -> None:
         """
@@ -146,9 +149,13 @@ class Bot:
         :param data: dict
         :return: None
         """
-        last_id, dict_int_state = data
-
-        self.state = Bot.ProtoState.from_dict(data)     # type: ignore
+        last_update_id = data["last_update_id"]
+        chat_states = data["chat_states"]
+        state = Bot.State()
+        state.last_update_id = last_update_id
+        for chat_id, st in chat_states.items():
+            state.chat_states[int(chat_id)] = self.state_to_dict_bijection.backward(st)
+        self.state = state
 
     def _get_chat_id(self, update: Dict[str, Any]) -> int:
         if "callback_query" in update:
