@@ -1,7 +1,7 @@
 from core.bot_state_to_dict_bijection import Bijection
 from core.bot_state import BotState
 from trivia.bot_state import GreetingState, IdleState, InGameState, BotStateFactory
-from core.utils import json_dict
+from core.utils import JsonDict
 
 
 class StateSaveException(Exception):
@@ -11,19 +11,14 @@ class StateSaveException(Exception):
     pass
 
 
-class BotStateToDictBijection(Bijection[BotState, json_dict]):
+class BotStateToDictBijection(Bijection[BotState, JsonDict]):
     """
     Биекция для сохранения состояния бота в словарь
     """
     def __init__(self, bot_state_factory: BotStateFactory):
         self.bot_state_factory = bot_state_factory
 
-    def __eq__(self, other):
-        if type(other) is type(self):
-            return self.__dict__ == other.__dict__
-        return False
-
-    def forward(self, obj: BotState) -> json_dict:
+    def forward(self, obj: BotState) -> JsonDict:
         bot_state_data = obj.save()
         if isinstance(obj, GreetingState):
             bot_state_type = "GreetingState"
@@ -39,7 +34,7 @@ class BotStateToDictBijection(Bijection[BotState, json_dict]):
             "bot_state_data": bot_state_data
         }
 
-    def backward(self, obj: json_dict) -> BotState:
+    def backward(self, obj: JsonDict) -> BotState:
         bot_state_type = obj["bot_state_type"]
         bot_state_data = obj["bot_state_data"]
 

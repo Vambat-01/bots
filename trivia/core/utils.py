@@ -2,7 +2,7 @@ import datetime
 import textwrap
 
 
-json_dict = dict
+JsonDict = dict
 
 
 def dedent_and_strip(text: str):

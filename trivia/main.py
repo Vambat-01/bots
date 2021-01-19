@@ -14,8 +14,7 @@ state = GreetingState(state_factory)
 test_state = TestState()
 telegram_api = LiveTelegramApi(token)
 botStateToDictBijection = BotStateToDictBijection(state_factory)
-game_state = Bot.State()
-bot = Bot(telegram_api, lambda: GreetingState(state_factory), botStateToDictBijection, game_state)
+bot = Bot(telegram_api, lambda: GreetingState(state_factory), botStateToDictBijection)
 
 while True:
     bot.process_updates()

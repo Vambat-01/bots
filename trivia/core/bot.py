@@ -9,7 +9,7 @@ from core.bot_state_logging_wrapper import BotStateLoggingWrapper
 from trivia.bijection import Bijection
 from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json
-from core.utils import json_dict
+from core.utils import JsonDict
 
 
 class Bot:
@@ -32,14 +32,15 @@ class Bot:
         """
         Save: State -> ProtoState -> JsonDict. Bijection: сохраняет состояние бота в словарь
         Load: JsonDict -> ProtoState -> State. Bijection: загружает состояние бота в словарь
+        Это нужно для Bijection перебора состояний бота в словаре
         """
         last_update_id: int
-        chat_states: json_dict
+        chat_states: JsonDict
 
     def __init__(self,
                  telegram_api: TelegramApi,
                  create_initial_state: Callable[[], BotState],
-                 state_to_dict_bijection: Bijection[BotState, json_dict],
+                 state_to_dict_bijection: Bijection[BotState, JsonDict],
                  state: State = State()
                  ):
         self.telegram_api = telegram_api
@@ -132,7 +133,7 @@ class Bot:
             log("skipping update")
             return None
 
-    def save(self) -> json_dict:
+    def save(self) -> JsonDict:
         """
         Сохраняет состояние в словарь. Словарь может быть использован для дальнейшего восстановления
         :return: dict
@@ -141,9 +142,10 @@ class Bot:
         for chat_id, state in self.state.chat_states.items():
             dict_to_state[str(chat_id)] = self.state_to_dict_bijection.forward(state)
 
-        return Bot.ProtoState(self.state.last_update_id, dict_to_state).to_dict()   # type: ignore
+        proto = Bot.ProtoState(self.state.last_update_id, dict_to_state)
+        return proto.to_dict()   # type: ignore
 
-    def load(self, data: json_dict) -> None:
+    def load(self, data: JsonDict) -> None:
         """
         Загружает состояние из сохраненного ранее словаря
         :param data: dict
