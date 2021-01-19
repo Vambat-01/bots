@@ -9,6 +9,7 @@ from core.bot_state_logging_wrapper import BotStateLoggingWrapper
 from trivia.bijection import Bijection
 from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json
+from core.utils import json_dict
 
 
 class Bot:
@@ -25,16 +26,20 @@ class Bot:
         last_update_id: int = 0
         chat_states: Dict[int, BotState] = field(default_factory=dict)
 
-    # @dataclass_json
-    # @dataclass
-    # class ProtoState:
-    #     last_update_id: int
-    #     chat_states: dict
+    @dataclass_json
+    @dataclass
+    class ProtoState:
+        """
+        Save: State -> ProtoState -> JsonDict. Bijection: сохраняет состояние бота в словарь
+        Load: JsonDict -> ProtoState -> State. Bijection: загружает состояние бота в словарь
+        """
+        last_update_id: int
+        chat_states: json_dict
 
     def __init__(self,
                  telegram_api: TelegramApi,
                  create_initial_state: Callable[[], BotState],
-                 state_to_dict_bijection: Bijection[BotState, dict],
+                 state_to_dict_bijection: Bijection[BotState, json_dict],
                  state: State = State()
                  ):
         self.telegram_api = telegram_api
@@ -127,33 +132,27 @@ class Bot:
             log("skipping update")
             return None
 
-    def save(self) -> dict:
+    def save(self) -> json_dict:
         """
         Сохраняет состояние в словарь. Словарь может быть использован для дальнейшего восстановления
         :return: dict
         """
         dict_to_state = {}
-        chat_states = self.state.chat_states
-        for chat_id, state in chat_states.items():
-            state_for_dict = self.state_to_dict_bijection.forward(state)
-            dict_to_state[str(chat_id)] = state_for_dict
+        for chat_id, state in self.state.chat_states.items():
+            dict_to_state[str(chat_id)] = self.state_to_dict_bijection.forward(state)
 
-        return {
-            "last_update_id": self.state.last_update_id,
-            "chat_states": dict_to_state
-        }
+        return Bot.ProtoState(self.state.last_update_id, dict_to_state).to_dict()   # type: ignore
 
-    def load(self, data: dict) -> None:
+    def load(self, data: json_dict) -> None:
         """
         Загружает состояние из сохраненного ранее словаря
         :param data: dict
         :return: None
         """
-        last_update_id = data["last_update_id"]
-        chat_states = data["chat_states"]
+        proto: Bot.ProtoState = Bot.ProtoState.from_dict(data)  # type: ignore
         state = Bot.State()
-        state.last_update_id = last_update_id
-        for chat_id, st in chat_states.items():
+        state.last_update_id = proto.last_update_id
+        for chat_id, st in proto.chat_states.items():
             state.chat_states[int(chat_id)] = self.state_to_dict_bijection.backward(st)
         self.state = state
 
