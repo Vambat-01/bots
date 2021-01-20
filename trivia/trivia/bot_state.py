@@ -13,6 +13,7 @@ from core.bot_state import BotState, BotResponse
 from trivia import format
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json
+from core.utils import JsonDict
 
 
 class BotStateFactory:
@@ -368,10 +369,10 @@ class InGameState(BotState):
         response_message = Message(chat_id, message_text, "HTML", keyboard)
         return response_message
 
-    def save(self) -> dict:
+    def save(self) -> JsonDict:
         return self.state.to_dict()    # type: ignore
 
-    def load(self, data: dict) -> None:
+    def load(self, data: JsonDict) -> None:
         self.state = InGameState.State.from_dict(data)   # type: ignore
 
     def parse_int(self, s: str) -> Optional[int]:
