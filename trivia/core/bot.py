@@ -30,9 +30,10 @@ class Bot:
     @dataclass
     class ProtoState:
         """
+        Состояние бота, в котором все поля совместимы с сериализацией в JSON. Т.е. вложенные словари и списки из
+        примитивных типов. Загрузка и сохранения происходят через следующую цепочку трасформаций:
         Save: State -> ProtoState -> JsonDict. Bijection: сохраняет состояние бота в словарь
         Load: JsonDict -> ProtoState -> State. Bijection: загружает состояние бота в словарь
-        Это нужно для Bijection перебора состояний бота в словаре
         """
         last_update_id: int
         chat_states: JsonDict

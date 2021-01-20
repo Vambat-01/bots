@@ -13,8 +13,8 @@ state_factory = BotStateFactory(storage, random)
 state = GreetingState(state_factory)
 test_state = TestState()
 telegram_api = LiveTelegramApi(token)
-botStateToDictBijection = BotStateToDictBijection(state_factory)
-bot = Bot(telegram_api, lambda: GreetingState(state_factory), botStateToDictBijection)
+bot_state_to_dict_bijection = BotStateToDictBijection(state_factory)
+bot = Bot(telegram_api, lambda: GreetingState(state_factory), bot_state_to_dict_bijection)
 
 while True:
     bot.process_updates()
