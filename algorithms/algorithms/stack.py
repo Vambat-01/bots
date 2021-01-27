@@ -1,68 +1,100 @@
 from typing import TypeVar, Generic, List
+from dataclasses import dataclass
+from abc import ABCMeta, abstractmethod
 
 T = TypeVar("T")
 
 
-class StackList(Generic[T]):
+class Stack(Generic[T], metaclass=ABCMeta):
+    """
+    Интерфейс абстрактных типов данных, которые представляют собой список, организованных
+    по принципу LIFO (англ. last in — first out, «последним пришёл — первым вышел»).
+    """
+
+    @abstractmethod
+    def push(self, item: T) -> None:
+        """
+        Добавляет элемент в стек
+        :param item: добавляемый элемент
+        :return: None
+        """
+        pass
+
+    def pop(self) -> T:
+        """
+        Удаляет элемент из стека
+        :return: удаленный элемент
+        """
+        return T
+
+    def is_empty(self) -> bool:
+        """
+        Проверяет пустой стек
+        :return: True or False
+        """
+        pass
+
+
+class ListBasedStack(Stack):
     """
     Абстрактный тип данных, представляющий собой список элементов, организованных
     по принципу LIFO (англ. last in — first out, «последним пришёл — первым вышел»).
     """
 
     def __init__(self):
-        self.list: List[T] = []
+        self._list: List[T] = []
 
-    def push(self, item: T):
+    def push(self, item: T) -> None:
         """
-        Добавляет элемент в конец списка
+        Добавляет элемент в стек
         :param item: добавляемый элемент
         """
-        self.list.append(item)
+        self._list.append(item)
 
     def pop(self) -> T:
         """
-        Удаляет последний элемент из списка
+        Удаляет последний элемент из стека
         :return: возвращает удаленный элемент
         """
-        return self.list.pop()
+        return self._list.pop()
 
     def is_empty(self) -> bool:
         """
-        Проверяет пустой список или нет
+        Проверяет пустой стек
         :return: True or False
         """
-        return not self.list
+        return not self._list
 
 
-class StackLinkedList(Generic[T]):
+class LinkedListBasedStack(Stack):
     """
     Абстрактный тип данных, представляющий собой список элементов, организованных
     по принципу LIFO (англ. last in — first out, «последним пришёл — первым вышел»)
     """
 
+    @dataclass
     class Node(Generic[T]):
         """
-        Класс узел
+        Узел списка
         :param val: значение хранящиеся в узле
         :param next: ссылка на следующий узел
         """
-        def __init__(self, val: T, next):
-            self.val = val
-            self.next = next
+        val: T
+        next: "Node"
 
     def __init__(self):
         self._head = None
 
     def push(self, item: T):
         """
-        Добавляет элемент в конец списка
+        Добавляет элемент в конец стека
         :param item: добавляемый элемент
         """
-        self._head = StackLinkedList.Node(item, self._head)
+        self._head = LinkedListBasedStack.Node(item, self._head)
 
     def pop(self) -> T:
         """
-        Удаляет последний элемент из списка
+        Удаляет последний элемент из стека
         :return: возвращает удаленный элемент
         """
         val = self._head.val
@@ -71,7 +103,7 @@ class StackLinkedList(Generic[T]):
 
     def is_empty(self) -> bool:
         """
-        Проверяет пустой список или нет
+        Проверяет пустой стек или нет
         :return: True or False
         """
         return not self._head
