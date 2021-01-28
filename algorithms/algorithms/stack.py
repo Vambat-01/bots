@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, List
+from typing import TypeVar, Generic, List, Optional
 from dataclasses import dataclass
 from abc import ABCMeta, abstractmethod
 
@@ -20,6 +20,7 @@ class Stack(Generic[T], metaclass=ABCMeta):
         """
         pass
 
+    @abstractmethod
     def pop(self) -> T:
         """
         Удаляет элемент из стека
@@ -27,6 +28,7 @@ class Stack(Generic[T], metaclass=ABCMeta):
         """
         return T
 
+    @abstractmethod
     def is_empty(self) -> bool:
         """
         Проверяет пустой стек
@@ -45,24 +47,12 @@ class ListBasedStack(Stack):
         self._list: List[T] = []
 
     def push(self, item: T) -> None:
-        """
-        Добавляет элемент в стек
-        :param item: добавляемый элемент
-        """
         self._list.append(item)
 
     def pop(self) -> T:
-        """
-        Удаляет последний элемент из стека
-        :return: возвращает удаленный элемент
-        """
         return self._list.pop()
 
     def is_empty(self) -> bool:
-        """
-        Проверяет пустой стек
-        :return: True or False
-        """
         return not self._list
 
 
@@ -74,36 +64,19 @@ class LinkedListBasedStack(Stack):
 
     @dataclass
     class Node(Generic[T]):
-        """
-        Узел списка
-        :param val: значение хранящиеся в узле
-        :param next: ссылка на следующий узел
-        """
         val: T
-        next: "Node"
+        next: Optional["Node"] = None
 
     def __init__(self):
         self._head = None
 
-    def push(self, item: T):
-        """
-        Добавляет элемент в конец стека
-        :param item: добавляемый элемент
-        """
+    def push(self, item: T) -> None:
         self._head = LinkedListBasedStack.Node(item, self._head)
 
     def pop(self) -> T:
-        """
-        Удаляет последний элемент из стека
-        :return: возвращает удаленный элемент
-        """
         val = self._head.val
         self._head = self._head.next
         return val
 
     def is_empty(self) -> bool:
-        """
-        Проверяет пустой стек или нет
-        :return: True or False
-        """
         return not self._head
