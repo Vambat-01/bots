@@ -1,6 +1,7 @@
 from typing import TypeVar, Generic, List, Optional
 from dataclasses import dataclass
 from abc import ABCMeta, abstractmethod
+import time
 
 T = TypeVar("T")
 
@@ -39,8 +40,7 @@ class Stack(Generic[T], metaclass=ABCMeta):
 
 class ListBasedStack(Stack):
     """
-    Абстрактный тип данных, представляющий собой список элементов, организованных
-    по принципу LIFO (англ. last in — first out, «последним пришёл — первым вышел»).
+    В качестве базовой структуры использован питонный список
     """
 
     def __init__(self):
@@ -58,8 +58,7 @@ class ListBasedStack(Stack):
 
 class LinkedListBasedStack(Stack):
     """
-    Абстрактный тип данных, представляющий собой список элементов, организованных
-    по принципу LIFO (англ. last in — first out, «последним пришёл — первым вышел»)
+    В качестве базовой структуры использован однонаправленный связный список
     """
 
     @dataclass
@@ -80,3 +79,21 @@ class LinkedListBasedStack(Stack):
 
     def is_empty(self) -> bool:
         return not self._head
+
+
+def _elapsed_time_for_stack(s: Stack):
+    t = time.process_time()
+    for _ in range(100):
+        for _ in range(100000):
+            s.push(1)
+        for _ in range(100000):
+            s.pop()
+    elapsed_time = time.process_time() - t
+    print(elapsed_time)
+
+
+stack_list_based = ListBasedStack()
+_elapsed_time_for_stack(stack_list_based)
+
+stack_linked_list_based = ListBasedStack()
+_elapsed_time_for_stack(stack_linked_list_based)

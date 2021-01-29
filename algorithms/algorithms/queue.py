@@ -1,6 +1,7 @@
 from typing import TypeVar, Generic, List, Optional
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
+import time
 
 T = TypeVar("T")
 
@@ -39,8 +40,7 @@ class Queue(Generic[T], metaclass=ABCMeta):
 
 class ListBasedQueue(Queue):
     """
-    Абстрактный тип данных, представляющих собой список элементов, организованных
-    по принципу FIFO (англ. first in - first out, <<первый пришел - первый вышел>>)
+    В качестве базовой структуры использован питонный список
     """
     def __init__(self):
         self._list: List[T] = []
@@ -57,8 +57,7 @@ class ListBasedQueue(Queue):
 
 class LinkedListBasedQueue(Queue):
     """
-    Абстрактный тип данных, представляющих собой список элементов, организованных
-    по принципу FIFO (англ. first in - first out, <<первый пришел - первый вышел>>)
+    В качестве базовой структуры использован двунаправленный связный список
     """
     @dataclass
     class Node(Generic[T]):
@@ -92,3 +91,21 @@ class LinkedListBasedQueue(Queue):
 
     def is_empty(self) -> bool:
         return not self.head
+
+
+def _elapsed_time_for_queue(q: Queue):
+    t = time.process_time()
+    for _ in range(100):
+        for _ in range(100000):
+            q.push(1)
+        for _ in range(100000):
+            q.pop()
+    elapsed_time = time.process_time() - t
+    print(elapsed_time)
+
+
+queue_list_based = ListBasedQueue()
+_elapsed_time_for_queue(queue_list_based)
+
+queue_linked_list_based = LinkedListBasedQueue()
+_elapsed_time_for_queue(queue_linked_list_based)
