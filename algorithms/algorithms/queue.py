@@ -2,6 +2,7 @@ from typing import TypeVar, Generic, List, Optional
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 import time
+from algorithms.utils import elapsed_time
 
 T = TypeVar("T")
 
@@ -93,6 +94,7 @@ class LinkedListBasedQueue(Queue):
         return not self.head
 
 
+@elapsed_time
 def _elapsed_time_for_queue(q: Queue):
     t = time.process_time()
     for _ in range(100):

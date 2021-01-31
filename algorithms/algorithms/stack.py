@@ -2,6 +2,7 @@ from typing import TypeVar, Generic, List, Optional
 from dataclasses import dataclass
 from abc import ABCMeta, abstractmethod
 import time
+from algorithms.utils import elapsed_time
 
 T = TypeVar("T")
 
@@ -81,6 +82,7 @@ class LinkedListBasedStack(Stack):
         return not self._head
 
 
+@elapsed_time
 def _elapsed_time_for_stack(s: Stack):
     t = time.process_time()
     for _ in range(100):
