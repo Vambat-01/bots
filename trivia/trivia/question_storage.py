@@ -2,6 +2,8 @@ import json
 from typing import List
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
+import sqlite3
+from collections import defaultdict
 
 
 @dataclass
@@ -60,6 +62,58 @@ class JsonQuestionStorage(QuestionStorage):
                 quest = Question(text, answers, points)
                 questions.append(quest)
             return questions
+
+
+class SqliteQuestionStorage(QuestionStorage):
+    """
+        Класс для чтения вопросов из database SQLite
+    """
+
+    @dataclass
+    class Record:
+        """
+            Класс для удобного хранения вопросов из database SQLite
+        """
+        question_text: str
+        points: int
+        questions_id: int
+        answer_text: str
+        is_correct: bool
+
+    def __init__(self, connect: sqlite3.Connection):
+        """
+            Передает подключение к базе данных
+        :param connect: подключение к базе данных
+        """
+        self.connect = connect
+
+    def load_questions(self) -> List[Question]:
+        """
+            Считывает список вопросов из базы данных
+        :return: список вопросов
+        """
+        con = self.connect
+        cur = con.cursor()
+        items = cur.execute("""
+                            SELECT t1.text, t1.points, t2.questions_id, t2.text, t2.is_correct
+                            FROM questions AS t1 INNER JOIN answers AS t2
+                            ON t1.id = t2.questions_id
+                            """)
+
+        all_records = [SqliteQuestionStorage.Record(*item) for item in items]
+
+        groups = defaultdict(list)
+        for r in all_records:
+            groups[r.questions_id].append(r)
+
+        questions = []
+        for question_id, records in groups.items():
+            text = records[0].question_text
+            points = records[0].points
+            answers = [r.answer_text for r in records]
+            correect_answer_index = [r.is_correct for r in records].index(True)
+            questions.append(Question(text, answers, points, correect_answer_index))
+        return questions
 
 
 def main():
