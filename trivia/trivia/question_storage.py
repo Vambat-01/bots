@@ -6,7 +6,7 @@ import sqlite3
 from collections import defaultdict
 
 
-@dataclass
+@dataclass(frozen=True)
 class Question:
     """
     Представляет собой trivia bot  вопрос
@@ -19,6 +19,17 @@ class Question:
     answers: List[str]
     points: int
     correct_answer: int = 1
+
+    def normalize(self) -> "Question":
+        """
+            Сортирует варианты ответов и находит новый правильный ответ
+        :return: отсортированный Question
+        """
+        check_ans = self.answers[self.correct_answer]
+        norm_answers = sorted(self.answers)
+        norm_correct_answer = norm_answers.index(check_ans)
+
+        return Question(self.text, norm_answers, self.points, norm_correct_answer)
 
 
 class QuestionStorage(metaclass=ABCMeta):
@@ -72,7 +83,7 @@ class SqliteQuestionStorage(QuestionStorage):
     @dataclass
     class Record:
         """
-            Класс для удобного хранения вопросов из database SQLite
+            Класс для удобного хранения вопроса из database SQLite
         """
         question_text: str
         points: int
@@ -114,6 +125,41 @@ class SqliteQuestionStorage(QuestionStorage):
             correect_answer_index = [r.is_correct for r in records].index(True)
             questions.append(Question(text, answers, points, correect_answer_index))
         return questions
+
+    def add_questions(self, questions: List[Question]):
+        """
+            Заполняет database SQLite новыми вопросами
+        :param questions: Список вопросов
+        """
+        con = self.connect
+        cur = con.cursor()
+        questions_id = []
+        for quest in questions:
+            cur.execute(f"""
+                            INSERT INTO questions(text, points)
+                            VALUES("{quest.text}", {quest.points})
+                        """)
+            questions_id.append(cur.lastrowid)
+            con.commit()
+
+        count_ind_question_id = 0
+        for q in questions:
+            count_cor_ans = 1
+            for ans in q.answers:
+                if count_cor_ans == q.correct_answer:
+                    cur.execute(f"""
+                                    INSERT INTO answers(questions_id, text, is_correct)
+                                    VALUES({questions_id[count_ind_question_id]}, {ans}, 1)
+                                """)
+                    con.commit()
+                else:
+                    cur.execute(f"""
+                                    INSERT INTO answers(questions_id, text, is_correct)
+                                    VALUES({questions_id[count_ind_question_id]}, {ans}, 0)
+                                """)
+                    con.commit()
+                count_cor_ans += 1
+            count_ind_question_id += 1
 
 
 def main():
