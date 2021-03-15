@@ -21,38 +21,38 @@ class JsonQuestionStorageTest(unittest.TestCase):
 
 
 class SqliteQuestiosStorageTest(unittest.TestCase):
-    def test_load_question_correctly(self):
+    def test_load_questions(self):
         connection = sqlite3.connect(":memory:")
         cur = connection.cursor()
         cur.executescript("""
-                        CREATE TABLE questions (
-                        id INTEGER PRIMARY KEY,
-                        text TEXT,
-                        points INTEGER NOT NULL
-                        );
+                            CREATE TABLE questions (
+                                                    id INTEGER PRIMARY KEY,
+                                                    text TEXT,
+                                                    points INTEGER NOT NULL
+                                                    );
 
-                        CREATE TABLE answers (
-                        id INTEGER,
-                        questions_id INTEGER NOT NULL,
-                        text TEXT NOT NULL,
-                        is_correct INTEGER NOT NULL,
-                        FOREIGN KEY(questions_id) REFERENCES questions (id)
-                        );
-                        INSERT INTO questions (id, text, points) VALUES ("1", "7+3", "1");
-                        INSERT INTO questions (id, text, points) VALUES ("2", "17+3", "3");
-                        INSERT INTO answers (id, questions_id, text, is_correct) 
-                        VALUES ("1", "1", "10", "1");
-                        INSERT INTO answers (id, questions_id, text, is_correct) 
-                        VALUES ("2", "1", "15", "0");
-                        INSERT INTO answers (id, questions_id, text, is_correct) 
-                        VALUES ("3", "2", "25", "0");
-                        INSERT INTO answers (id, questions_id, text, is_correct) 
-                        VALUES ("4", "2", "20", "1");                       
+                            CREATE TABLE answers (
+                                                  id INTEGER,
+                                                  questions_id INTEGER NOT NULL,
+                                                  text TEXT NOT NULL,
+                                                  is_correct INTEGER NOT NULL,
+                                                  FOREIGN KEY(questions_id) REFERENCES questions (id)
+                                                 );
+                            INSERT INTO questions (id, text, points) VALUES ("1", "7+3", "1");
+                            INSERT INTO questions (id, text, points) VALUES ("2", "17+3", "3");
+                            INSERT INTO answers (id, questions_id, text, is_correct) 
+                            VALUES ("1", "1", "10", "1");
+                            INSERT INTO answers (id, questions_id, text, is_correct) 
+                            VALUES ("2", "1", "15", "0");
+                            INSERT INTO answers (id, questions_id, text, is_correct) 
+                            VALUES ("3", "2", "25", "0");
+                            INSERT INTO answers (id, questions_id, text, is_correct) 
+                            VALUES ("4", "2", "20", "1");                       
                         """)
 
         storage = SqliteQuestionStorage(connection)
         questions = storage.load_questions()
-        norm_questions = get_sort_questuons(questions)
+        norm_questions = get_sorted_questions(questions)
 
         self.assertEqual(
             [
@@ -62,32 +62,16 @@ class SqliteQuestiosStorageTest(unittest.TestCase):
             norm_questions
         )
 
-    def test_add_questions_correctly(self):
-        connection = sqlite3.connect(":memory:")
-        cur = connection.cursor()
-        cur.executescript("""
-                            CREATE TABLE questions (
-                            id INTEGER PRIMARY KEY,
-                            text TEXT,
-                            points INTEGER NOT NULL
-                            );
-
-                            CREATE TABLE answers (
-                            id INTEGER,
-                            questions_id INTEGER NOT NULL,
-                            text TEXT NOT NULL,
-                            is_correct INTEGER NOT NULL,
-                            FOREIGN KEY(questions_id) REFERENCES questions (id))
-                            """)
+    def test_add_questions(self):
 
         test_questions = [
-                            Question("15+5", ["30", "20", "15"], 2, 2),
-                            Question("25+5", ["35", "25", "30"], 3, 3)
+                            Question("15+5", ["30", "20", "15"], 2, 1),
+                            Question("25+5", ["35", "25", "30"], 3, 2)
                          ]
-        storage = SqliteQuestionStorage(connection)
+        storage = SqliteQuestionStorage.create_in_memory()
         storage.add_questions(test_questions)
         questions = storage.load_questions()
-        norm_questions = get_sort_questuons(questions)
+        norm_questions = get_sorted_questions(questions)
 
         self.assertEqual(
             [
@@ -98,7 +82,7 @@ class SqliteQuestiosStorageTest(unittest.TestCase):
         )
 
 
-def get_sort_questuons(questions: List[Question]) -> List[Question]:
+def get_sorted_questions(questions: List[Question]) -> List[Question]:
     questions.sort(key=lambda p: p.text)
     sort_questions = []
 

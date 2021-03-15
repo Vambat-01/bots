@@ -22,7 +22,7 @@ class Question:
 
     def normalize(self) -> "Question":
         """
-            Сортирует варианты ответов и находит новый правильный ответ
+            Создает эквивалентный вопрос, но с отсортированными по алфавиту ответами
         :return: отсортированный Question
         """
         check_ans = self.answers[self.correct_answer]
@@ -77,34 +77,58 @@ class JsonQuestionStorage(QuestionStorage):
 
 class SqliteQuestionStorage(QuestionStorage):
     """
-        Класс для чтения вопросов из database SQLite
+        Класс для чтения вопросов из SQLite базы данных
     """
 
-    @dataclass
+    @dataclass(frozen=True)
     class Record:
         """
             Класс для удобного хранения вопроса из database SQLite
         """
         question_text: str
         points: int
-        questions_id: int
+        question_id: int
         answer_text: str
         is_correct: bool
 
-    def __init__(self, connect: sqlite3.Connection):
+    @staticmethod
+    def create_in_memory():
         """
-            Передает подключение к базе данных
-        :param connect: подключение к базе данных
+        Создает создает SQLiteQuestionStorage с базой в памяти. В базе присутствует все необходимые таблицы,
+        но они не заполнены
+        :return:
         """
-        self.connect = connect
+        connection = sqlite3.connect(":memory:")
+        cur = connection.cursor()
+        cur.executescript("""
+                                    CREATE TABLE questions (
+                                    id INTEGER PRIMARY KEY,
+                                    text TEXT,
+                                    points INTEGER NOT NULL
+                                    );
+
+                                    CREATE TABLE answers (
+                                    id INTEGER,
+                                    questions_id INTEGER NOT NULL,
+                                    text TEXT NOT NULL,
+                                    is_correct INTEGER NOT NULL,
+                                    FOREIGN KEY(questions_id) REFERENCES questions (id))
+                                    """)
+        storage = SqliteQuestionStorage(connection)
+        return storage
+
+    def __init__(self, connection: sqlite3.Connection):
+        """
+        :param connection: подключение к базе данных
+        """
+        self.connect = connection
 
     def load_questions(self) -> List[Question]:
         """
             Считывает список вопросов из базы данных
         :return: список вопросов
         """
-        con = self.connect
-        cur = con.cursor()
+        cur = self.connect.cursor()
         items = cur.execute("""
                             SELECT t1.text, t1.points, t2.questions_id, t2.text, t2.is_correct
                             FROM questions AS t1 INNER JOIN answers AS t2
@@ -115,51 +139,42 @@ class SqliteQuestionStorage(QuestionStorage):
 
         groups = defaultdict(list)
         for r in all_records:
-            groups[r.questions_id].append(r)
+            groups[r.question_id].append(r)
 
         questions = []
         for question_id, records in groups.items():
             text = records[0].question_text
             points = records[0].points
             answers = [r.answer_text for r in records]
+
             correect_answer_index = [r.is_correct for r in records].index(True)
+
             questions.append(Question(text, answers, points, correect_answer_index))
         return questions
 
     def add_questions(self, questions: List[Question]):
         """
-            Заполняет database SQLite новыми вопросами
+            Добавляет вопросы questions  в базу
         :param questions: Список вопросов
         """
-        con = self.connect
-        cur = con.cursor()
-        questions_id = []
+        cur = self.connect.cursor()
+        question_ids = []
         for quest in questions:
-            cur.execute(f"""
-                            INSERT INTO questions(text, points)
-                            VALUES("{quest.text}", {quest.points})
-                        """)
-            questions_id.append(cur.lastrowid)
-            con.commit()
+            cur.execute("INSERT INTO questions(text, points) VALUES(?, ?)",
+                        (quest.text, quest.points))
+            self.connect.commit()
+            question_ids.append(cur.lastrowid)
 
-        count_ind_question_id = 0
-        for q in questions:
-            count_cor_ans = 1
-            for ans in q.answers:
-                if count_cor_ans == q.correct_answer:
-                    cur.execute(f"""
-                                    INSERT INTO answers(questions_id, text, is_correct)
-                                    VALUES({questions_id[count_ind_question_id]}, {ans}, 1)
-                                """)
-                    con.commit()
+        for id, q in zip(question_ids, questions):
+            for i, ans in enumerate(q.answers):
+                if i == q.correct_answer:
+                    is_cor = 1
                 else:
-                    cur.execute(f"""
-                                    INSERT INTO answers(questions_id, text, is_correct)
-                                    VALUES({questions_id[count_ind_question_id]}, {ans}, 0)
-                                """)
-                    con.commit()
-                count_cor_ans += 1
-            count_ind_question_id += 1
+                    is_cor = 0
+
+                cur.execute("INSERT INTO answers (questions_id, text, is_correct) VALUES(?, ?, ?)",
+                            (id, ans, is_cor))
+                self.connect.commit()
 
 
 def main():
