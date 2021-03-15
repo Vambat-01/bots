@@ -54,25 +54,36 @@ class BotStateFactory:
             Создает InGameState()
         :return: InGameState
         """
+
         all_questions = self.questions_storage.load_questions()
         game_questions = select_questions(all_questions, 3)
+        new_game_questions = []
         game_id = str(uuid.uuid4())
 
-        for i in range(len(game_questions)):
-            indexed_answers = list(enumerate(game_questions[i].answers))
+        for question in game_questions:
+            indexed_answers = list(enumerate(question.answers))
             self.random.shuffle(indexed_answers)
             correct_answer = 0
             answers = []
+        # for i in range(len(game_questions)):
+        #     indexed_answers = list(enumerate(game_questions[i].answers))
+        #     self.random.shuffle(indexed_answers)
+        #     correct_answer = 0
+        #     answers = []
 
             for (index, (original_index, answer)) in enumerate(indexed_answers):
                 if original_index == 0:
                     correct_answer = index + 1
                 answers.append(answer)
 
-            game_questions[i].answers = answers
-            game_questions[i].correct_answer = correct_answer
+            new_game_questions.append(Question(question.text,
+                                               answers,
+                                               question.points,
+                                               correct_answer
+                                               )
+                                      )
 
-        game_state = InGameState.State(game_questions, game_id)
+        game_state = InGameState.State(new_game_questions, game_id)
         in_game_state = InGameState(self, game_state)
         return in_game_state
 
