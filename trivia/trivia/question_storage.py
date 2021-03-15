@@ -83,7 +83,7 @@ class SqliteQuestionStorage(QuestionStorage):
     @dataclass(frozen=True)
     class Record:
         """
-            Класс для удобного хранения вопроса из database SQLite
+            Класс для удобного хранения вопроса из SQLite базы данных
         """
         question_text: str
         points: int
@@ -94,7 +94,7 @@ class SqliteQuestionStorage(QuestionStorage):
     @staticmethod
     def create_in_memory():
         """
-        Создает создает SQLiteQuestionStorage с базой в памяти. В базе присутствует все необходимые таблицы,
+        Создает SQLiteQuestionStorage с базой в памяти. В базе присутствует все необходимые таблицы,
         но они не заполнены
         :return:
         """
@@ -121,14 +121,14 @@ class SqliteQuestionStorage(QuestionStorage):
         """
         :param connection: подключение к базе данных
         """
-        self.connect = connection
+        self.connection = connection
 
     def load_questions(self) -> List[Question]:
         """
             Считывает список вопросов из базы данных
         :return: список вопросов
         """
-        cur = self.connect.cursor()
+        cur = self.connection.cursor()
         items = cur.execute("""
                             SELECT t1.text, t1.points, t2.questions_id, t2.text, t2.is_correct
                             FROM questions AS t1 INNER JOIN answers AS t2
@@ -157,13 +157,13 @@ class SqliteQuestionStorage(QuestionStorage):
             Добавляет вопросы questions  в базу
         :param questions: Список вопросов
         """
-        cur = self.connect.cursor()
+        cur = self.connection.cursor()
         question_ids = []
         for quest in questions:
             cur.execute("INSERT INTO questions(text, points) VALUES(?, ?)",
                         (quest.text, quest.points))
-            self.connect.commit()
             question_ids.append(cur.lastrowid)
+        self.connection.commit()
 
         for id, q in zip(question_ids, questions):
             for i, ans in enumerate(q.answers):
@@ -174,7 +174,7 @@ class SqliteQuestionStorage(QuestionStorage):
 
                 cur.execute("INSERT INTO answers (questions_id, text, is_correct) VALUES(?, ?, ?)",
                             (id, ans, is_cor))
-                self.connect.commit()
+        self.connection.commit()
 
 
 def main():
