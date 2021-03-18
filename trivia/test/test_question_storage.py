@@ -1,6 +1,5 @@
 import unittest
 from trivia.question_storage import JsonQuestionStorage, SqliteQuestionStorage, Question
-import sqlite3
 from typing import List
 
 
