@@ -2,8 +2,10 @@ import json
 from typing import List
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
-import sqlite3
 from collections import defaultdict
+from enum import Enum
+from pathlib import Path
+import sqlite3
 
 
 @dataclass(frozen=True)
@@ -13,12 +15,20 @@ class Question:
     :param text: Текст вопроса, который мы показываем пользователю
     :param answers: Варианты ответов на вопрос, включая правильный
     :param points: Количество очков за правильный ответ
-    :param correct_answer: Опциональный правильный ответ. Правильный ответ по умолчаию на все вопросы 1.
+    :param difficulty: Сложность вопроса
+    :param correct_answer: Правильный ответ. Индекс праивльного ответа в списке `answers`
     """
+
+    class Difficulty(Enum):
+        easy = 0
+        medium = 1
+        hard = 2
+
     text: str
     answers: List[str]
     points: int
-    correct_answer: int = 1
+    difficulty: Difficulty
+    correct_answer: int
 
     def normalize(self) -> "Question":
         """
@@ -29,7 +39,7 @@ class Question:
         norm_answers = sorted(self.answers)
         norm_correct_answer = norm_answers.index(check_ans)
 
-        return Question(self.text, norm_answers, self.points, norm_correct_answer)
+        return Question(self.text, norm_answers, self.points, self.difficulty, norm_correct_answer)
 
 
 class QuestionStorage(metaclass=ABCMeta):
@@ -70,7 +80,8 @@ class JsonQuestionStorage(QuestionStorage):
                 text = item["text"]
                 answers = item["answers"]
                 points = item["points"]
-                quest = Question(text, answers, points)
+                difficulty = Question.Difficulty(item["difficulty"])
+                quest = Question(text, answers, points, difficulty, 0)
                 questions.append(quest)
             return questions
 
@@ -90,13 +101,14 @@ class SqliteQuestionStorage(QuestionStorage):
         question_id: int
         answer_text: str
         is_correct: bool
+        difficulty: int
 
     @staticmethod
     def create_in_memory():
         """
         Создает SQLiteQuestionStorage с базой в памяти. В базе присутствует все необходимые таблицы,
         но они не заполнены
-        :return:
+        :return: базу данных с таблицами
         """
         connection = sqlite3.connect(":memory:")
         cur = connection.cursor()
@@ -104,7 +116,8 @@ class SqliteQuestionStorage(QuestionStorage):
                                     CREATE TABLE questions (
                                     id INTEGER PRIMARY KEY,
                                     text TEXT,
-                                    points INTEGER NOT NULL
+                                    points INTEGER NOT NULL,
+                                    difficulty INTEGER NOT NULL
                                     );
 
                                     CREATE TABLE answers (
@@ -116,6 +129,37 @@ class SqliteQuestionStorage(QuestionStorage):
                                     """)
         storage = SqliteQuestionStorage(connection)
         return storage
+
+    @staticmethod
+    def create_in_file(file_path: Path):
+        """
+        Создает  SQLite базу данных, в ней есть все необходимые таблицы, но таблицы не заполнены
+        :param file_path: путь к файлу
+        :return: таблицы для SQLite  базы данных
+        """
+        connection = sqlite3.connect(file_path)
+        cur = connection.cursor()
+        cur.executescript("""
+                                           CREATE TABLE questions (
+                                           id INTEGER PRIMARY KEY,
+                                           text TEXT,
+                                           points INTEGER NOT NULL,
+                                           difficulty INTEGER NOT NULL
+                                           );
+
+                                           CREATE TABLE answers (
+                                           id INTEGER PRIMARY KEY,
+                                           questions_id INTEGER NOT NULL,
+                                           text TEXT NOT NULL,
+                                           is_correct INTEGER NOT NULL,
+                                           FOREIGN KEY(questions_id) REFERENCES questions (id))
+                                           """)
+        storage = SqliteQuestionStorage(connection)
+        return storage
+
+    @staticmethod
+    def create_database(path: Path):
+        sqlite3.connect(path)
 
     def __init__(self, connection: sqlite3.Connection):
         """
@@ -130,7 +174,7 @@ class SqliteQuestionStorage(QuestionStorage):
         """
         cur = self.connection.cursor()
         items = cur.execute("""
-                            SELECT t1.text, t1.points, t2.questions_id, t2.text, t2.is_correct
+                            SELECT t1.text, t1.points, t1.difficulty, t2.questions_id, t2.text, t2.is_correct
                             FROM questions AS t1 INNER JOIN answers AS t2
                             ON t1.id = t2.questions_id
                             """)
@@ -145,11 +189,13 @@ class SqliteQuestionStorage(QuestionStorage):
         for question_id, records in groups.items():
             text = records[0].question_text
             points = records[0].points
+            difficulty = Question.Difficulty(records[0].difficulty)
+
             answers = [r.answer_text for r in records]
 
             correect_answer_index = [r.is_correct for r in records].index(True)
 
-            questions.append(Question(text, answers, points, correect_answer_index))
+            questions.append(Question(text, answers, points, difficulty, correect_answer_index))
         return questions
 
     def add_questions(self, questions: List[Question]):
@@ -160,8 +206,8 @@ class SqliteQuestionStorage(QuestionStorage):
         cur = self.connection.cursor()
         question_ids = []
         for quest in questions:
-            cur.execute("INSERT INTO questions(text, points) VALUES(?, ?)",
-                        (quest.text, quest.points))
+            cur.execute("INSERT INTO questions(text, points, difficulty) VALUES(?, ?, ?)",
+                        (quest.text, quest.points, quest.difficulty))
             question_ids.append(cur.lastrowid)
         self.connection.commit()
 
@@ -175,6 +221,38 @@ class SqliteQuestionStorage(QuestionStorage):
                 cur.execute("INSERT INTO answers (questions_id, text, is_correct) VALUES(?, ?, ?)",
                             (id, ans, is_cor))
         self.connection.commit()
+
+
+class JSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Question.Difficulty):
+            if obj == Question.Difficulty.easy:
+                return "__difficulty=Easy"
+
+        if isinstance(obj, Question.Difficulty):
+            if obj == Question.Difficulty.medium:
+                return "__difficulty=Medium"
+
+        if isinstance(obj, Question.Difficulty):
+            if obj == Question.Difficulty.hard:
+                return "__difficulty=Hard"
+        return json.JSONEncoder.default(self, obj)
+
+
+class JSONDecoder(json.JSONDecoder):
+    def object_hook(self, obj):
+        if isinstance(obj, str):
+            if obj == "__difficulty=Easy":
+                return Question.Difficulty.easy
+
+        if isinstance(obj, str):
+            if obj == "__difficulty=Medium":
+                return Question.Difficulty.medium
+
+        if isinstance(obj, str):
+            if obj == "__difficulty=Hard":
+                return Question.Difficulty.hard
+        return obj
 
 
 def main():

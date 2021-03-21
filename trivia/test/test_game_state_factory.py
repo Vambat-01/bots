@@ -13,8 +13,9 @@ class BotStateFactoryTest(TestCase):
         state_factory = BotStateFactory(storage, random)
         actual = state_factory.create_in_game_state()
 
-        questions_list = [Question("7+3", ["11", "10"], 1, 2),
-                          Question("17+3", ["21", "20"], 2, 2),
-                          Question("27+3", ["31", "30"], 3, 2)
+        difficulty = Question.Difficulty(0)
+        questions_list = [Question("7+3", ["11", "10"], 1, difficulty, 1),
+                          Question("17+3", ["21", "20"], 2, difficulty, 1),
+                          Question("27+3", ["31", "30"], 3, difficulty, 1)
                           ]
         self.assertEqual(questions_list, actual.state.questions)

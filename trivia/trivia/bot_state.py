@@ -65,20 +65,16 @@ class BotStateFactory:
             self.random.shuffle(indexed_answers)
             correct_answer = 0
             answers = []
-        # for i in range(len(game_questions)):
-        #     indexed_answers = list(enumerate(game_questions[i].answers))
-        #     self.random.shuffle(indexed_answers)
-        #     correct_answer = 0
-        #     answers = []
 
             for (index, (original_index, answer)) in enumerate(indexed_answers):
                 if original_index == 0:
-                    correct_answer = index + 1
+                    correct_answer = index
                 answers.append(answer)
 
             new_game_questions.append(Question(question.text,
                                                answers,
                                                question.points,
+                                               question.difficulty,
                                                correct_answer
                                                )
                                       )

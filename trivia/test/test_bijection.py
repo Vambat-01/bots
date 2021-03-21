@@ -44,9 +44,10 @@ def _make_state_factory(questions_file_path: str) -> BotStateFactory:
 
 
 def _make_in_game_state(state_factory: BotStateFactory) -> InGameState:
-    questions_list = [Question("7+3", ["10", "11"], 1, 2),
-                      Question("17+3", ["20", "21"], 2, 2),
-                      Question("27+3", ["30", "31"], 3, 2)
+    difficulty = Question.Difficulty(0)
+    questions_list = [Question("7+3", ["10", "11"], 1, difficulty, 2),
+                      Question("17+3", ["20", "21"], 2, difficulty, 2),
+                      Question("27+3", ["30", "31"], 3, difficulty, 2)
                       ]
     game_state = InGameState.State(questions_list, GAME_ID, 1, 2)
     state = InGameState(state_factory, game_state)

@@ -7,7 +7,7 @@ from core.utils import log
 from time import sleep
 
 
-all_questions = []
+all_questions: List[Dict] = []
 file_path = Path("/home/vambat/projects/bots/trivia/resources/database_questions_for_bot.json")
 
 
@@ -21,7 +21,7 @@ def get_questions(q_type: int, q_count: int, delay: int) -> List[Dict]:
 
     url = "https://engine.lifeis.porn/api/millionaire.php"
     response = requests.get(url, params={
-                            "qType": q_type,
+                            "difficulty": q_type,
                             "count": q_count
                             })
 
@@ -32,7 +32,7 @@ def get_questions(q_type: int, q_count: int, delay: int) -> List[Dict]:
         data = questions_json["data"]
 
         for question in data:
-            question["qType"] = q_type
+            question["difficulty"] = q_type
         delay = 1
         return data
 
@@ -60,7 +60,7 @@ def fixed_text_question(questions: List[Dict]) -> List[Dict]:
     return questions
 
 
-def save_to_file(questions: List[Dict], file_path: str):
+def save_to_file(questions: List[Dict], file_path: Path):
     """
     Записывает вопросы в файл в формате json
     :param questions: список вопросов

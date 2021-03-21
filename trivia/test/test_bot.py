@@ -14,9 +14,9 @@ from core.utils import dedent_and_strip
 from enum import Enum
 from trivia.bot_state import BotStateFactory
 from test.test_utils import DoNothingRandom
-from trivia.question_storage import JsonQuestionStorage, Question
+from trivia.question_storage import JsonQuestionStorage, Question, JSONEncoder, JSONDecoder
 from trivia.bijection import BotStateToDictBijection
-from trivia.bot_state import IdleState, InGameState, GreetingState
+from trivia.bot_state import InGameState
 
 
 CHAT_ID_1 = 125
@@ -232,8 +232,10 @@ class BotTest(TestCase):
         bot2 = Bot(telegram_api, create_initial_state, bot_state_to_dict_bijection, Bot.State())
         self.assertNotEqual(bot1, bot2)
         encoded = bot1.save()
-        json_encoded = json.dumps(encoded)
-        json_decoded = json.loads(json_encoded)
+        json_encoded = JSONEncoder().encode(encoded)
+        json_decoded = JSONDecoder().decode(json_encoded)
+        # json_encoded = json.dumps(encoded)
+        # json_decoded = json.loads(json_encoded)
         bot2.load(json_decoded)
         self.assertEqual(bot1, bot2)
 
@@ -358,9 +360,10 @@ def _make_state_factory(questions_file_path: str) -> BotStateFactory:
 
 
 def _make_in_game_state(state_factory: BotStateFactory) -> InGameState:
-    questions_list = [Question("7+3", ["10", "11"], 1, 2),
-                      Question("17+3", ["20", "21"], 2, 2),
-                      Question("27+3", ["30", "31"], 3, 2)
+    difficulty = Question.Difficulty(1)
+    questions_list = [Question("7+3", ["10", "11"], 1, difficulty, 2),
+                      Question("17+3", ["20", "21"], 2, difficulty, 2),
+                      Question("27+3", ["30", "31"], 3, difficulty, 2)
                       ]
     game_state = InGameState.State(questions_list, GAME_ID, 1, 2)
     state = InGameState(state_factory, game_state)
