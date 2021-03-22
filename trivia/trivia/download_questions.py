@@ -50,7 +50,7 @@ def fixed_text_question(questions: List[Dict]) -> List[Dict]:
     """
     Исправляет текст вопроса
     :param questions: список вопросов
-    :return: список вопросов и справленным текстом
+    :return: список вопросов с исправленным текстом
     """
     for question in questions:
         text = question["question"]

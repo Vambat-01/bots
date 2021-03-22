@@ -234,8 +234,6 @@ class BotTest(TestCase):
         encoded = bot1.save()
         json_encoded = JSONEncoder().encode(encoded)
         json_decoded = JSONDecoder().decode(json_encoded)
-        # json_encoded = json.dumps(encoded)
-        # json_decoded = json.loads(json_encoded)
         bot2.load(json_decoded)
         self.assertEqual(bot1, bot2)
 

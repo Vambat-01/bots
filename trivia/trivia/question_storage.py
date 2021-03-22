@@ -16,7 +16,7 @@ class Question:
     :param answers: Варианты ответов на вопрос, включая правильный
     :param points: Количество очков за правильный ответ
     :param difficulty: Сложность вопроса
-    :param correct_answer: Правильный ответ. Индекс праивльного ответа в списке `answers`
+    :param correct_answer: Правильный ответ. Индекс правильного ответа в списке `answers`
     """
 
     class Difficulty(Enum):
@@ -98,10 +98,11 @@ class SqliteQuestionStorage(QuestionStorage):
         """
         question_text: str
         points: int
+        difficulty: int
         question_id: int
         answer_text: str
         is_correct: bool
-        difficulty: int
+
 
     @staticmethod
     def create_in_memory():
@@ -133,9 +134,9 @@ class SqliteQuestionStorage(QuestionStorage):
     @staticmethod
     def create_in_file(file_path: Path):
         """
-        Создает  SQLite базу данных, в ней есть все необходимые таблицы, но таблицы не заполнены
+        Создает в SQLite базе данных все необходимые таблицы, но таблицы не заполнены
         :param file_path: путь к файлу
-        :return: таблицы для SQLite  базы данных
+        :return: доступ к базе данных
         """
         connection = sqlite3.connect(file_path)
         cur = connection.cursor()
@@ -154,11 +155,14 @@ class SqliteQuestionStorage(QuestionStorage):
                                            is_correct INTEGER NOT NULL,
                                            FOREIGN KEY(questions_id) REFERENCES questions (id))
                                            """)
-        storage = SqliteQuestionStorage(connection)
-        return storage
+        return SqliteQuestionStorage(connection)
 
     @staticmethod
     def create_database(path: Path):
+        """
+        Создает SQLite базу данных
+        :param path: путь, где будет создана база данных
+        """
         sqlite3.connect(path)
 
     def __init__(self, connection: sqlite3.Connection):
@@ -224,33 +228,48 @@ class SqliteQuestionStorage(QuestionStorage):
 
 
 class JSONEncoder(json.JSONEncoder):
+    """
+    Расширяет класс JSONEncoder, чтобы он мог кодировать Enum класс Difficulty
+    """
     def default(self, obj):
         if isinstance(obj, Question.Difficulty):
             if obj == Question.Difficulty.easy:
-                return "__difficulty=Easy"
+                return {
+                    "__difficulty": "easy"
+                }
 
         if isinstance(obj, Question.Difficulty):
             if obj == Question.Difficulty.medium:
-                return "__difficulty=Medium"
+                return {
+                    "__difficulty": "medium"
+                }
 
         if isinstance(obj, Question.Difficulty):
             if obj == Question.Difficulty.hard:
-                return "__difficulty=Hard"
+                return {
+                    "__difficulty": "hard"
+                }
         return json.JSONEncoder.default(self, obj)
 
 
 class JSONDecoder(json.JSONDecoder):
+    """
+    Расширяет класс JSONDecoder, чтобы он мог декодировать Enum класс Difficulty
+    """
+    def __init__(self, *args, **kwargs):
+        json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
+
     def object_hook(self, obj):
-        if isinstance(obj, str):
-            if obj == "__difficulty=Easy":
+        if isinstance(obj, dict):
+            if obj.get("__difficulty") == "easy":
                 return Question.Difficulty.easy
 
-        if isinstance(obj, str):
-            if obj == "__difficulty=Medium":
+        if isinstance(obj, dict):
+            if obj.get("__difficulty") == "medium":
                 return Question.Difficulty.medium
 
-        if isinstance(obj, str):
-            if obj == "__difficulty=Hard":
+        if isinstance(obj, dict):
+            if obj.get("__difficulty") == "hard":
                 return Question.Difficulty.hard
         return obj
 

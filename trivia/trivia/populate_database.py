@@ -39,5 +39,3 @@ all_questions = get_all_questions(data)
 SqliteQuestionStorage.create_database(file_path_db)
 storage = SqliteQuestionStorage.create_in_file(file_path_db)
 storage.add_questions(all_questions)
-
-
