@@ -21,7 +21,7 @@ from trivia.bot_state import InGameState
 
 CHAT_ID_1 = 125
 CHAT_ID_2 = 150
-TEST_QUESTIONS_PATH = "resources/mini_question_set.json"
+TEST_QUESTIONS_PATH = "resources/test_questions.json"
 GAME_ID = "125"
 
 

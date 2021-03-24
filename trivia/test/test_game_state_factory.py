@@ -7,7 +7,7 @@ from test.test_utils import ReversedShuffleRandom
 
 class BotStateFactoryTest(TestCase):
     def test_answer_shuffling_for_in_game_state(self):
-        json_file = "resources/mini_question_set.json"
+        json_file = "resources/test_questions.json"
         storage = JsonQuestionStorage(json_file)
         random = ReversedShuffleRandom()
         state_factory = BotStateFactory(storage, random)

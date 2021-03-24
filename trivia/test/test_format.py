@@ -24,7 +24,9 @@ class GetResponseForValidAnswerText(TestCase):
                  """
 
         self.assertEqual(dedent_and_strip(expected_text),
-                         format.make_message(True, None, Question("10+10", ["20", "45"], 0, 0, 1))
+                         format.make_message(True,
+                                             None,
+                                             Question("10+10", ["20", "45"], 0, Question.Difficulty.MEDIUM, 1))
                          )
 
     def test_when_answer_is_not_correct_and_has_next_question(self):
@@ -35,9 +37,10 @@ class GetResponseForValidAnswerText(TestCase):
                         |&#8195| 2: 28
                      """
 
-        self.assertEqual(dedent_and_strip(expected_text),
-                         format.make_message(False, question=Question("15+10", ["30", "28"], 0, 0, 1))
-                         )
+        self.assertEqual(
+            dedent_and_strip(expected_text),
+            format.make_message(False, question=Question("15+10", ["30", "28"], 0, Question.Difficulty.EASY, 1))
+        )
 
     def test_when_answer_is_correct_and_score(self):
         expected_text = "<i>The game is over. Your points: 6</i>"

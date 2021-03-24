@@ -11,7 +11,7 @@ class GreetingStateTest(TestCase):
         chat_id = 200
         text = "Hi bot"
         user_message = Message(chat_id, text)
-        json_file = "resources/mini_question_set.json"
+        json_file = "resources/test_questions.json"
         storage = JsonQuestionStorage(json_file)
         random = DoNothingRandom()
         state_factory = BotStateFactory(storage, random)
@@ -25,7 +25,7 @@ class GreetingStateTest(TestCase):
         chat_id = 250
         text = "/start"
         user_command = Command(chat_id, text)
-        json_file = "resources/mini_question_set.json"
+        json_file = "resources/test_questions.json"
         storage = JsonQuestionStorage(json_file)
         random = DoNothingRandom()
         state_factory = BotStateFactory(storage, random)
@@ -41,7 +41,7 @@ class GreetingStateTest(TestCase):
         chat_id = 255
         text = "start"
         user_command = Command(chat_id, text)
-        json_file = "resources/mini_question_set.json"
+        json_file = "resources/test_questions.json"
         storage = JsonQuestionStorage(json_file)
         random = DoNothingRandom()
         state_factory = BotStateFactory(storage, random)

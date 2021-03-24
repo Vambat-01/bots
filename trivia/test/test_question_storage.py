@@ -5,7 +5,7 @@ from typing import List
 
 class JsonQuestionStorageTest(unittest.TestCase):
     def test_loads_question_correctly(self):
-        json_file = "resources/mini_question_set.json"
+        json_file = "resources/test_questions.json"
         storage = JsonQuestionStorage(json_file)
         questions = storage.load_questions()
         self.assertEqual(3, len(questions))

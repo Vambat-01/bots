@@ -10,7 +10,7 @@ import argparse
 def main():
     parser = argparse.ArgumentParser(description="Запуск бота")
     parser.add_argument("-file",  type=str, help="Путь к json  файлу с вопросами для бота")
-    parser.add_argument("-token", type=str, help="Уникальный идентификационный номер телеграм токен бота")
+    parser.add_argument("-token", type=str, help="Телеграм токен бота")
     args = parser.parse_args()
 
     storage = JsonQuestionStorage(args.file)

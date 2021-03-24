@@ -21,9 +21,9 @@ class Question:
     """
 
     class Difficulty(Enum):
-        EASY = 100
-        MEDIUM = 200
-        HARD = 300
+        EASY = 0
+        MEDIUM = 1
+        HARD = 2
 
     text: str
     answers: List[str]

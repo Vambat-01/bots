@@ -12,7 +12,7 @@ from test.test_utils import DoNothingRandom
 
 
 CHAT_ID = 300
-TEST_QUESTIONS_PATH = "resources/mini_question_set.json"
+TEST_QUESTIONS_PATH = "resources/test_questions.json"
 GAME_ID = "123"
 
 
@@ -29,7 +29,7 @@ class InGameStateTest(TestCase):
             :param conversation: список пар (сообщение пользователя, ответ бота на это сообщение)
             :param expected_state: ожидаемое состояние бота в конце диалога
         """
-        json_file = "resources/mini_question_set.json"
+        json_file = "resources/test_questions.json"
         storage = JsonQuestionStorage(json_file)
         questions = storage.load_questions()
         game_state = InGameState.State(questions, GAME_ID)
@@ -49,7 +49,7 @@ class InGameStateTest(TestCase):
                 self.assertEqual(expected_response, response)
 
     def create_state_factory(self) -> BotStateFactory:
-        json_file = "resources/mini_question_set.json"
+        json_file = "resources/test_questions.json"
         storage = JsonQuestionStorage(json_file)
         random = DoNothingRandom()
         state_factory = BotStateFactory(storage, random)
