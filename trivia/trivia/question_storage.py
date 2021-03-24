@@ -6,6 +6,7 @@ from collections import defaultdict
 from enum import Enum
 from pathlib import Path
 import sqlite3
+import os.path
 
 
 @dataclass(frozen=True)
@@ -20,9 +21,9 @@ class Question:
     """
 
     class Difficulty(Enum):
-        easy = 0
-        medium = 1
-        hard = 2
+        EASY = 0
+        MEDIUM = 1
+        HARD = 2
 
     text: str
     answers: List[str]
@@ -103,67 +104,51 @@ class SqliteQuestionStorage(QuestionStorage):
         answer_text: str
         is_correct: bool
 
-
     @staticmethod
-    def create_in_memory():
+    def create_in_memory() -> "SqliteQuestionStorage":
         """
-        Создает SQLiteQuestionStorage с базой в памяти. В базе присутствует все необходимые таблицы,
+        Создает SQLiteQuestionStorage с базой в памяти и все необходимые таблицы. Таблицы будут пустыми
         но они не заполнены
         :return: базу данных с таблицами
         """
         connection = sqlite3.connect(":memory:")
-        cur = connection.cursor()
-        cur.executescript("""
-                                    CREATE TABLE questions (
-                                    id INTEGER PRIMARY KEY,
-                                    text TEXT,
-                                    points INTEGER NOT NULL,
-                                    difficulty INTEGER NOT NULL
-                                    );
-
-                                    CREATE TABLE answers (
-                                    id INTEGER,
-                                    questions_id INTEGER NOT NULL,
-                                    text TEXT NOT NULL,
-                                    is_correct INTEGER NOT NULL,
-                                    FOREIGN KEY(questions_id) REFERENCES questions (id))
-                                    """)
-        storage = SqliteQuestionStorage(connection)
-        return storage
+        return SqliteQuestionStorage._create(connection)
 
     @staticmethod
-    def create_in_file(file_path: Path):
+    def create_in_file(file_path: Path) -> "SqliteQuestionStorage":
         """
-        Создает в SQLite базе данных все необходимые таблицы, но таблицы не заполнены
-        :param file_path: путь к файлу
-        :return: доступ к базе данных
+        Создает SQLite базу данных и все необходимые таблицы. Таблицы будут пустыми.
+        :param file_path: путь где будет создана база. Наличие файла по этому пути приведет к ошибке.
         """
+        if file_path.exists():
+            raise Exception("SQLite database already exists")
+
         connection = sqlite3.connect(file_path)
-        cur = connection.cursor()
-        cur.executescript("""
-                                           CREATE TABLE questions (
-                                           id INTEGER PRIMARY KEY,
-                                           text TEXT,
-                                           points INTEGER NOT NULL,
-                                           difficulty INTEGER NOT NULL
-                                           );
-
-                                           CREATE TABLE answers (
-                                           id INTEGER PRIMARY KEY,
-                                           questions_id INTEGER NOT NULL,
-                                           text TEXT NOT NULL,
-                                           is_correct INTEGER NOT NULL,
-                                           FOREIGN KEY(questions_id) REFERENCES questions (id))
-                                           """)
-        return SqliteQuestionStorage(connection)
+        return SqliteQuestionStorage._create(connection)
 
     @staticmethod
-    def create_database(path: Path):
+    def _create(connection: sqlite3.Connection) -> "SqliteQuestionStorage":
         """
-        Создает SQLite базу данных
-        :param path: путь, где будет создана база данных
+        Сощдаст все необходимые таблицы в SQLite базе данных. Таблицы будут пустыми
+        :param connection: подключение к базе данных
         """
-        sqlite3.connect(path)
+        cur = connection.cursor()
+        cur.executescript("""
+                                                   CREATE TABLE questions (
+                                                   id INTEGER PRIMARY KEY,
+                                                   text TEXT,
+                                                   points INTEGER NOT NULL,
+                                                   difficulty INTEGER NOT NULL
+                                                   );
+
+                                                   CREATE TABLE answers (
+                                                   id INTEGER PRIMARY KEY,
+                                                   questions_id INTEGER NOT NULL,
+                                                   text TEXT NOT NULL,
+                                                   is_correct INTEGER NOT NULL,
+                                                   FOREIGN KEY(questions_id) REFERENCES questions (id))
+                                                   """)
+        return SqliteQuestionStorage(connection)
 
     def __init__(self, connection: sqlite3.Connection):
         """
@@ -204,7 +189,7 @@ class SqliteQuestionStorage(QuestionStorage):
 
     def add_questions(self, questions: List[Question]):
         """
-            Добавляет вопросы questions  в базу
+            Добавляет вопросы в SQLite базу данных
         :param questions: Список вопросов
         """
         cur = self.connection.cursor()
@@ -233,22 +218,9 @@ class JSONEncoder(json.JSONEncoder):
     """
     def default(self, obj):
         if isinstance(obj, Question.Difficulty):
-            if obj == Question.Difficulty.easy:
-                return {
-                    "__difficulty": "easy"
-                }
-
-        if isinstance(obj, Question.Difficulty):
-            if obj == Question.Difficulty.medium:
-                return {
-                    "__difficulty": "medium"
-                }
-
-        if isinstance(obj, Question.Difficulty):
-            if obj == Question.Difficulty.hard:
-                return {
-                    "__difficulty": "hard"
-                }
+            return {
+                "__difficulty": obj.value
+            }
         return json.JSONEncoder.default(self, obj)
 
 
@@ -261,16 +233,8 @@ class JSONDecoder(json.JSONDecoder):
 
     def object_hook(self, obj):
         if isinstance(obj, dict):
-            if obj.get("__difficulty") == "easy":
-                return Question.Difficulty.easy
-
-        if isinstance(obj, dict):
-            if obj.get("__difficulty") == "medium":
-                return Question.Difficulty.medium
-
-        if isinstance(obj, dict):
-            if obj.get("__difficulty") == "hard":
-                return Question.Difficulty.hard
+            if "__difficulty" in obj:
+                return Question.Difficulty(obj.get("__difficulty"))
         return obj
 
 

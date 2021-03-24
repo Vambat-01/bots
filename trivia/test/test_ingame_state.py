@@ -199,21 +199,21 @@ class InGameStateTest(TestCase):
         text = format.make_question("Question", "7+3", ["10", "11"])
         first_bot_message = Message(CHAT_ID, dedent_and_strip(text), "HTML", keyboard_1)
         text_1 = format.make_message(
-            2,
+            1,
             question=Question("17+3", ["20", "21"], 2, 0, 0)
         )
         message_1 = Message(CHAT_ID, text_1, "HTML", keyboard_2)
         text_2 = format.make_message(
-            2,
+            1,
             question=Question("27+3", ["30", "31"], 3, 0, 0)
         )
         message_2 = Message(CHAT_ID, text_2, "HTML", keyboard_3)
         text_3 = format.make_message(2, game_score=6)
         message_3 = Message(CHAT_ID, text_3, "HTML", None)
         conversation = [
-                ("0", message_1),
-                ("0", message_2),
-                ("0", message_3)
+                ("1", message_1),
+                ("1", message_2),
+                ("1", message_3)
             ]
 
         self.check_conversation(

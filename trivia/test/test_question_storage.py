@@ -33,8 +33,8 @@ class SqliteQuestiosStorageTest(unittest.TestCase):
 
         self.assertEqual(
             [
-                Question("15+5", ["15", "20", "30"], 2, Question.Difficulty.medium, 1),
-                Question("25+5", ["25", "30", "35"], 3, Question.Difficulty.hard, 1)
+                Question("15+5", ["15", "20", "30"], 2, Question.Difficulty.MEDIUM, 1),
+                Question("25+5", ["25", "30", "35"], 3, Question.Difficulty.HARD, 1)
             ],
             norm_questions
         )

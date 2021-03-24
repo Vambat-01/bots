@@ -402,14 +402,14 @@ class InGameState(BotState):
                 format.get_number_of_answers_help(num_of_resp),
                 "HTML"
             )
-        elif answer_id > num_of_resp:
+        elif answer_id - 1 > num_of_resp:
             response_message = Message(
                 chat_id,
                 format.get_number_of_answers_help(num_of_resp),
                 "HTML"
             )
         else:
-            if correct_answer == answer_id:
+            if correct_answer == answer_id - 1:
                 self.state.game_score += self.state.questions[self.state.current_question].points
 
             if self.state.current_question < len(self.state.questions) - 1:

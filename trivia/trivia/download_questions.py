@@ -5,20 +5,26 @@ from pathlib import Path
 from itertools import chain
 from core.utils import log
 from time import sleep
+import argparse
+
+
+INITIAL_RETRY_DELAY = 1
+MAX_DELAY = 300
 
 
 all_questions: List[Dict] = []
-file_path = Path("/home/vambat/projects/bots/trivia/resources/database_questions_for_bot.json")
 
 
 def get_questions(q_type: int, q_count: int, delay: int) -> List[Dict]:
     """
     Получает вопросы для заполнения SQLite базы данных
-    :param q_type: тип сложности получаемого вопрос
+    :param q_type: тип сложности получаемого вопроса
     :param q_count: количество полученных вопросов
-    :param delay: задержка между вызовами
+    :param delay: начальная задержка перед повторной попыткой запроса, если изначальная попытка не удалась,
+                  то время задержки возростает экспоненциально, если попытка удачная, то задержка становится
+                  снова равной начальной задержке. Максимальное время задержки 5 минут. Если в базе данных
+                  закончились вопросы, то при запросе возвращается пустой список.
     """
-
     url = "https://engine.lifeis.porn/api/millionaire.php"
     response = requests.get(url, params={
                             "difficulty": q_type,
@@ -33,24 +39,22 @@ def get_questions(q_type: int, q_count: int, delay: int) -> List[Dict]:
 
         for question in data:
             question["difficulty"] = q_type
-        delay = 1
+        delay = INITIAL_RETRY_DELAY
         return data
 
     elif response.status_code == 429:
+        log(f"Time is sleeping {delay} sec")
         sleep(delay)
-        log(f"Time is sleepiing {delay} sec")
-        delay = min(delay * 2, 300)
+        delay = min(delay * 2, MAX_DELAY)
         return get_questions(q_type, q_count, delay)
 
     else:
         return []
 
 
-def fixed_text_question(questions: List[Dict]) -> List[Dict]:
+def fix_text_question(questions: List[Dict]) -> List[Dict]:
     """
-    Исправляет текст вопроса
-    :param questions: список вопросов
-    :return: список вопросов с исправленным текстом
+    Исправляет текст в переданных вопросах
     """
     for question in questions:
         text = question["question"]
@@ -62,9 +66,7 @@ def fixed_text_question(questions: List[Dict]) -> List[Dict]:
 
 def save_to_file(questions: List[Dict], file_path: Path):
     """
-    Записывает вопросы в файл в формате json
-    :param questions: список вопросов
-    :param file_path: путь к файлу
+    Записывает переданные вопросы в файл в json формате
     """
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(questions, f, ensure_ascii=False, indent=4)
@@ -78,5 +80,16 @@ while len(all_questions) < 250:
     for question in chain(easy, medium, hard):
         all_questions.append(question)
 
-fixed_text_question(all_questions)
-save_to_file(all_questions, file_path)
+
+def main():
+    parser = argparse.ArgumentParser(description="Указатель пути")
+    parser.add_argument("-file", type=str, help="Путь к файлу")
+    args = parser.parse_args()
+
+    fix_text_question(all_questions)
+    save_to_file(all_questions, Path(args.file))
+
+
+# Запускать только при выполнение, как скрипт
+if __name__ == "__main__":
+    main()
