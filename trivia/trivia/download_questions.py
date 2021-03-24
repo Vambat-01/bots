@@ -12,9 +12,6 @@ INITIAL_RETRY_DELAY = 1
 MAX_DELAY = 300
 
 
-all_questions: List[Dict] = []
-
-
 def get_questions(q_type: int, q_count: int, delay: int) -> List[Dict]:
     """
     Получает вопросы для заполнения SQLite базы данных
@@ -31,11 +28,10 @@ def get_questions(q_type: int, q_count: int, delay: int) -> List[Dict]:
                             "count": q_count
                             })
 
-    log(f"Send message status code: {response.status_code} ")
+    log(f"Request status code: {response.status_code} ")
 
     if response.status_code == 200:
-        questions_json = response.json()
-        data = questions_json["data"]
+        data = response.json()["data"]
 
         for question in data:
             question["difficulty"] = q_type
@@ -72,13 +68,20 @@ def save_to_file(questions: List[Dict], file_path: Path):
         json.dump(questions, f, ensure_ascii=False, indent=4)
 
 
-while len(all_questions) < 250:
-    easy = get_questions(1, 5, 1)
-    medium = get_questions(2, 5, 1)
-    hard = get_questions(3, 5, 1)
+def get_all_questions(max_questions: int) -> List[Dict]:
+    """
+    Получает нужное количество вопросов для SQLite базы данных и возвращает список вопросов
+    :param max_questions: максимальное количество вопросов
+    """
+    all_questions: List[Dict] = []
+    while len(all_questions) < max_questions:
+        easy = get_questions(1, 5, 1)
+        medium = get_questions(2, 5, 1)
+        hard = get_questions(3, 5, 1)
 
-    for question in chain(easy, medium, hard):
-        all_questions.append(question)
+        for question in chain(easy, medium, hard):
+            all_questions.append(question)
+    return all_questions
 
 
 def main():
@@ -86,6 +89,7 @@ def main():
     parser.add_argument("-file", type=str, help="Путь к файлу")
     args = parser.parse_args()
 
+    all_questions = get_all_questions(250)
     fix_text_question(all_questions)
     save_to_file(all_questions, Path(args.file))
 

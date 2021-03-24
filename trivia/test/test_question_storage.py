@@ -5,7 +5,7 @@ from typing import List
 
 class JsonQuestionStorageTest(unittest.TestCase):
     def test_loads_question_correctly(self):
-        json_file = "resources/test_questions.json"
+        json_file = "resources/mini_question_set.json"
         storage = JsonQuestionStorage(json_file)
         questions = storage.load_questions()
         self.assertEqual(3, len(questions))
@@ -23,8 +23,8 @@ class SqliteQuestiosStorageTest(unittest.TestCase):
     def test_add_load(self):
 
         test_questions = [
-                            Question("15+5", ["30", "20", "15"], 2, 1, 1),
-                            Question("25+5", ["35", "25", "30"], 3, 2, 2)
+                            Question("15+5", ["30", "20", "15"], 2, Question.Difficulty.MEDIUM, 1),
+                            Question("25+5", ["35", "25", "30"], 3, Question.Difficulty.HARD, 2)
                          ]
         storage = SqliteQuestionStorage.create_in_memory()
         storage.add_questions(test_questions)

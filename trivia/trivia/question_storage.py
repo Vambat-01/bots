@@ -21,9 +21,9 @@ class Question:
     """
 
     class Difficulty(Enum):
-        EASY = 0
-        MEDIUM = 1
-        HARD = 2
+        EASY = 100
+        MEDIUM = 200
+        HARD = 300
 
     text: str
     answers: List[str]
@@ -195,8 +195,9 @@ class SqliteQuestionStorage(QuestionStorage):
         cur = self.connection.cursor()
         question_ids = []
         for quest in questions:
+            difficulty = quest.difficulty.value
             cur.execute("INSERT INTO questions(text, points, difficulty) VALUES(?, ?, ?)",
-                        (quest.text, quest.points, quest.difficulty))
+                        (quest.text, quest.points, difficulty))
             question_ids.append(cur.lastrowid)
         self.connection.commit()
 

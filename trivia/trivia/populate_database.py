@@ -16,8 +16,20 @@ def get_questions_from_file(file_path: Path) -> List[Question]:
     for question in data:
         text = question["question"]
         answers = question["answers"]
-        difficulty = question["difficulty"]
-        all_questions.append(Question(text, answers, difficulty + 1, difficulty, 0))
+        dif = question["difficulty"]
+        difficulty = Question.Difficulty.EASY
+        points = 0
+        if dif == 1:
+            difficulty = Question.Difficulty.EASY
+            points = 1
+        elif dif == 2:
+            difficulty = Question.Difficulty.MEDIUM
+            points = 2
+        elif dif == 3:
+            difficulty = Question.Difficulty.HARD
+            points = 3
+
+        all_questions.append(Question(text, answers, points, difficulty, 0))
     return all_questions
 
 

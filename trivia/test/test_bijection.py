@@ -6,7 +6,7 @@ from trivia.bijection import BotStateToDictBijection
 from trivia.question_storage import Question
 
 
-TEST_QUESTIONS_PATH = "resources/test_questions.json"
+TEST_QUESTIONS_PATH = "resources/mini_question_set.json"
 GAME_ID = "125"
 
 
