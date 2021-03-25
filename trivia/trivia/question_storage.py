@@ -109,7 +109,7 @@ class SqliteQuestionStorage(QuestionStorage):
         """
         Создает SQLiteQuestionStorage с базой в памяти и все необходимые таблицы. Таблицы будут пустыми
         но они не заполнены
-        :return: базу данных с таблицами
+        :return: созданный `SqliteQuestionStorage`
         """
         connection = sqlite3.connect(":memory:")
         return SqliteQuestionStorage._create(connection)
@@ -189,7 +189,7 @@ class SqliteQuestionStorage(QuestionStorage):
 
     def add_questions(self, questions: List[Question]):
         """
-            Добавляет вопросы в SQLite базу данных
+            Добавляет вопросы в базу данных
         :param questions: Список вопросов
         """
         cur = self.connection.cursor()

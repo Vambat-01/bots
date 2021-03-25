@@ -1,36 +1,18 @@
 from pathlib import Path
 import json
-from typing import List
-from trivia.question_storage import Question, SqliteQuestionStorage
+from typing import List, Dict
+from trivia.question_storage import SqliteQuestionStorage
+from trivia.download_questions import get_normalize_questions
 import argparse
 
 
-def get_questions_from_file(file_path: Path) -> List[Question]:
+def get_questions_from_file(file_path: Path) -> List[Dict]:
     """
     Получить список вопросов из json файла, обработать их и вернуть список вопросов
     """
     with open(file_path) as json_file:
         data = json.load(json_file)
-
-    all_questions = []
-    for question in data:
-        text = question["question"]
-        answers = question["answers"]
-        dif = question["difficulty"]
-        difficulty = Question.Difficulty.EASY
-        points = 0
-        if dif == 1:
-            difficulty = Question.Difficulty.EASY
-            points = 1
-        elif dif == 2:
-            difficulty = Question.Difficulty.MEDIUM
-            points = 2
-        elif dif == 3:
-            difficulty = Question.Difficulty.HARD
-            points = 3
-
-        all_questions.append(Question(text, answers, points, difficulty, 0))
-    return all_questions
+    return data
 
 
 def main():
@@ -39,7 +21,8 @@ def main():
     parser.add_argument("-db", type=str, help="Путь к базе данных")
     args = parser.parse_args()
 
-    all_questions = get_questions_from_file(Path(args.file))
+    questions = get_questions_from_file(Path(args.file))
+    all_questions = get_normalize_questions(questions)
     storage = SqliteQuestionStorage.create_in_file(Path(args.db))
     storage.add_questions(all_questions)
 
