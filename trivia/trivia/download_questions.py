@@ -15,7 +15,7 @@ MAX_DELAY = 300
 
 def get_questions(q_type: int, q_count: int, delay: int) -> List[Dict]:
     """
-    Получает вопросы для заполнения SQLite базы данных
+    Загружает вопросы для заполнения SQLite базы данных
     :param q_type: тип сложности получаемого вопроса
     :param q_count: количество полученных вопросов
     :param delay: начальная задержка перед повторной попыткой запроса. Если изначальная попытка не удалась,
@@ -51,7 +51,7 @@ def get_questions(q_type: int, q_count: int, delay: int) -> List[Dict]:
 
 def fix_text_question(question: Dict):
     """
-    Исправляет текст в переданных вопросах
+    Исправляет текст в переданном вопросе
     """
     text = question["question"]
     fixed_text = text.replace("\u2063", "")
@@ -83,26 +83,17 @@ def get_all_questions(max_questions: int) -> List[Dict]:
     return all_questions
 
 
-def get_normalize_questions(questions: List[Dict]) -> List[Question]:
-    all_questions = []
-    for question in questions:
+def get_normalize_questions(question: Dict) -> Question:
         text = question["question"]
         answers = question["answers"]
         dif = question["difficulty"]
-        difficulty = Question.Difficulty.EASY
-        points = 0
-        if dif == 1:
-            difficulty = Question.Difficulty.EASY
-            points = 1
-        elif dif == 2:
-            difficulty = Question.Difficulty.MEDIUM
-            points = 2
-        elif dif == 3:
-            difficulty = Question.Difficulty.HARD
-            points = 3
+        difficulty, points = [
+            (Question.Difficulty.EASY, 1),
+            (Question.Difficulty.MEDIUM, 2),
+            (Question.Difficulty.HARD, 3)
+        ][dif - 1]
 
-        all_questions.append(Question(text, answers, points, difficulty, 0))
-    return all_questions
+        return Question(text, answers, points, difficulty, 0)
 
 
 def main():
@@ -120,6 +111,5 @@ def main():
     save_to_file(all_questions, Path(args.file))
 
 
-# Запускать только при выполнение, как скрипт
 if __name__ == "__main__":
     main()

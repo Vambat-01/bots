@@ -1,14 +1,22 @@
 import json
-from typing import List
+from typing import List, Dict
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from collections import defaultdict
 from enum import Enum
 from pathlib import Path
 import sqlite3
-import os.path
+from dataclasses_json import dataclass_json
 
 
+class CreateDatabaseException(Exception):
+    """
+    Ошибка создания SQLite базы данных
+    """
+    pass
+
+
+@dataclass_json
 @dataclass(frozen=True)
 class Question:
     """
@@ -57,6 +65,9 @@ class QuestionStorage(metaclass=ABCMeta):
         pass
 
 
+
+
+
 class JsonQuestionStorage(QuestionStorage):
     """
         Класс для чтения вопросов из JSON файла
@@ -71,20 +82,46 @@ class JsonQuestionStorage(QuestionStorage):
 
     def load_questions(self) -> List[Question]:
         """
-            Cчитывает список вопросов из файла
+            Cчитывает список вопросов из json файла
         :return: список вопросов
         """
         with open(self.file_path) as json_file:
             data = json.load(json_file)
             questions = []
             for item in data:
-                text = item["text"]
-                answers = item["answers"]
-                points = item["points"]
-                difficulty = Question.Difficulty(item["difficulty"])
-                quest = Question(text, answers, points, difficulty, 0)
-                questions.append(quest)
+                question = get_normalize_questions(item)
+                q_json = Question.schema().dump([question], many=True)
+                q_str = JSONEncoder().encode(q_json)
+                q_restored_json = JSONDecoder().decode(q_str)
+                q_restored = Question.schema().load(q_restored_json, many=True)
+                questions.append(q_restored[0])
+
             return questions
+
+
+    # def load_questions(self) -> List[Question]:
+    #     """
+    #         Cчитывает список вопросов из файла
+    #     :return: список вопросов
+    #     """
+    #     with open(self.file_path) as json_file:
+    #         data = json.load(json_file)
+    #         questions = []
+    #         for item in data:
+    #             text = item["text"]
+    #             answers = item["answers"]
+    #             points = item["points"]
+    #             difficulty = Question.Difficulty(item["difficulty"])
+    #             quest = Question(text, answers, points, difficulty, 0)
+    #             questions.append(quest)
+    #         return questions
+    #
+    # def load(self):
+    #     with open(self.file_path) as json_file:
+    #         data = json.loads(json_file)
+    #     print(type(data))
+    #     json_decoded = JSONEncoder().decode(data)
+    #     return Question.from_dict(json_decoded)
 
 
 class SqliteQuestionStorage(QuestionStorage):
@@ -121,7 +158,7 @@ class SqliteQuestionStorage(QuestionStorage):
         :param file_path: путь где будет создана база. Наличие файла по этому пути приведет к ошибке.
         """
         if file_path.exists():
-            raise Exception("SQLite database already exists")
+            raise CreateDatabaseException("SQLite database already exists")
 
         connection = sqlite3.connect(file_path)
         return SqliteQuestionStorage._create(connection)
@@ -238,6 +275,18 @@ class JSONDecoder(json.JSONDecoder):
                 return Question.Difficulty(obj.get("__difficulty"))
         return obj
 
+
+def get_normalize_questions(question: Dict) -> Question:
+    text = question["question"]
+    answers = question["answers"]
+    dif = question["difficulty"]
+    difficulty, points = [
+        (Question.Difficulty.EASY, 1),
+        (Question.Difficulty.MEDIUM, 2),
+        (Question.Difficulty.HARD, 3)
+    ][dif - 1]
+
+    return Question(text, answers, points, difficulty, 0)
 
 def main():
     pass
