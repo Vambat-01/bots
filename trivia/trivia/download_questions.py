@@ -5,7 +5,7 @@ from pathlib import Path
 from itertools import chain
 from core.utils import log
 from time import sleep
-from trivia.question_storage import Question, JSONEncoder, JSONDecoder
+from trivia.question_storage import Question, SqliteQuestionStorage
 import argparse
 
 
@@ -58,14 +58,6 @@ def fix_text_question(question: Dict):
     question["question"] = fixed_text
 
 
-def save_to_file(questions: str, file_path: Path):
-    """
-    Записывает переданные вопросы в файл в json формате
-    """
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(questions, f, ensure_ascii=False, indent=4)
-
-
 def get_all_questions(max_questions: int) -> List[Dict]:
     """
     Получает нужное количество вопросов для SQLite базы данных и возвращает список вопросов
@@ -83,41 +75,17 @@ def get_all_questions(max_questions: int) -> List[Dict]:
     return all_questions
 
 
-# def to_question(question: Dict) -> Question:
-#         text = question["question"]
-#         answers = question["answers"]
-#         dif = question["difficulty"]
-#         difficulty, points = [
-#             (Question.Difficulty.EASY, 1),
-#             (Question.Difficulty.MEDIUM, 2),
-#             (Question.Difficulty.HARD, 3)
-#         ][dif - 1]
-#
-#         return Question(text, answers, points, difficulty, 0)
-
 def to_question(question: Dict) -> Question:
     text = question["question"]
     answers = question["answers"]
     dif = question["difficulty"]
-    # difficulty, points = [
-    #     (Question.Difficulty.EASY, 1),
-    #     (Question.Difficulty.MEDIUM, 2),
-    #     (Question.Difficulty.HARD, 3)
-    # ][dif - 1]
+    difficulty, points = [
+        (Question.Difficulty.EASY, 1),
+        (Question.Difficulty.MEDIUM, 2),
+        (Question.Difficulty.HARD, 3)
+    ][dif - 1]
 
-    difficulty = Question.Difficulty.EASY
-    points = 0
-    if dif == 1:
-        difficulty = Question.Difficulty.EASY
-        points = 1
-    elif dif == 2:
-        difficulty = Question.Difficulty.MEDIUM
-        points = 2
-    elif dif == 3:
-        difficulty = Question.Difficulty.HARD
-        points = 3
-    q = Question(text, answers, points, difficulty, 0)
-    return q
+    return Question(text, answers, points, difficulty, 0)
 
 
 def main():
@@ -137,7 +105,7 @@ def main():
     q_json = Question.schema().dump(questions_for_file, many=True)
     q_str = json.dumps(q_json, ensure_ascii=False, indent=4)
 
-    save_to_file(q_str, Path(args.file))
+    SqliteQuestionStorage.save_to_file(q_str, Path(args.file))
 
 
 if __name__ == "__main__":

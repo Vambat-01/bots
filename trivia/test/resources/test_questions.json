@@ -6,7 +6,8 @@
             "11"
         ],
         "points": 1,
-        "difficulty": 0
+        "difficulty": 0,
+        "correct_answer": 0
     },
     {
         "text": "17+3",
@@ -15,7 +16,8 @@
             "21"
         ],
         "points": 2,
-        "difficulty": 0
+        "difficulty": 0,
+        "correct_answer": 0
     },
     {
         "text": "27+3",
@@ -24,6 +26,7 @@
             "31"
         ],
         "points": 3,
-        "difficulty": 0
+        "difficulty": 0,
+        "correct_answer": 0
     }
 ]

@@ -65,9 +65,6 @@ class QuestionStorage(metaclass=ABCMeta):
         pass
 
 
-
-
-
 class JsonQuestionStorage(QuestionStorage):
     """
         Класс для чтения вопросов из JSON файла
@@ -87,41 +84,10 @@ class JsonQuestionStorage(QuestionStorage):
         """
         with open(self.file_path) as json_file:
             data = json.load(json_file)
-            questions = []
-            for item in data:
-                question = get_normalize_questions(item)
-                q_json = Question.schema().dump([question], many=True)
-                q_str = JSONEncoder().encode(q_json)
-                q_restored_json = JSONDecoder().decode(q_str)
-                q_restored = Question.schema().load(q_restored_json, many=True)
-                questions.append(q_restored[0])
-
-            return questions
-
-
-    # def load_questions(self) -> List[Question]:
-    #     """
-    #         Cчитывает список вопросов из файла
-    #     :return: список вопросов
-    #     """
-    #     with open(self.file_path) as json_file:
-    #         data = json.load(json_file)
-    #         questions = []
-    #         for item in data:
-    #             text = item["text"]
-    #             answers = item["answers"]
-    #             points = item["points"]
-    #             difficulty = Question.Difficulty(item["difficulty"])
-    #             quest = Question(text, answers, points, difficulty, 0)
-    #             questions.append(quest)
-    #         return questions
-    #
-    # def load(self):
-    #     with open(self.file_path) as json_file:
-    #         data = json.loads(json_file)
-    #     print(type(data))
-    #     json_decoded = JSONEncoder().decode(data)
-    #     return Question.from_dict(json_decoded)
+            q_str = JSONEncoder().encode(data)
+            q_restored_json = JSONDecoder().decode(q_str)
+            q_restored = Question.schema().load(q_restored_json, many=True)     # type: ignore
+            return q_restored
 
 
 class SqliteQuestionStorage(QuestionStorage):
@@ -186,6 +152,14 @@ class SqliteQuestionStorage(QuestionStorage):
                                                    FOREIGN KEY(questions_id) REFERENCES questions (id))
                                                    """)
         return SqliteQuestionStorage(connection)
+
+    @staticmethod
+    def save_to_file(questions: str, file_path: Path):
+        """
+        Записывает переданные вопросы в файл в json формате
+        """
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(questions)
 
     def __init__(self, connection: sqlite3.Connection):
         """
@@ -275,18 +249,6 @@ class JSONDecoder(json.JSONDecoder):
                 return Question.Difficulty(obj.get("__difficulty"))
         return obj
 
-
-def get_normalize_questions(question: Dict) -> Question:
-    text = question["question"]
-    answers = question["answers"]
-    dif = question["difficulty"]
-    difficulty, points = [
-        (Question.Difficulty.EASY, 1),
-        (Question.Difficulty.MEDIUM, 2),
-        (Question.Difficulty.HARD, 3)
-    ][dif - 1]
-
-    return Question(text, answers, points, difficulty, 0)
 
 def main():
     pass
