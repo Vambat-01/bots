@@ -5,7 +5,7 @@ from pathlib import Path
 from itertools import chain
 from core.utils import log
 from time import sleep
-from trivia.question_storage import Question
+from trivia.question_storage import Question, JSONEncoder, JSONDecoder
 import argparse
 
 
@@ -58,7 +58,7 @@ def fix_text_question(question: Dict):
     question["question"] = fixed_text
 
 
-def save_to_file(questions: List[Dict], file_path: Path):
+def save_to_file(questions: str, file_path: Path):
     """
     Записывает переданные вопросы в файл в json формате
     """
@@ -83,17 +83,41 @@ def get_all_questions(max_questions: int) -> List[Dict]:
     return all_questions
 
 
-def get_normalize_questions(question: Dict) -> Question:
-        text = question["question"]
-        answers = question["answers"]
-        dif = question["difficulty"]
-        difficulty, points = [
-            (Question.Difficulty.EASY, 1),
-            (Question.Difficulty.MEDIUM, 2),
-            (Question.Difficulty.HARD, 3)
-        ][dif - 1]
+# def to_question(question: Dict) -> Question:
+#         text = question["question"]
+#         answers = question["answers"]
+#         dif = question["difficulty"]
+#         difficulty, points = [
+#             (Question.Difficulty.EASY, 1),
+#             (Question.Difficulty.MEDIUM, 2),
+#             (Question.Difficulty.HARD, 3)
+#         ][dif - 1]
+#
+#         return Question(text, answers, points, difficulty, 0)
 
-        return Question(text, answers, points, difficulty, 0)
+def to_question(question: Dict) -> Question:
+    text = question["question"]
+    answers = question["answers"]
+    dif = question["difficulty"]
+    # difficulty, points = [
+    #     (Question.Difficulty.EASY, 1),
+    #     (Question.Difficulty.MEDIUM, 2),
+    #     (Question.Difficulty.HARD, 3)
+    # ][dif - 1]
+
+    difficulty = Question.Difficulty.EASY
+    points = 0
+    if dif == 1:
+        difficulty = Question.Difficulty.EASY
+        points = 1
+    elif dif == 2:
+        difficulty = Question.Difficulty.MEDIUM
+        points = 2
+    elif dif == 3:
+        difficulty = Question.Difficulty.HARD
+        points = 3
+    q = Question(text, answers, points, difficulty, 0)
+    return q
 
 
 def main():
@@ -103,12 +127,17 @@ def main():
     parser.add_argument("-count", type=int, help="Количество вопросов, полученных по API запросу")
     args = parser.parse_args()
 
+    questions_for_file = []
     all_questions = get_all_questions(args.count)
 
     for question in all_questions:
         fix_text_question(question)
+        questions_for_file.append(to_question(question))
 
-    save_to_file(all_questions, Path(args.file))
+    q_json = Question.schema().dump(questions_for_file, many=True)
+    q_str = json.dumps(q_json, ensure_ascii=False, indent=4)
+
+    save_to_file(q_str, Path(args.file))
 
 
 if __name__ == "__main__":
