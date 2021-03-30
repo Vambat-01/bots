@@ -1,11 +1,10 @@
 import requests
 from typing import List, Dict
-import json
 from pathlib import Path
 from itertools import chain
 from core.utils import log
 from time import sleep
-from trivia.question_storage import Question, SqliteQuestionStorage
+from trivia.question_storage import Question, JsonQuestionStorage
 import argparse
 
 
@@ -13,14 +12,14 @@ INITIAL_RETRY_DELAY = 1
 MAX_DELAY = 300
 
 
-def get_questions(q_type: int, q_count: int, delay: int) -> List[Dict]:
+def download(q_type: int, q_count: int, delay: int) -> List[Dict]:
     """
     Загружает вопросы для заполнения SQLite базы данных
     :param q_type: тип сложности получаемого вопроса
     :param q_count: количество полученных вопросов
     :param delay: начальная задержка перед повторной попыткой запроса. Если изначальная попытка не удалась,
                   то время задержки возростает экспоненциально. Если попытка удачная, то задержка становится
-                  снова равной начальной задержке. Максимальное время задержки 5 минут. Если в базе данных
+                  снова равной начальной задержке. Максимальное время задержки 5 минут. Если на сайте
                   закончились вопросы, то при запросе возвращается пустой список.
     """
     url = "https://engine.lifeis.porn/api/millionaire.php"
@@ -43,13 +42,13 @@ def get_questions(q_type: int, q_count: int, delay: int) -> List[Dict]:
         log(f"Got 429. Sleeping {delay} sec before next attempt")
         sleep(delay)
         delay = min(delay * 2, MAX_DELAY)
-        return get_questions(q_type, q_count, delay)
+        return download(q_type, q_count, delay)
 
     else:
         return []
 
 
-def fix_text_question(question: Dict):
+def fix_question_text(question: Dict) -> None:
     """
     Исправляет текст в переданном вопросе
     """
@@ -58,24 +57,25 @@ def fix_text_question(question: Dict):
     question["question"] = fixed_text
 
 
-def get_all_questions(max_questions: int) -> List[Dict]:
+def get_questions(max_questions: int) -> List[Dict]:
     """
     Получает нужное количество вопросов для SQLite базы данных и возвращает список вопросов
     :param max_questions: максимальное количество вопросов
     """
-    all_questions: List[Dict] = []
-    while len(all_questions) < max_questions:
-        easy = get_questions(1, 5, 1)
-        medium = get_questions(2, 5, 1)
-        hard = get_questions(3, 5, 1)
+    questions: List[Dict] = []
+    while len(questions) < max_questions:
+        easy = download(1, 5, 1)
+        medium = download(2, 5, 1)
+        hard = download(3, 5, 1)
 
         for question in chain(easy, medium, hard):
-            all_questions.append(question)
+            questions.append(question)
 
-    return all_questions
+    return questions
 
 
 def to_question(question: Dict) -> Question:
+    fix_question_text(question)
     text = question["question"]
     answers = question["answers"]
     dif = question["difficulty"]
@@ -95,17 +95,10 @@ def main():
     parser.add_argument("-count", type=int, help="Количество вопросов, полученных по API запросу")
     args = parser.parse_args()
 
-    questions_for_file = []
-    all_questions = get_all_questions(args.count)
+    raw_questions = get_questions(args.count)
+    questions = [to_question(q) for q in raw_questions]
 
-    for question in all_questions:
-        fix_text_question(question)
-        questions_for_file.append(to_question(question))
-
-    q_json = Question.schema().dump(questions_for_file, many=True)
-    q_str = json.dumps(q_json, ensure_ascii=False, indent=4)
-
-    SqliteQuestionStorage.save_to_file(q_str, Path(args.file))
+    JsonQuestionStorage.save_to_file(questions, Path(args.file))
 
 
 if __name__ == "__main__":

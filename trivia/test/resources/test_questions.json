@@ -6,7 +6,9 @@
             "11"
         ],
         "points": 1,
-        "difficulty": 0,
+        "difficulty": {
+            "__difficulty": 0
+        },
         "correct_answer": 0
     },
     {
@@ -16,7 +18,9 @@
             "21"
         ],
         "points": 2,
-        "difficulty": 0,
+        "difficulty": {
+            "__difficulty": 0
+        },
         "correct_answer": 0
     },
     {
@@ -26,7 +30,9 @@
             "31"
         ],
         "points": 3,
-        "difficulty": 0,
+        "difficulty": {
+            "__difficulty": 0
+        },
         "correct_answer": 0
     }
 ]

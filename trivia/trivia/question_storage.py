@@ -83,11 +83,18 @@ class JsonQuestionStorage(QuestionStorage):
         :return: список вопросов
         """
         with open(self.file_path) as json_file:
-            data = json.load(json_file)
-            q_str = JSONEncoder().encode(data)
-            q_restored_json = JSONDecoder().decode(q_str)
-            q_restored = Question.schema().load(q_restored_json, many=True)     # type: ignore
+            q_restored_json = json.load(json_file, cls=JSONDecoder)
+            q_restored = [Question.from_dict(q) for q in q_restored_json]   # type:ignore
             return q_restored
+
+    @staticmethod
+    def save_to_file(questions: List[Question], file_path: Path):
+        """
+        Записывает переданные вопросы в файл в json формате
+        """
+        quest_json = [q.to_dict() for q in questions]   # type:ignore
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(quest_json, f, cls=JSONEncoder, ensure_ascii=False, indent=4)
 
 
 class SqliteQuestionStorage(QuestionStorage):
@@ -124,7 +131,7 @@ class SqliteQuestionStorage(QuestionStorage):
         :param file_path: путь где будет создана база. Наличие файла по этому пути приведет к ошибке.
         """
         if file_path.exists():
-            raise CreateDatabaseException("SQLite database already exists")
+            raise CreateDatabaseException(f"SQLite database already exists. File path: {file_path}")
 
         connection = sqlite3.connect(file_path)
         return SqliteQuestionStorage._create(connection)
@@ -152,14 +159,6 @@ class SqliteQuestionStorage(QuestionStorage):
                                                    FOREIGN KEY(questions_id) REFERENCES questions (id))
                                                    """)
         return SqliteQuestionStorage(connection)
-
-    @staticmethod
-    def save_to_file(questions: str, file_path: Path):
-        """
-        Записывает переданные вопросы в файл в json формате
-        """
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(questions)
 
     def __init__(self, connection: sqlite3.Connection):
         """

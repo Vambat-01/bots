@@ -8,7 +8,9 @@
             "Девять"
         ],
         "points": 1,
-        "difficulty": 0
+        "difficulty": {
+            "__difficulty": 0
+        }
     },
     {
         "text": "Что делают чип и дейл?",
@@ -19,7 +21,9 @@
             "Протестуют"
         ],
         "points": 1,
-        "difficulty": 0
+        "difficulty": {
+            "__difficulty": 0
+        }
     },
     {
         "text": "Хороша ложка к чему?",
@@ -30,7 +34,9 @@
             "К чаю"
         ],
         "points": 2,
-        "difficulty": 1
+        "difficulty": {
+            "__difficulty": 1
+        }
     },
     {
         "text": "8 + 3",
@@ -41,7 +47,9 @@
             "12"
         ],
         "points": 2,
-        "difficulty": 1
+        "difficulty": {
+            "__difficulty": 1
+        }
     },
     {
         "text": "Столица России?",
@@ -52,6 +60,8 @@
             "Воронеж"
         ],
         "points": 3,
-        "difficulty": 2
+        "difficulty": {
+            "__difficulty": 2
+        }
     }
 ]
