@@ -65,20 +65,16 @@ class BotStateFactory:
             self.random.shuffle(indexed_answers)
             correct_answer = 0
             answers = []
-        # for i in range(len(game_questions)):
-        #     indexed_answers = list(enumerate(game_questions[i].answers))
-        #     self.random.shuffle(indexed_answers)
-        #     correct_answer = 0
-        #     answers = []
 
             for (index, (original_index, answer)) in enumerate(indexed_answers):
                 if original_index == 0:
-                    correct_answer = index + 1
+                    correct_answer = index
                 answers.append(answer)
 
             new_game_questions.append(Question(question.text,
                                                answers,
                                                question.points,
+                                               question.difficulty,
                                                correct_answer
                                                )
                                       )
@@ -406,14 +402,14 @@ class InGameState(BotState):
                 format.get_number_of_answers_help(num_of_resp),
                 "HTML"
             )
-        elif answer_id > num_of_resp:
+        elif answer_id - 1 > num_of_resp:
             response_message = Message(
                 chat_id,
                 format.get_number_of_answers_help(num_of_resp),
                 "HTML"
             )
         else:
-            if correct_answer == answer_id:
+            if correct_answer == answer_id - 1:
                 self.state.game_score += self.state.questions[self.state.current_question].points
 
             if self.state.current_question < len(self.state.questions) - 1:

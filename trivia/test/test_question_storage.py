@@ -1,6 +1,5 @@
 import unittest
 from trivia.question_storage import JsonQuestionStorage, SqliteQuestionStorage, Question
-import sqlite3
 from typing import List
 
 
@@ -24,8 +23,8 @@ class SqliteQuestiosStorageTest(unittest.TestCase):
     def test_add_load(self):
 
         test_questions = [
-                            Question("15+5", ["30", "20", "15"], 2, 1),
-                            Question("25+5", ["35", "25", "30"], 3, 2)
+                            Question("15+5", ["30", "20", "15"], 2, Question.Difficulty.MEDIUM, 1),
+                            Question("25+5", ["35", "25", "30"], 3, Question.Difficulty.HARD, 2)
                          ]
         storage = SqliteQuestionStorage.create_in_memory()
         storage.add_questions(test_questions)
@@ -34,8 +33,8 @@ class SqliteQuestiosStorageTest(unittest.TestCase):
 
         self.assertEqual(
             [
-                Question("15+5", ["15", "20", "30"], 2, 1),
-                Question("25+5", ["25", "30", "35"], 3, 1)
+                Question("15+5", ["15", "20", "30"], 2, Question.Difficulty.MEDIUM, 1),
+                Question("25+5", ["25", "30", "35"], 3, Question.Difficulty.HARD, 1)
             ],
             norm_questions
         )

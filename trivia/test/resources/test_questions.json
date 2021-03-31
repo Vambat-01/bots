@@ -5,7 +5,11 @@
             "10",
             "11"
         ],
-        "points": 1
+        "points": 1,
+        "difficulty": {
+            "__difficulty": 0
+        },
+        "correct_answer": 0
     },
     {
         "text": "17+3",
@@ -13,7 +17,11 @@
             "20",
             "21"
         ],
-        "points": 2
+        "points": 2,
+        "difficulty": {
+            "__difficulty": 0
+        },
+        "correct_answer": 0
     },
     {
         "text": "27+3",
@@ -21,6 +29,10 @@
             "30",
             "31"
         ],
-        "points": 3
+        "points": 3,
+        "difficulty": {
+            "__difficulty": 0
+        },
+        "correct_answer": 0
     }
 ]
