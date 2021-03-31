@@ -83,9 +83,9 @@ class JsonQuestionStorage(QuestionStorage):
         :return: список вопросов
         """
         with open(self.file_path) as json_file:
-            q_restored_json = json.load(json_file, cls=JSONDecoder)
-            q_restored = [Question.from_dict(q) for q in q_restored_json]   # type:ignore
-            return q_restored
+            quest_json = json.load(json_file, cls=JSONDecoder)
+            questions = [Question.from_dict(q) for q in quest_json]   # type:ignore
+            return questions
 
     @staticmethod
     def save_to_file(questions: List[Question], file_path: Path):

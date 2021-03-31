@@ -43,7 +43,6 @@ def download(q_type: int, q_count: int, delay: int) -> List[Dict]:
         sleep(delay)
         delay = min(delay * 2, MAX_DELAY)
         return download(q_type, q_count, delay)
-
     else:
         return []
 
