@@ -2,6 +2,9 @@ from core.keyboard import Keyboard
 from requests.models import Response
 from abc import ABCMeta, abstractmethod
 from typing import Optional
+from dataclasses import dataclass
+
+
 
 
 class TelegramApi(metaclass=ABCMeta):
