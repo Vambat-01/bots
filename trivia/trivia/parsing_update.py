@@ -2,6 +2,10 @@ from dataclasses import dataclass, field
 from typing import Optional, List
 from dataclasses_json import dataclass_json, config, Undefined
 
+"""
+Входящее обновление из Telegram: Update documentation ( https://core.telegram.org/bots/api#getting-updates )
+"""
+
 
 @dataclass
 class From:
