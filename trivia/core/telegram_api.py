@@ -2,9 +2,7 @@ from core.keyboard import Keyboard
 from requests.models import Response
 from abc import ABCMeta, abstractmethod
 from typing import Optional
-from dataclasses import dataclass
-
-
+from trivia.parsing_update import UpdateData
 
 
 class TelegramApi(metaclass=ABCMeta):
@@ -13,7 +11,7 @@ class TelegramApi(metaclass=ABCMeta):
     """
 
     @abstractmethod
-    def get_updates(self, offset: int) -> Response:
+    def get_updates(self, offset: int) -> UpdateData:
         """
             Получение входящего обновления
         """

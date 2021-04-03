@@ -17,6 +17,7 @@ from test.test_utils import DoNothingRandom
 from trivia.question_storage import JsonQuestionStorage, Question, JSONEncoder, JSONDecoder
 from trivia.bijection import BotStateToDictBijection
 from trivia.bot_state import InGameState
+from trivia.parsing_update import UpdateData
 
 
 CHAT_ID_1 = 125
@@ -113,13 +114,16 @@ class FakeTelegramApi(TelegramApi):
         self.edit_message_is_called = False
         self.current_response_index = 0
 
-    def get_updates(self, offset: int) -> Response:
+    def get_updates(self, offset: int) -> UpdateData:
         body = json.dumps(self.response_bodies[self.current_response_index])
         self.current_response_index += 1
         content = body.encode('utf-8')
-        response = Response()
-        response.status_code = 200
-        response._content = content
+        result = make_callback_query_update("1", CHAT_ID_1)
+        response = UpdateData(True, result)
+
+        # response = Response()
+        # response.status_code = 200
+        # response._content = content
         return response
 
     def send_message(self,

@@ -1,5 +1,5 @@
 import json
-from typing import List, Dict
+from typing import List
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from collections import defaultdict
@@ -84,7 +84,7 @@ class JsonQuestionStorage(QuestionStorage):
         """
         with open(self.file_path) as json_file:
             quest_json = json.load(json_file, cls=JSONDecoder)
-            questions = [Question.from_dict(q) for q in quest_json]   # type:ignore
+            questions = [Question.from_dict(q) for q in quest_json]   # type: ignore
             return questions
 
     @staticmethod

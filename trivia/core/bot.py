@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any, Callable
+from typing import Optional, Dict, Callable
 from core.utils import log
 from core.telegram_api import TelegramApi
 from core.bot_state import BotState, BotResponse
@@ -10,6 +10,7 @@ from trivia.bijection import Bijection
 from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json
 from core.utils import JsonDict
+from trivia.parsing_update import Update
 
 
 class Bot:
@@ -72,11 +73,10 @@ class Bot:
         :return: None
         """
         response = self.telegram_api.get_updates(self.state.last_update_id + 1)
-        data = response.json()
-        result = data["result"]
+        result = response.result
         for update in result:
-            self.state.last_update_id = update["update_id"]
-            chat_id = self._get_chat_id(update)
+            self.state.last_update_id = update.update_id
+            chat_id = update.get_chat_id(update)
             state = self._get_state_for_chat(chat_id)
             bot_response = self.process_update(update, state)
             if bot_response is not None:
@@ -106,10 +106,10 @@ class Bot:
                                                        first_message.keyboard
                                                        )
 
-    def process_update(self, update: Dict[str, Any], state: BotState) -> Optional[BotResponse]:
-        if "message" in update:
-            chat_id = self._get_chat_id(update)
-            message_text = update["message"]["text"]
+    def process_update(self, update: Update, state: BotState) -> Optional[BotResponse]:
+        if update.message:
+            chat_id = update.get_chat_id(update)
+            message_text = update.message.text
             log(f"chat_id : {chat_id}. text: {message_text} ")
             if message_text.startswith("/"):
                 user_command = Command(chat_id, message_text)
@@ -119,13 +119,13 @@ class Bot:
                 user_message = Message(chat_id, message_text)
                 bot_response = state.process_message(user_message)
                 return bot_response
-        elif "callback_query" in update:
-            callback_query_id = update["callback_query"]["id"]
-            chat_id = update["callback_query"]["message"]["chat"]["id"]
-            message_text = update["callback_query"]["message"]["text"]
+        elif update.callback_query:
+            callback_query_id = update.callback_query.id
+            chat_id = update.callback_query.message.chat.id
+            message_text = update.callback_query.message.text
             message = Message(chat_id, message_text)
-            callback_query_data = update["callback_query"]["data"]
-            message_id = update["callback_query"]["message"]["message_id"]
+            callback_query_data = update.callback_query.data
+            message_id = update.callback_query.message.message_id
             callback_query = CallbackQuery(callback_query_data, message, message_id)
             self.telegram_api.answer_callback_query(callback_query_id)
             bot_response = state.process_callback_query(callback_query)
@@ -158,13 +158,6 @@ class Bot:
         for chat_id, st in proto.chat_states.items():
             state.chat_states[int(chat_id)] = self.state_to_dict_bijection.backward(st)
         self.state = state
-
-    def _get_chat_id(self, update: Dict[str, Any]) -> int:
-        if "callback_query" in update:
-            chat_id = update["callback_query"]["message"]["chat"]["id"]
-        else:
-            chat_id = update["message"]["chat"]["id"]
-        return chat_id
 
     def _get_state_for_chat(self, chat_id: int) -> BotState:
         if chat_id in self.state.chat_states:
