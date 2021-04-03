@@ -107,15 +107,15 @@ class FakeState(BotState):
 
 
 class FakeTelegramApi(TelegramApi):
-    def __init__(self, response_bodies: List[Update]):
+    def __init__(self, response_bodies: List[UpdateData]):
         self.sent_messages: List[str] = []
         self.response_bodies = response_bodies
         self.answer_callback_query_is_called = False
         self.edit_message_is_called = False
         self.current_response_index = 0
 
-    def get_updates(self, offset: int) -> UpdateData:
-        response = UpdateData(True, self.response_bodies)
+    def get_updates(self, offset: int) -> List[UpdateData]:
+        response = self.response_bodies
         return response
 
     def send_message(self,
@@ -146,8 +146,8 @@ class BotTest(TestCase):
             else:
                 return self.state2
 
-    def check_transition(self, update_type: UpdateType, response_body: List[Update]):
-        telegram_api = FakeTelegramApi(response_body)
+    def check_transition(self, update_type: UpdateType, response_body: UpdateData):
+        telegram_api = FakeTelegramApi([response_body])
         next_state = NewFakeState()
         state = FakeState("bot message", next_state)
         bot_state_to_dict_bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
@@ -168,7 +168,7 @@ class BotTest(TestCase):
 
     def test_message_state_transition(self):
         update = make_message_update("1", CHAT_ID_1)
-        self.check_transition(UpdateType.MESSAGE, update.result)
+        self.check_transition(UpdateType.MESSAGE, update)
 
     def test_command_state_transition(self):
         update = make_message_update("/command", CHAT_ID_1)
@@ -180,7 +180,7 @@ class BotTest(TestCase):
 
     def check_command_without_state_transition(self, user_message: str, is_command: bool):
         update = make_message_update(user_message, CHAT_ID_1)
-        telegram_api = FakeTelegramApi(update.result)
+        telegram_api = FakeTelegramApi([update])
         state = FakeState("bot message")
         bot_state_to_dict_bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
         game_state = Bot.State()
@@ -208,6 +208,8 @@ class BotTest(TestCase):
         create_initial_state = BotTest.CreateInitialState()
         update1 = make_message_update("user 1", CHAT_ID_1)
         update2 = make_message_update("user 2", CHAT_ID_2)
+        res1 = update1.result
+        res2 = update2.result
         telegram_api = FakeTelegramApi([update1.result, update2.result])
         # telegram_api = FakeTelegramApi([update1, update2])
         bot_state_to_dict_bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
