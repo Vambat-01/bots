@@ -19,8 +19,8 @@ class GetResponseForValidAnswerText(TestCase):
         expected_text = """
                     <b>&#127891 Next question:</b>
                         <b>10+10</b>
-                    |&#8195| 1: 20
-                    |&#8195| 2: 45
+                    &#9898 1: 20
+                    &#9898 2: 45
                  """
 
         self.assertEqual(dedent_and_strip(expected_text),
@@ -33,8 +33,8 @@ class GetResponseForValidAnswerText(TestCase):
         expected_text = """
                         <b>&#127891 Next question:</b>
                             <b>15+10</b>
-                        |&#8195| 1: 30
-                        |&#8195| 2: 28
+                        &#9898 1: 30
+                        &#9898 2: 28
                      """
 
         self.assertEqual(

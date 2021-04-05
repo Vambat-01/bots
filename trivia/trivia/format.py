@@ -2,10 +2,9 @@ from trivia.question_storage import Question
 from typing import Optional, List
 
 
-SMILE_THUMB_UP = '&#128077'
-SMILE_THUMB_DOWN = '&#128078'
-SMILE_FINGER_RIGHT = '&#128073'
-SMILE_EMPTY = '&#8195'
+SMILE_GREEN_CIRCLE = '&#128994'
+SMILE_RED_CIRCLE = '&#128308'
+SMILE_WHITE_CIRCLE = '&#9898'
 SMILE_HAT = '&#127891'
 SMILE_CHECK = '&#10004'
 SMILE_CROSS = '&#10006'
@@ -79,14 +78,14 @@ def _get_answers(list_answers: List[str], correct_answer: Optional[int], answer_
     for i in range(len(list_answers)):
         if answer_id is not None:
             if correct_answer == answer_id and answer_id == i + 1:
-                possible_answers.append(f"{SMILE_THUMB_UP} {i + 1}: {list_answers[i]}")
+                possible_answers.append(f"{SMILE_GREEN_CIRCLE} {i + 1}: {list_answers[i]}")
             elif correct_answer != answer_id and answer_id == i + 1:
-                possible_answers.append(f"{SMILE_THUMB_DOWN} {i + 1}: {list_answers[i]}")
+                possible_answers.append(f"{SMILE_RED_CIRCLE} {i + 1}: {list_answers[i]}")
             elif correct_answer == i + 1 and correct_answer != answer_id:
-                possible_answers.append(f"{SMILE_FINGER_RIGHT} {i + 1}: {list_answers[i]}")
+                possible_answers.append(f"{SMILE_GREEN_CIRCLE} {i + 1}: {list_answers[i]}")
             else:
-                possible_answers.append(f"|{SMILE_EMPTY}| {i + 1}: {list_answers[i]}")
+                possible_answers.append(f"{SMILE_WHITE_CIRCLE} {i + 1}: {list_answers[i]}")
         else:
-            possible_answers.append(f"|{SMILE_EMPTY}| {i + 1}: {list_answers[i]}")
+            possible_answers.append(f"{SMILE_WHITE_CIRCLE} {i + 1}: {list_answers[i]}")
 
     return possible_answers
