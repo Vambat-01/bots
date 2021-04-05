@@ -435,7 +435,7 @@ class InGameState(BotState):
                           message_id: int) -> MessageEdit:
         text_question = self.state.questions[question_id]
         answer_id = self.parse_int(answer_text) if answer_text is not None else None
-        message_text = format.make_message(correct_answer, answer_id, text_question)
+        message_text = format.make_message(correct_answer + 1, answer_id, text_question)
 
         if answer_id == 1:
             return MessageEdit(chat_id,
