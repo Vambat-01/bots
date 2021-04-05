@@ -123,7 +123,7 @@ class InGameStateTest(TestCase):
         next_question_id = 1
         expected_message = Message(CHAT_ID,
                                    format.make_message(
-                                       0,
+                                       1,
                                        question=Question("17+3", ["20", "21"], 2, Question.Difficulty.EASY, 0)
                                    ),
                                    "HTML",
@@ -132,7 +132,7 @@ class InGameStateTest(TestCase):
         expected_message_edit = MessageEdit(CHAT_ID,
                                             prev_message_id,
                                             format.make_message(
-                                                0,
+                                                1,
                                                 1,
                                                 Question("7+3", ["10", "11"], 1, Question.Difficulty.EASY, 0)
                                             ),
@@ -172,7 +172,7 @@ class InGameStateTest(TestCase):
         next_question_id = 1
         expected_message = Message(CHAT_ID,
                                    format.make_message(
-                                       0,
+                                       1,
                                        question=Question("17+3", ["20", "21"], 2, Question.Difficulty.EASY, 0)
                                    ),
                                    "HTML",
@@ -181,7 +181,7 @@ class InGameStateTest(TestCase):
         expected_message_edit = MessageEdit(CHAT_ID,
                                             prev_message_id,
                                             format.make_message(
-                                                0,
+                                                1,
                                                 2,
                                                 Question("7+3", ["10", "11"], 1, Question.Difficulty.EASY, 0)
                                             ),
