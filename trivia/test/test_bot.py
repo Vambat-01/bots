@@ -16,7 +16,7 @@ from test.test_utils import DoNothingRandom
 from trivia.question_storage import JsonQuestionStorage, Question, JSONEncoder, JSONDecoder
 from trivia.bijection import BotStateToDictBijection
 from trivia.bot_state import InGameState
-from trivia.parsing_update import UpdateData
+from trivia.telegram_models import UpdatesResponse
 
 
 CHAT_ID_1 = 125
@@ -106,14 +106,14 @@ class FakeState(BotState):
 
 
 class FakeTelegramApi(TelegramApi):
-    def __init__(self, response_bodies: List[UpdateData]):
+    def __init__(self, response_bodies: List[UpdatesResponse]):
         self.sent_messages: List[str] = []
         self.response_bodies = response_bodies
         self.answer_callback_query_is_called = False
         self.edit_message_is_called = False
         self.current_response_index = 0
 
-    def get_updates(self, offset: int) -> UpdateData:
+    def get_updates(self, offset: int) -> UpdatesResponse:
         response = self.response_bodies[self.current_response_index]
         self.current_response_index += 1
         return response
@@ -146,7 +146,7 @@ class BotTest(TestCase):
             else:
                 return self.state2
 
-    def check_transition(self, update_type: UpdateType, response_body: UpdateData):
+    def check_transition(self, update_type: UpdateType, response_body: UpdatesResponse):
         telegram_api = FakeTelegramApi([response_body])
         next_state = NewFakeState()
         state = FakeState("bot message", next_state)
@@ -208,8 +208,6 @@ class BotTest(TestCase):
         create_initial_state = BotTest.CreateInitialState()
         update1 = make_message_update("user 1", CHAT_ID_1)
         update2 = make_message_update("user 2", CHAT_ID_2)
-        res1 = update1.result
-        res2 = update2.result
         telegram_api = FakeTelegramApi([update1, update2])
         bot_state_to_dict_bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
         game_state = Bot.State()
@@ -236,7 +234,7 @@ class BotTest(TestCase):
         self.assertEqual(bot1, bot2)
 
 
-def make_message_update(text: str, chat_id: int) -> UpdateData:
+def make_message_update(text: str, chat_id: int) -> UpdatesResponse:
     """
         Создает Telegram update состоящий из одного сообщения. В зависимости от `text` это сообщение представляет собой
         либо сообщение либо команду от пользователя.
@@ -272,13 +270,11 @@ def make_message_update(text: str, chat_id: int) -> UpdateData:
             }
         ]
     }
-    str_message_update = json.dumps(data)
-    dict_message_update = json.loads(str_message_update)
-    message_update = UpdateData.from_dict(dict_message_update)      # type: ignore
+    message_update = UpdatesResponse.from_dict(data)      # type: ignore
     return message_update
 
 
-def make_callback_query_update(callback_data: str, chat_id: int) -> UpdateData:
+def make_callback_query_update(callback_data: str, chat_id: int) -> UpdatesResponse:
     """
         Создает Telegram update состоящий из одного CallbackQuery.
     :param callback_data: ответ при нажатие на кнопку встроенной клавиатуры
@@ -348,9 +344,7 @@ def make_callback_query_update(callback_data: str, chat_id: int) -> UpdateData:
             }
         ]
     }
-    str_call_back_query_update = json.dumps(data)
-    dict_call_back_query_update = json.loads(str_call_back_query_update)
-    call_back_query_update = UpdateData.from_dict(dict_call_back_query_update)      # type: ignore
+    call_back_query_update = UpdatesResponse.from_dict(data)      # type: ignore
     return call_back_query_update
 
 

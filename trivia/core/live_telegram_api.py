@@ -3,7 +3,7 @@ from core.keyboard import Keyboard
 from typing import Optional
 from core.utils import log
 from core.telegram_api import TelegramApi
-from trivia.parsing_update import UpdateData
+from trivia.telegram_models import UpdatesResponse
 import json
 
 
@@ -11,7 +11,7 @@ class LiveTelegramApi(TelegramApi):
     def __init__(self, token: str):
         self.token = token
 
-    def get_updates(self, offset: int) -> UpdateData:
+    def get_updates(self, offset: int) -> UpdatesResponse:
         """
             Получает входящее обновление
         :param offset: числовой номер обновления
@@ -23,8 +23,8 @@ class LiveTelegramApi(TelegramApi):
             "offset": offset,
             "timeout": 10
         })
-        response_text = json.loads(response.text)
-        update_data = UpdateData.from_dict(response_text)   # type: ignore
+        response_json = json.loads(response.text)
+        update_data = UpdatesResponse.from_dict(response_json)   # type: ignore
 
         return update_data
 

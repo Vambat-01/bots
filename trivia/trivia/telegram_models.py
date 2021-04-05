@@ -6,7 +6,7 @@ from dataclasses_json import dataclass_json, config, Undefined
 @dataclass
 class From:
     """
-     https://core.telegram.org/bots/api#getting-updates
+     https://core.telegram.org/bots/api#user
     """
 
     id: int
@@ -18,7 +18,7 @@ class From:
 @dataclass
 class Chat:
     """
-     https://core.telegram.org/bots/api#getting-updates
+     https://core.telegram.org/bots/api#chat
     """
     id: int
     first_name: str
@@ -31,7 +31,7 @@ class Chat:
 @dataclass
 class Message:
     """
-     https://core.telegram.org/bots/api#getting-updates
+     https://core.telegram.org/bots/api#message
     """
     message_id: int
     from_: From = field(metadata=config(field_name="from"))
@@ -44,7 +44,7 @@ class Message:
 @dataclass
 class CallBackQuery:
     """
-     https://core.telegram.org/bots/api#getting-updates
+     https://core.telegram.org/bots/api#callbackquery
     """
     id: str
     from_: From = field(metadata=config(field_name="from"))
@@ -73,7 +73,7 @@ class Update:
 
 @dataclass_json(undefined=Undefined.EXCLUDE)
 @dataclass
-class UpdateData:
+class UpdatesResponse:
     """
      https://core.telegram.org/bots/api#getting-updates
     """

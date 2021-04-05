@@ -10,7 +10,7 @@ from trivia.bijection import Bijection
 from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json
 from core.utils import JsonDict
-from trivia.parsing_update import Update
+from trivia.telegram_models import Update
 
 
 class Bot:
