@@ -4,7 +4,7 @@ from dataclasses_json import dataclass_json, config, Undefined
 
 
 @dataclass
-class From:
+class User:
     """
      https://core.telegram.org/bots/api#user
     """
@@ -34,7 +34,7 @@ class Message:
      https://core.telegram.org/bots/api#message
     """
     message_id: int
-    from_: From = field(metadata=config(field_name="from"))
+    from_: User = field(metadata=config(field_name="from"))
     chat: Chat
     date: int
     text: str
@@ -47,7 +47,7 @@ class CallBackQuery:
      https://core.telegram.org/bots/api#callbackquery
     """
     id: str
-    from_: From = field(metadata=config(field_name="from"))
+    from_: User = field(metadata=config(field_name="from"))
     message: Message
     data: str
 
