@@ -17,11 +17,12 @@ from trivia.question_storage import JsonQuestionStorage, Question, JSONEncoder, 
 from trivia.bijection import BotStateToDictBijection
 from trivia.bot_state import InGameState
 from trivia.telegram_models import UpdatesResponse
+from pathlib import Path
 
 
 CHAT_ID_1 = 125
 CHAT_ID_2 = 150
-TEST_QUESTIONS_PATH = "resources/test_questions.json"
+TEST_QUESTIONS_PATH = Path("resources/test_questions.json")
 GAME_ID = "125"
 
 
@@ -348,7 +349,7 @@ def make_callback_query_update(callback_data: str, chat_id: int) -> UpdatesRespo
     return call_back_query_update
 
 
-def _make_state_factory(questions_file_path: str) -> BotStateFactory:
+def _make_state_factory(questions_file_path: Path) -> BotStateFactory:
     storage = JsonQuestionStorage(questions_file_path)
     random = DoNothingRandom()
     state_factory = BotStateFactory(storage, random)

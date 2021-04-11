@@ -9,6 +9,7 @@ from typing import List, Tuple, Optional
 from core.utils import dedent_and_strip
 from trivia import format
 from test.test_utils import DoNothingRandom
+from pathlib import Path
 
 
 CHAT_ID = 300
@@ -29,7 +30,7 @@ class InGameStateTest(TestCase):
             :param conversation: список пар (сообщение пользователя, ответ бота на это сообщение)
             :param expected_state: ожидаемое состояние бота в конце диалога
         """
-        json_file = "resources/test_questions.json"
+        json_file = Path("resources/test_questions.json")
         storage = JsonQuestionStorage(json_file)
         questions = storage.load_questions()
         game_state = InGameState.State(questions, GAME_ID)
@@ -49,7 +50,7 @@ class InGameStateTest(TestCase):
                 self.assertEqual(expected_response, response)
 
     def create_state_factory(self) -> BotStateFactory:
-        json_file = "resources/test_questions.json"
+        json_file = Path("resources/test_questions.json")
         storage = JsonQuestionStorage(json_file)
         random = DoNothingRandom()
         state_factory = BotStateFactory(storage, random)
@@ -362,7 +363,7 @@ class InGameStateTest(TestCase):
         )
 
 
-def _make_in_game_state(questions_file_path: str) -> InGameState:
+def _make_in_game_state(questions_file_path: Path) -> InGameState:
     """
         Создает InGameState с вопросами из файла questions_file_path
     :param questions_file_path: путь к файлу json

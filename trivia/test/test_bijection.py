@@ -4,9 +4,10 @@ from trivia.question_storage import JsonQuestionStorage
 from test.test_utils import DoNothingRandom
 from trivia.bijection import BotStateToDictBijection
 from trivia.question_storage import Question
+from pathlib import Path
 
 
-TEST_QUESTIONS_PATH = "resources/test_questions.json"
+TEST_QUESTIONS_PATH = Path("resources/test_questions.json")
 GAME_ID = "125"
 
 
@@ -36,7 +37,7 @@ class BijectionTest(TestCase):
         self.assertEqual(in_game_state, decoded)
 
 
-def _make_state_factory(questions_file_path: str) -> BotStateFactory:
+def _make_state_factory(questions_file_path: Path) -> BotStateFactory:
     storage = JsonQuestionStorage(questions_file_path)
     random = DoNothingRandom()
     state_factory = BotStateFactory(storage, random)
