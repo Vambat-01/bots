@@ -27,7 +27,7 @@ def main():
     bot_state_to_dict_bijection = BotStateToDictBijection(state_factory)
     bot = Bot(telegram_api, lambda: GreetingState(state_factory), bot_state_to_dict_bijection)
 
-    if args.server is False:
+    if not args.server:
 
         telegram_api.delete_webhook(True)
 

@@ -194,16 +194,16 @@ class BotTest(TestCase):
         bot_state_to_dict_bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
         game_state = Bot.State()
         bot = Bot(telegram_api, lambda: state, bot_state_to_dict_bijection, game_state)
-        updates = response_update.result
-        for update in updates:
-            bot.process_update(update)
-            expected = {CHAT_ID_1: state}
-            self.assertEqual(expected, bot.state.chat_states)
-            self.assertEqual(["bot message"], telegram_api.sent_messages)
-            if is_command:
-                self.assertTrue(state.process_command_is_called)
-            else:
-                self.assertTrue(state.process_message_is_called)
+        self.assertEqual(1, len(response_update.result))
+        update = response_update.result[0]
+        bot.process_update(update)
+        expected = {CHAT_ID_1: state}
+        self.assertEqual(expected, bot.state.chat_states)
+        self.assertEqual(["bot message"], telegram_api.sent_messages)
+        if is_command:
+            self.assertTrue(state.process_command_is_called)
+        else:
+            self.assertTrue(state.process_message_is_called)
 
     def test_command_without_transition(self):
         self.check_command_without_state_transition("/command", True)
@@ -224,13 +224,13 @@ class BotTest(TestCase):
         game_state = Bot.State()
         bot = Bot(telegram_api, create_initial_state, bot_state_to_dict_bijection, game_state)
 
-        updates1 = response_update1.result
-        for update1 in updates1:
-            bot.process_update(update1)
+        self.assertEqual(1, len(response_update1.result))
+        update1 = response_update1.result[0]
+        bot.process_update(update1)
 
-        updates2 = response_update2.result
-        for update2 in updates2:
-            bot.process_update(update2)
+        self.assertEqual(1, len(response_update2.result))
+        update2 = response_update2.result[0]
+        bot.process_update(update2)
 
         expected = {CHAT_ID_1: create_initial_state.state1, CHAT_ID_2: create_initial_state.state2}
         self.assertEqual(expected, bot.state.chat_states)
