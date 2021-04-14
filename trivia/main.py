@@ -5,7 +5,7 @@ from trivia.question_storage import JsonQuestionStorage
 from core.random import RandomImpl
 from trivia.bijection import BotStateToDictBijection
 import argparse
-from fastapi import FastAPI     # type: ignore
+from fastapi import FastAPI
 import uvicorn    # type: ignore
 from trivia.telegram_models import Update
 
