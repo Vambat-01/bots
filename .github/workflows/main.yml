@@ -35,6 +35,7 @@ jobs:
           python -m pip install mypy
           python -m pip install requests
           python -m pip install dataclasses-json
+          python -m pip install pydantic
 
       # Runs unit tests
       - name: Run unit tests
