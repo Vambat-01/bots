@@ -37,14 +37,14 @@ def main():
             result = update_response.result
             for update in result:
                 last_update_id = update.update_id
-                bot.process_updates(update)
+                bot.process_update(update)
     else:
         app = FastAPI()
         telegram_api.set_webhook(str(args.server_url))
 
         @app.post("/")
         async def on_update(update: Update):
-            bot.process_updates(update)
+            bot.process_update(update)
 
         uvicorn.run(app, host="127.0.0.1", port=8000)
 
