@@ -54,14 +54,14 @@ class Bot:
                     state = {self.state}
                 """
 
-    def process_updates(self, update: Update) -> None:
+    def process_update(self, update: Update) -> None:
         """
            Обрабатывает полученные команды и сообщения от пользователя
         :return: None
         """
         chat_id = update.get_chat_id(update)
         state = self._get_state_for_chat(chat_id)
-        bot_response = self.process_update(update, state)
+        bot_response = self._process_update(update, state)
         if bot_response is not None:
             if bot_response.message is not None:
                 self.telegram_api.send_message(bot_response.message.chat_id,
@@ -89,7 +89,7 @@ class Bot:
                                                    first_message.keyboard
                                                    )
 
-    def process_update(self, update: Update, state: BotState) -> Optional[BotResponse]:
+    def _process_update(self, update: Update, state: BotState) -> Optional[BotResponse]:
         if update.message:
             chat_id = update.get_chat_id(update)
             message_text = update.message.text

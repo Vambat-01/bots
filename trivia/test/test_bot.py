@@ -132,10 +132,10 @@ class FakeTelegramApi(TelegramApi):
     def edit_message(self, chat_id: int, message_id: int, text: str, parse_mode: Optional[str] = None) -> None:
         self.edit_message_is_called = True
 
-    def set_webhook(self, url: str) ->None:
+    def set_webhook(self, url: str) -> None:
         pass
 
-    def delete_webhook(self, drop_pending_updates: bool) ->None:
+    def delete_webhook(self, drop_pending_updates: bool) -> None:
         pass
 
 
@@ -160,20 +160,20 @@ class BotTest(TestCase):
         bot_state_to_dict_bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
         game_state = Bot.State()
         bot = Bot(telegram_api, lambda: state, bot_state_to_dict_bijection, game_state)
-        update = response_body.result
-        for upd in update:
-            bot.process_updates(upd)
-            expected = {CHAT_ID_1: BotStateLoggingWrapper(next_state)}
-            self.assertEqual(expected, bot.state.chat_states)
-            self.assertTrue(next_state.on_enter_is_called)
-            self.assertEqual(["bot message", "text message on_enter"], telegram_api.sent_messages)
-            if update_type == UpdateType.MESSAGE:
-                self.assertTrue(state.process_message_is_called)
-            elif update_type == UpdateType.COMMAND:
-                self.assertTrue(state.process_command_is_called)
-            elif update_type == UpdateType.CALLBACK_QUERY:
-                self.assertTrue(state.process_callback_query_is_called)
-                self.assertTrue(telegram_api.answer_callback_query_is_called)
+        self.assertEqual(1, len(response_body.result))
+        update = response_body.result[0]
+        bot.process_update(update)
+        expected = {CHAT_ID_1: BotStateLoggingWrapper(next_state)}
+        self.assertEqual(expected, bot.state.chat_states)
+        self.assertTrue(next_state.on_enter_is_called)
+        self.assertEqual(["bot message", "text message on_enter"], telegram_api.sent_messages)
+        if update_type == UpdateType.MESSAGE:
+            self.assertTrue(state.process_message_is_called)
+        elif update_type == UpdateType.COMMAND:
+            self.assertTrue(state.process_command_is_called)
+        elif update_type == UpdateType.CALLBACK_QUERY:
+            self.assertTrue(state.process_callback_query_is_called)
+            self.assertTrue(telegram_api.answer_callback_query_is_called)
 
     def test_message_state_transition(self):
         update = make_message_update("1", CHAT_ID_1)
@@ -196,7 +196,7 @@ class BotTest(TestCase):
         bot = Bot(telegram_api, lambda: state, bot_state_to_dict_bijection, game_state)
         updates = response_update.result
         for update in updates:
-            bot.process_updates(update)
+            bot.process_update(update)
             expected = {CHAT_ID_1: state}
             self.assertEqual(expected, bot.state.chat_states)
             self.assertEqual(["bot message"], telegram_api.sent_messages)
@@ -226,11 +226,11 @@ class BotTest(TestCase):
 
         updates1 = response_update1.result
         for update1 in updates1:
-            bot.process_updates(update1)
+            bot.process_update(update1)
 
         updates2 = response_update2.result
         for update2 in updates2:
-            bot.process_updates(update2)
+            bot.process_update(update2)
 
         expected = {CHAT_ID_1: create_initial_state.state1, CHAT_ID_2: create_initial_state.state2}
         self.assertEqual(expected, bot.state.chat_states)

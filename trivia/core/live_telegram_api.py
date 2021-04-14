@@ -24,7 +24,7 @@ class LiveTelegramApi(TelegramApi):
             "timeout": 10
         })
         response_json = json.loads(response.text)
-        update_data = UpdatesResponse.parse_obj(response_json)  # type: ignore
+        update_data = UpdatesResponse.parse_obj(response_json)
 
         return update_data
 

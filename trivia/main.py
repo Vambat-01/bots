@@ -14,8 +14,8 @@ def main():
     parser = argparse.ArgumentParser(description="Запуск бота")
     parser.add_argument("-file",  type=str, help="Путь к json  файлу с вопросами для бота")
     parser.add_argument("-token", type=str, help="Телеграм токен бота")
-    parser.add_argument("-server", dest="server", action="store_true", help="Бота запускается, как сервер")
-    parser.add_argument("-server_url", help="Адрес подключения сервека к Telegram")
+    parser.add_argument("-server", dest="server", action="store_true", help="Бот запускается, как сервер")
+    parser.add_argument("-server_url", help="Адрес сервера для регистрации в Telegram")
     parser.set_defaults(server=False)
     args = parser.parse_args()
 
