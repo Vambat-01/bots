@@ -1,5 +1,4 @@
 from core.keyboard import Keyboard
-from requests.models import Response
 from abc import ABCMeta, abstractmethod
 from typing import Optional
 from trivia.telegram_models import UpdatesResponse
@@ -52,5 +51,25 @@ class TelegramApi(metaclass=ABCMeta):
         :param text: новый текст редактируюмого сообщения
         :param parse_mode: режим для форматирования текста сообщения
         :return: None
+        """
+        pass
+
+    @abstractmethod
+    def set_webhook(self, url: str) ->None:
+        """
+            Метод для получения входящих обновлений через исходящий веб-перехватчик
+            Telegram Api documentation ( https://core.telegram.org/bots/api#setwebhook ).
+        :param url: HTTPS url для отправки обновлений.
+        :return: None
+        """
+        pass
+
+    @abstractmethod
+    def delete_webhook(self, drop_pending_updates: bool) ->None:
+        """
+            Метод, чтобы удалить интеграцию с веб-перехватчиком
+            Telegram Api documentation ( https://core.telegram.org/bots/api#deletewebhook ).
+        :param drop_pending_updates: передать значение True, чтобы удалить все ожидающие обновления
+        :return:
         """
         pass

@@ -24,7 +24,8 @@ class LiveTelegramApi(TelegramApi):
             "timeout": 10
         })
         response_json = json.loads(response.text)
-        update_data = UpdatesResponse.from_dict(response_json)   # type: ignore
+        update_data = UpdatesResponse.parse_obj(response_json)  # type: ignore
+
 
         return update_data
 
@@ -73,3 +74,19 @@ class LiveTelegramApi(TelegramApi):
 
         response = requests.post(url, json=body)
         log(f"TelegramAPI message_edit status code: {response.status_code}")
+
+    def set_webhook(self, url_ngrok: str) ->None:
+        url = f"https://api.telegram.org/bot{self.token}/setWebhook"
+        body = {
+            "url": url_ngrok
+        }
+        response = requests.post(url, json=body)
+        log(f"TelegramAPI set_webhook status code: {response.status_code}")
+
+    def delete_webhook(self, drop_pending_updates: bool) ->None:
+        url = f"https://api.telegram.org/bot{self.token}/deleteWebhook"
+        body = {
+            "drop_pending_updates": drop_pending_updates
+        }
+        response = requests.post(url, json=body)
+        log(f"TelegramAPI delete_webhook status code: {response.status_code}")

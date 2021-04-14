@@ -132,6 +132,12 @@ class FakeTelegramApi(TelegramApi):
     def edit_message(self, chat_id: int, message_id: int, text: str, parse_mode: Optional[str] = None) -> None:
         self.edit_message_is_called = True
 
+    def set_webhook(self, url: str) ->None:
+        pass
+
+    def delete_webhook(self, drop_pending_updates: bool) ->None:
+        pass
+
 
 class BotTest(TestCase):
     class CreateInitialState:
@@ -154,18 +160,20 @@ class BotTest(TestCase):
         bot_state_to_dict_bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
         game_state = Bot.State()
         bot = Bot(telegram_api, lambda: state, bot_state_to_dict_bijection, game_state)
-        bot.process_updates()
-        expected = {CHAT_ID_1: BotStateLoggingWrapper(next_state)}
-        self.assertEqual(expected, bot.state.chat_states)
-        self.assertTrue(next_state.on_enter_is_called)
-        self.assertEqual(["bot message", "text message on_enter"], telegram_api.sent_messages)
-        if update_type == UpdateType.MESSAGE:
-            self.assertTrue(state.process_message_is_called)
-        elif update_type == UpdateType.COMMAND:
-            self.assertTrue(state.process_command_is_called)
-        elif update_type == UpdateType.CALLBACK_QUERY:
-            self.assertTrue(state.process_callback_query_is_called)
-            self.assertTrue(telegram_api.answer_callback_query_is_called)
+        updates = response_body.result
+        for update in updates:
+            bot.process_updates(update)
+            expected = {CHAT_ID_1: BotStateLoggingWrapper(next_state)}
+            self.assertEqual(expected, bot.state.chat_states)
+            self.assertTrue(next_state.on_enter_is_called)
+            self.assertEqual(["bot message", "text message on_enter"], telegram_api.sent_messages)
+            if update_type == UpdateType.MESSAGE:
+                self.assertTrue(state.process_message_is_called)
+            elif update_type == UpdateType.COMMAND:
+                self.assertTrue(state.process_command_is_called)
+            elif update_type == UpdateType.CALLBACK_QUERY:
+                self.assertTrue(state.process_callback_query_is_called)
+                self.assertTrue(telegram_api.answer_callback_query_is_called)
 
     def test_message_state_transition(self):
         update = make_message_update("1", CHAT_ID_1)
@@ -180,20 +188,22 @@ class BotTest(TestCase):
         self.check_transition(UpdateType.CALLBACK_QUERY, update)
 
     def check_command_without_state_transition(self, user_message: str, is_command: bool):
-        update = make_message_update(user_message, CHAT_ID_1)
-        telegram_api = FakeTelegramApi([update])
+        response_update = make_message_update(user_message, CHAT_ID_1)
+        telegram_api = FakeTelegramApi([response_update])
         state = FakeState("bot message")
         bot_state_to_dict_bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
         game_state = Bot.State()
         bot = Bot(telegram_api, lambda: state, bot_state_to_dict_bijection, game_state)
-        bot.process_updates()
-        expected = {CHAT_ID_1: state}
-        self.assertEqual(expected, bot.state.chat_states)
-        self.assertEqual(["bot message"], telegram_api.sent_messages)
-        if is_command:
-            self.assertTrue(state.process_command_is_called)
-        else:
-            self.assertTrue(state.process_message_is_called)
+        updates = response_update.result
+        for update in updates:
+            bot.process_updates(update)
+            expected = {CHAT_ID_1: state}
+            self.assertEqual(expected, bot.state.chat_states)
+            self.assertEqual(["bot message"], telegram_api.sent_messages)
+            if is_command:
+                self.assertTrue(state.process_command_is_called)
+            else:
+                self.assertTrue(state.process_message_is_called)
 
     def test_command_without_transition(self):
         self.check_command_without_state_transition("/command", True)
@@ -207,14 +217,21 @@ class BotTest(TestCase):
         сохраняет состояние разных пользователей
         """
         create_initial_state = BotTest.CreateInitialState()
-        update1 = make_message_update("user 1", CHAT_ID_1)
-        update2 = make_message_update("user 2", CHAT_ID_2)
-        telegram_api = FakeTelegramApi([update1, update2])
+        response_update1 = make_message_update("user 1", CHAT_ID_1)
+        response_update2 = make_message_update("user 2", CHAT_ID_2)
+        telegram_api = FakeTelegramApi([response_update1, response_update2])
         bot_state_to_dict_bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
         game_state = Bot.State()
         bot = Bot(telegram_api, create_initial_state, bot_state_to_dict_bijection, game_state)
-        bot.process_updates()
-        bot.process_updates()
+
+        updates1 = response_update1.result
+        for update1 in updates1:
+            bot.process_updates(update1)
+
+        updates2 = response_update2.result
+        for update2 in updates2:
+            bot.process_updates(update2)
+
         expected = {CHAT_ID_1: create_initial_state.state1, CHAT_ID_2: create_initial_state.state2}
         self.assertEqual(expected, bot.state.chat_states)
 
@@ -223,7 +240,7 @@ class BotTest(TestCase):
         state_factory = _make_state_factory(TEST_QUESTIONS_PATH)
         in_game_state = _make_in_game_state(state_factory)
         bot_state_to_dict_bijection = BotStateToDictBijection(state_factory)
-        game_state = Bot.State(100, {125: in_game_state, 150: in_game_state})
+        game_state = Bot.State({125: in_game_state, 150: in_game_state})
         create_initial_state = lambda: in_game_state
         bot1 = Bot(telegram_api, create_initial_state, bot_state_to_dict_bijection, game_state)
         bot2 = Bot(telegram_api, create_initial_state, bot_state_to_dict_bijection, Bot.State())
@@ -271,7 +288,7 @@ def make_message_update(text: str, chat_id: int) -> UpdatesResponse:
             }
         ]
     }
-    message_update = UpdatesResponse.from_dict(data)      # type: ignore
+    message_update = UpdatesResponse.parse_obj(data)      # type: ignore
     return message_update
 
 
@@ -345,7 +362,7 @@ def make_callback_query_update(callback_data: str, chat_id: int) -> UpdatesRespo
             }
         ]
     }
-    call_back_query_update = UpdatesResponse.from_dict(data)      # type: ignore
+    call_back_query_update = UpdatesResponse.parse_obj(data)      # type: ignore
     return call_back_query_update
 
 

@@ -1,10 +1,8 @@
-from dataclasses import dataclass, field
 from typing import Optional, List
-from dataclasses_json import dataclass_json, config, Undefined
+from pydantic import BaseModel, Field
 
 
-@dataclass
-class User:
+class User(BaseModel):
     """
      https://core.telegram.org/bots/api#user
     """
@@ -15,8 +13,7 @@ class User:
     username: str
 
 
-@dataclass
-class Chat:
+class Chat(BaseModel):
     """
      https://core.telegram.org/bots/api#chat
     """
@@ -27,34 +24,28 @@ class Chat:
     type: str
 
 
-@dataclass_json
-@dataclass
-class Message:
+class Message(BaseModel):
     """
      https://core.telegram.org/bots/api#message
     """
     message_id: int
-    from_: User = field(metadata=config(field_name="from"))
+    from_: User = Field(alias="from")
     chat: Chat
     date: int
     text: str
 
 
-@dataclass_json(undefined=Undefined.EXCLUDE)
-@dataclass
-class CallBackQuery:
+class CallBackQuery(BaseModel):
     """
      https://core.telegram.org/bots/api#callbackquery
     """
     id: str
-    from_: User = field(metadata=config(field_name="from"))
+    from_: User = Field(alias="from")
     message: Message
     data: str
 
 
-@dataclass_json(undefined=Undefined.EXCLUDE)
-@dataclass
-class Update:
+class Update(BaseModel):
     """
      https://core.telegram.org/bots/api#getting-updates
     """
@@ -71,9 +62,7 @@ class Update:
         return chat_id
 
 
-@dataclass_json(undefined=Undefined.EXCLUDE)
-@dataclass
-class UpdatesResponse:
+class UpdatesResponse(BaseModel):
     """
      https://core.telegram.org/bots/api#getting-updates
     """
