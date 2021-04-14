@@ -55,9 +55,10 @@ class TelegramApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def set_webhook(self, url: str) ->None:
+    def set_webhook(self, url: str) -> None:
         """
-            Метод для получения входящих обновлений через исходящий веб-перехватчик
+            Метод регистрирует переданный url в качестве адреса для получения обновлений из Телеграма.
+            При установленном вебхуке метод getUpdates не будет работать.
             Telegram Api documentation ( https://core.telegram.org/bots/api#setwebhook ).
         :param url: HTTPS url для отправки обновлений.
         :return: None
@@ -65,9 +66,9 @@ class TelegramApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def delete_webhook(self, drop_pending_updates: bool) ->None:
+    def delete_webhook(self, drop_pending_updates: bool) -> None:
         """
-            Метод, чтобы удалить интеграцию с веб-перехватчиком
+            Метод удаляет регистрацию вебхука. После удаления можно пользоваться методом getUpdates.
             Telegram Api documentation ( https://core.telegram.org/bots/api#deletewebhook ).
         :param drop_pending_updates: передать значение True, чтобы удалить все ожидающие обновления
         :return:

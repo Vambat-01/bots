@@ -160,9 +160,9 @@ class BotTest(TestCase):
         bot_state_to_dict_bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
         game_state = Bot.State()
         bot = Bot(telegram_api, lambda: state, bot_state_to_dict_bijection, game_state)
-        updates = response_body.result
-        for update in updates:
-            bot.process_updates(update)
+        update = response_body.result
+        for upd in update:
+            bot.process_updates(upd)
             expected = {CHAT_ID_1: BotStateLoggingWrapper(next_state)}
             self.assertEqual(expected, bot.state.chat_states)
             self.assertTrue(next_state.on_enter_is_called)
@@ -288,7 +288,7 @@ def make_message_update(text: str, chat_id: int) -> UpdatesResponse:
             }
         ]
     }
-    message_update = UpdatesResponse.parse_obj(data)      # type: ignore
+    message_update = UpdatesResponse.parse_obj(data)
     return message_update
 
 
@@ -362,7 +362,7 @@ def make_callback_query_update(callback_data: str, chat_id: int) -> UpdatesRespo
             }
         ]
     }
-    call_back_query_update = UpdatesResponse.parse_obj(data)      # type: ignore
+    call_back_query_update = UpdatesResponse.parse_obj(data)
     return call_back_query_update
 
 

@@ -8,7 +8,6 @@ from core.command import Command
 from core.bot_state_logging_wrapper import BotStateLoggingWrapper
 from trivia.bijection import Bijection
 from dataclasses import dataclass, field
-from dataclasses_json import dataclass_json
 from core.utils import JsonDict
 from trivia.telegram_models import Update
 
@@ -18,7 +17,6 @@ class Bot:
         Обрабатывает полученные команды и сообщения от пользователя
     """
 
-    @dataclass_json
     @dataclass
     class State:
         """
