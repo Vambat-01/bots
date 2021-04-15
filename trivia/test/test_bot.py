@@ -16,7 +16,7 @@ from test.test_utils import DoNothingRandom
 from trivia.question_storage import JsonQuestionStorage, Question, JSONEncoder, JSONDecoder
 from trivia.bijection import BotStateToDictBijection
 from trivia.bot_state import InGameState
-from trivia.telegram_models import UpdatesResponse
+from trivia.telegram_models import UpdatesResponse, Update
 from pathlib import Path
 
 
@@ -107,8 +107,10 @@ class FakeState(BotState):
 
 
 class FakeTelegramApi(TelegramApi):
-    def __init__(self, response_bodies: List[UpdatesResponse]):
+    def __init__(self, response_bodies: Optional[List[UpdatesResponse]] = None):
         self.sent_messages: List[str] = []
+        if response_bodies is None:
+            response_bodies = []
         self.response_bodies = response_bodies
         self.answer_callback_query_is_called = False
         self.edit_message_is_called = False
@@ -153,15 +155,14 @@ class BotTest(TestCase):
             else:
                 return self.state2
 
-    def check_transition(self, update_type: UpdateType, response_body: UpdatesResponse):
-        telegram_api = FakeTelegramApi([response_body])
+    def check_transition(self, update_type: UpdateType, response_body: Update):
+        telegram_api = FakeTelegramApi()
         next_state = NewFakeState()
         state = FakeState("bot message", next_state)
         bot_state_to_dict_bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
         game_state = Bot.State()
         bot = Bot(telegram_api, lambda: state, bot_state_to_dict_bijection, game_state)
-        self.assertEqual(1, len(response_body.result))
-        update = response_body.result[0]
+        update = response_body
         bot.process_update(update)
         expected = {CHAT_ID_1: BotStateLoggingWrapper(next_state)}
         self.assertEqual(expected, bot.state.chat_states)
@@ -189,14 +190,12 @@ class BotTest(TestCase):
 
     def check_command_without_state_transition(self, user_message: str, is_command: bool):
         response_update = make_message_update(user_message, CHAT_ID_1)
-        telegram_api = FakeTelegramApi([response_update])
+        telegram_api = FakeTelegramApi()
         state = FakeState("bot message")
         bot_state_to_dict_bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
         game_state = Bot.State()
         bot = Bot(telegram_api, lambda: state, bot_state_to_dict_bijection, game_state)
-        self.assertEqual(1, len(response_update.result))
-        update = response_update.result[0]
-        bot.process_update(update)
+        bot.process_update(response_update)
         expected = {CHAT_ID_1: state}
         self.assertEqual(expected, bot.state.chat_states)
         self.assertEqual(["bot message"], telegram_api.sent_messages)
@@ -219,18 +218,12 @@ class BotTest(TestCase):
         create_initial_state = BotTest.CreateInitialState()
         response_update1 = make_message_update("user 1", CHAT_ID_1)
         response_update2 = make_message_update("user 2", CHAT_ID_2)
-        telegram_api = FakeTelegramApi([response_update1, response_update2])
+        telegram_api = FakeTelegramApi()
         bot_state_to_dict_bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
         game_state = Bot.State()
         bot = Bot(telegram_api, create_initial_state, bot_state_to_dict_bijection, game_state)
-
-        self.assertEqual(1, len(response_update1.result))
-        update1 = response_update1.result[0]
-        bot.process_update(update1)
-
-        self.assertEqual(1, len(response_update2.result))
-        update2 = response_update2.result[0]
-        bot.process_update(update2)
+        bot.process_update(response_update1)
+        bot.process_update(response_update2)
 
         expected = {CHAT_ID_1: create_initial_state.state1, CHAT_ID_2: create_initial_state.state2}
         self.assertEqual(expected, bot.state.chat_states)
@@ -252,7 +245,7 @@ class BotTest(TestCase):
         self.assertEqual(bot1, bot2)
 
 
-def make_message_update(text: str, chat_id: int) -> UpdatesResponse:
+def make_message_update(text: str, chat_id: int) -> Update:
     """
         Создает Telegram update состоящий из одного сообщения. В зависимости от `text` это сообщение представляет собой
         либо сообщение либо команду от пользователя.
@@ -261,38 +254,33 @@ def make_message_update(text: str, chat_id: int) -> UpdatesResponse:
     :return: json объект
     """
     data = {
-        "ok": True,
-        "result": [
-            {
-                "update_id": 675789456,
-                "message": {
-                    "message_id": 220,
-                    "from": {
-                        "id": 1379887547,
-                        "is_bot": False,
-                        "first_name": "Степан",
-                        "last_name": "Капуста",
-                        "username": "степка",
-                        "language_code": "en"
-                    },
-                    "chat": {
-                        "id": chat_id,
-                        "first_name": "Степан",
-                        "last_name": "Капуста",
-                        "username": "степка",
-                        "type": "private"
-                    },
-                    "date": 1603405920,
-                    "text": text
-                }
-            }
-        ]
+        "update_id": 675789456,
+        "message": {
+            "message_id": 220,
+            "from": {
+                "id": 1379887547,
+                "is_bot": False,
+                "first_name": "Степан",
+                "last_name": "Капуста",
+                "username": "степка",
+                "language_code": "en"
+            },
+            "chat": {
+                "id": chat_id,
+                "first_name": "Степан",
+                "last_name": "Капуста",
+                "username": "степка",
+                "type": "private"
+            },
+            "date": 1603405920,
+            "text": text
+        }
     }
-    message_update = UpdatesResponse.parse_obj(data)
+    message_update = Update.parse_obj(data)
     return message_update
 
 
-def make_callback_query_update(callback_data: str, chat_id: int) -> UpdatesResponse:
+def make_callback_query_update(callback_data: str, chat_id: int) -> Update:
     """
         Создает Telegram update состоящий из одного CallbackQuery.
     :param callback_data: ответ при нажатие на кнопку встроенной клавиатуры
@@ -300,69 +288,64 @@ def make_callback_query_update(callback_data: str, chat_id: int) -> UpdatesRespo
     :return: json объект
     """
     data = {
-        "ok": True,
-        "result": [
-            {
-                "update_id": 675789456,
-                "callback_query": {
-                    "id": "5926616425638781715",
-                    "from": {
-                        "id": 1379887547,
-                        "is_bot": False,
-                        "first_name": "Степан",
-                        "last_name": "Капуста",
-                        "username": "степка",
-                        "language_code": "en"
-                    },
-                    "message": {
-                        "message_id": 609,
-                        "from": {
-                            "id": 1162468954,
-                            "is_bot": True,
-                            "first_name": "easy_programing_bot",
-                            "username": "easy_programing_bot"
-                        },
-                        "chat": {
-                            "id": chat_id,
-                            "first_name": "Степан",
-                            "last_name": "Капуста",
-                            "username": "степка",
-                            "type": "private"
-                        },
-                        "date": 1605131894,
-                        "text": "1",
-                        "reply_markup": {
-                            "inline_keyboard": [
-                                [
-                                    {
-                                        "text": "one",
-                                        "callback_data": "back_one"
-                                    },
-                                    {
-                                        "text": "two",
-                                        "callback_data": "back_two"
-                                    }
-                                ],
-                                [
-                                    {
-                                        "text": "three",
-                                        "callback_data": "back_three"
-                                    },
-                                    {
-                                        "text": "four",
-                                        "callback_data": "back_four"
-                                    }
-                                ]
-                            ]
-                        }
-                    },
-                    "chat_instance": "-3844293030867837600",
-                    "data": callback_data
+        "update_id": 675789456,
+        "callback_query": {
+            "id": "5926616425638781715",
+            "from": {
+                "id": 1379887547,
+                "is_bot": False,
+                "first_name": "Степан",
+                "last_name": "Капуста",
+                "username": "степка",
+                "language_code": "en"
+            },
+            "message": {
+                "message_id": 609,
+                "from": {
+                    "id": 1162468954,
+                    "is_bot": True,
+                    "first_name": "easy_programing_bot",
+                    "username": "easy_programing_bot"
+                },
+                "chat": {
+                    "id": chat_id,
+                    "first_name": "Степан",
+                    "last_name": "Капуста",
+                    "username": "степка",
+                    "type": "private"
+                },
+                "date": 1605131894,
+                "text": "1",
+                "reply_markup": {
+                    "inline_keyboard": [
+                        [
+                            {
+                                "text": "one",
+                                "callback_data": "back_one"
+                            },
+                            {
+                                "text": "two",
+                                "callback_data": "back_two"
+                            }
+                        ],
+                        [
+                            {
+                                "text": "three",
+                                "callback_data": "back_three"
+                            },
+                            {
+                                "text": "four",
+                                "callback_data": "back_four"
+                            }
+                        ]
+                    ]
                 }
-            }
-        ]
+            },
+            "chat_instance": "-3844293030867837600",
+            "data": callback_data
+        }
     }
-    call_back_query_update = UpdatesResponse.parse_obj(data)
+    call_back_query_update = Update.parse_obj(data)
     return call_back_query_update
 
 
