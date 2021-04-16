@@ -8,9 +8,10 @@ import argparse
 from fastapi import FastAPI
 import uvicorn    # type: ignore
 from trivia.telegram_models import Update
+import asyncio
 
 
-def main():
+async def main():
     parser = argparse.ArgumentParser(description="Запуск бота")
     parser.add_argument("-file",  type=str, help="Путь к json  файлу с вопросами для бота")
     parser.add_argument("-token", type=str, help="Телеграм токен бота")
@@ -29,25 +30,25 @@ def main():
 
     if not args.server:
 
-        telegram_api.delete_webhook(True)
+        await telegram_api.delete_webhook(True)
 
         while True:
             update_response = telegram_api.get_updates(last_update_id + 1)
-
-            result = update_response.result
+            upd_resp = await update_response
+            result = upd_resp.result
             for update in result:
                 last_update_id = update.update_id
-                bot.process_update(update)
+                await bot.process_update(update)
     else:
         app = FastAPI()
-        telegram_api.set_webhook(str(args.server_url))
+        await telegram_api.set_webhook(str(args.server_url))
 
         @app.post("/")
         async def on_update(update: Update):
-            bot.process_update(update)
+            await bot.process_update(update)
 
         uvicorn.run(app, host="127.0.0.1", port=8000)
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
