@@ -1,3 +1,5 @@
+from uvicorn import Config, Server
+
 from core.bot import Bot
 from core.live_telegram_api import LiveTelegramApi
 from trivia.bot_state import BotStateFactory, GreetingState
@@ -47,7 +49,10 @@ async def main():
         async def on_update(update: Update):
             await bot.process_update(update)
 
-        uvicorn.run(app, host="127.0.0.1", port=8000)
+        config = Config(app=app, host="127.0.0.1", port=8000, loop=asyncio.get_running_loop())
+        server = Server(config)
+        await server.serve()
+        # uvicorn.run(app, host="127.0.0.1", port=8000, loop=asyncio.get_event_loop())
 
 
 if __name__ == "__main__":
