@@ -37,6 +37,7 @@ jobs:
           python -m pip install dataclasses-json
           python -m pip install pydantic
           python -m pip install fastapi
+          python -m pip install aiohttp
 
       # Runs unit tests
       - name: Run unit tests
