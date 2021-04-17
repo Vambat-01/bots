@@ -1,5 +1,4 @@
-from uvicorn import Config, Server
-
+from uvicorn import Config, Server  # type: ignore
 from core.bot import Bot
 from core.live_telegram_api import LiveTelegramApi
 from trivia.bot_state import BotStateFactory, GreetingState
@@ -15,8 +14,8 @@ import asyncio
 
 async def main():
     parser = argparse.ArgumentParser(description="Запуск бота")
-    parser.add_argument("-file",  type=str, help="Путь к json  файлу с вопросами для бота")
-    parser.add_argument("-token", type=str, help="Телеграм токен бота")
+    parser.add_argument("-file", type=str, required=True, help="Путь к json  файлу с вопросами для бота")
+    parser.add_argument("-token", type=str, required=True, help="Телеграм токен бота")
     parser.add_argument("-server", dest="server", action="store_true", help="Бот запускается, как сервер")
     parser.add_argument("-server_url", help="Адрес сервера для регистрации в Telegram")
     parser.set_defaults(server=False)
@@ -52,7 +51,7 @@ async def main():
         config = Config(app=app, host="127.0.0.1", port=8000, loop=asyncio.get_running_loop())
         server = Server(config)
         await server.serve()
-        # uvicorn.run(app, host="127.0.0.1", port=8000, loop=asyncio.get_event_loop())
+        uvicorn.run(app, host="127.0.0.1", port=8000, loop=asyncio.get_event_loop())
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 from typing import Optional, List
-from unittest import TestCase
+from unittest import TestCase, IsolatedAsyncioTestCase
 from core.bot_state import BotState
 from core.bot_state_logging_wrapper import BotStateLoggingWrapper
 from core.message import Message
@@ -18,6 +18,7 @@ from trivia.bijection import BotStateToDictBijection
 from trivia.bot_state import InGameState
 from trivia.telegram_models import UpdatesResponse, Update
 from pathlib import Path
+import asyncio
 
 
 CHAT_ID_1 = 125
@@ -116,32 +117,32 @@ class FakeTelegramApi(TelegramApi):
         self.edit_message_is_called = False
         self.current_response_index = 0
 
-    def get_updates(self, offset: int) -> UpdatesResponse:
+    async def get_updates(self, offset: int) -> UpdatesResponse:
         response = self.response_bodies[self.current_response_index]
         self.current_response_index += 1
         return response
 
-    def send_message(self,
-                     chat_id: int,
-                     text: str,
-                     parse_mode: Optional[str] = None,
-                     keyboard: Optional[Keyboard] = None):
+    async def send_message(self,
+                           chat_id: int,
+                           text: str,
+                           parse_mode: Optional[str] = None,
+                           keyboard: Optional[Keyboard] = None):
         self.sent_messages.append(text)
 
-    def answer_callback_query(self, callback_query_id: str) -> None:
+    async def answer_callback_query(self, callback_query_id: str) -> None:
         self.answer_callback_query_is_called = True
 
-    def edit_message(self, chat_id: int, message_id: int, text: str, parse_mode: Optional[str] = None) -> None:
+    async def edit_message(self, chat_id: int, message_id: int, text: str, parse_mode: Optional[str] = None) -> None:
         self.edit_message_is_called = True
 
-    def set_webhook(self, url: str) -> None:
+    async def set_webhook(self, url: str) -> None:
         pass
 
-    def delete_webhook(self, drop_pending_updates: bool) -> None:
+    async def delete_webhook(self, drop_pending_updates: bool) -> None:
         pass
 
 
-class BotTest(TestCase):
+class BotTest(IsolatedAsyncioTestCase):
     class CreateInitialState:
         def __init__(self):
             self.state1 = FakeState("user1 for bot")
@@ -155,7 +156,7 @@ class BotTest(TestCase):
             else:
                 return self.state2
 
-    def check_transition(self, update_type: UpdateType, response_body: Update):
+    async def check_transition(self, update_type: UpdateType, response_body: Update):
         telegram_api = FakeTelegramApi()
         next_state = NewFakeState()
         state = FakeState("bot message", next_state)
@@ -163,7 +164,7 @@ class BotTest(TestCase):
         game_state = Bot.State()
         bot = Bot(telegram_api, lambda: state, bot_state_to_dict_bijection, game_state)
         update = response_body
-        bot.process_update(update)
+        await bot.process_update(update)
         expected = {CHAT_ID_1: BotStateLoggingWrapper(next_state)}
         self.assertEqual(expected, bot.state.chat_states)
         self.assertTrue(next_state.on_enter_is_called)
@@ -176,26 +177,26 @@ class BotTest(TestCase):
             self.assertTrue(state.process_callback_query_is_called)
             self.assertTrue(telegram_api.answer_callback_query_is_called)
 
-    def test_message_state_transition(self):
+    async def test_message_state_transition(self):
         update = make_message_update("1", CHAT_ID_1)
-        self.check_transition(UpdateType.MESSAGE, update)
+        await self.check_transition(UpdateType.MESSAGE, update)
 
-    def test_command_state_transition(self):
+    async def test_command_state_transition(self):
         update = make_message_update("/command", CHAT_ID_1)
-        self.check_transition(UpdateType.COMMAND, update)
+        await self.check_transition(UpdateType.COMMAND, update)
 
-    def test_callback_query_state_transition(self):
+    async def test_callback_query_state_transition(self):
         update = make_callback_query_update("2", CHAT_ID_1)
-        self.check_transition(UpdateType.CALLBACK_QUERY, update)
+        await self.check_transition(UpdateType.CALLBACK_QUERY, update)
 
-    def check_command_without_state_transition(self, user_message: str, is_command: bool):
+    async def check_command_without_state_transition(self, user_message: str, is_command: bool):
         update = make_message_update(user_message, CHAT_ID_1)
         telegram_api = FakeTelegramApi()
         state = FakeState("bot message")
         bot_state_to_dict_bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
         game_state = Bot.State()
         bot = Bot(telegram_api, lambda: state, bot_state_to_dict_bijection, game_state)
-        bot.process_update(update)
+        await bot.process_update(update)
         expected = {CHAT_ID_1: state}
         self.assertEqual(expected, bot.state.chat_states)
         self.assertEqual(["bot message"], telegram_api.sent_messages)
@@ -204,13 +205,13 @@ class BotTest(TestCase):
         else:
             self.assertTrue(state.process_message_is_called)
 
-    def test_command_without_transition(self):
-        self.check_command_without_state_transition("/command", True)
+    async def test_command_without_transition(self):
+        await self.check_command_without_state_transition("/command", True)
 
-    def test_message_without_transition(self):
-        self.check_command_without_state_transition("/command", True)
+    async def test_message_without_transition(self):
+        await self.check_command_without_state_transition("/command", True)
 
-    def test_separate_states_for_separate_chats(self):
+    async def test_separate_states_for_separate_chats(self):
         """
         В тесте bot.process_updates() вызывается дважды, чтобы передать боту два апдейта. И проверить, что Bot
         сохраняет состояние разных пользователей
@@ -222,8 +223,8 @@ class BotTest(TestCase):
         bot_state_to_dict_bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
         game_state = Bot.State()
         bot = Bot(telegram_api, create_initial_state, bot_state_to_dict_bijection, game_state)
-        bot.process_update(update1)
-        bot.process_update(update2)
+        await bot.process_update(update1)
+        await bot.process_update(update2)
 
         expected = {CHAT_ID_1: create_initial_state.state1, CHAT_ID_2: create_initial_state.state2}
         self.assertEqual(expected, bot.state.chat_states)

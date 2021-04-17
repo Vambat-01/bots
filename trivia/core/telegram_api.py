@@ -2,7 +2,6 @@ from core.keyboard import Keyboard
 from abc import ABCMeta, abstractmethod
 from typing import Optional
 from trivia.telegram_models import UpdatesResponse
-import asyncio
 
 
 class TelegramApi(metaclass=ABCMeta):
@@ -19,9 +18,9 @@ class TelegramApi(metaclass=ABCMeta):
 
     @abstractmethod
     async def send_message(self, chat_id: int,
-                     text: str,
-                     parse_mode: Optional[str] = None,
-                     keyboard: Optional[Keyboard] = None) -> None:
+                           text: str,
+                           parse_mode: Optional[str] = None,
+                           keyboard: Optional[Keyboard] = None) -> None:
         """
             Отправляет текстовое сообщение
         :param chat_id: идентификация чата
