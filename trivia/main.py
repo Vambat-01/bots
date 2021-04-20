@@ -7,7 +7,6 @@ from core.random import RandomImpl
 from trivia.bijection import BotStateToDictBijection
 import argparse
 from fastapi import FastAPI
-import uvicorn    # type: ignore
 from trivia.telegram_models import Update
 import asyncio
 
@@ -34,8 +33,8 @@ async def main():
         await telegram_api.delete_webhook(True)
 
         while True:
-            update_response = telegram_api.get_updates(last_update_id + 1)
-            upd_resp = await update_response
+            update_response = await telegram_api.get_updates(last_update_id + 1)
+            upd_resp = update_response
             result = upd_resp.result
             for update in result:
                 last_update_id = update.update_id
@@ -51,7 +50,6 @@ async def main():
         config = Config(app=app, host="127.0.0.1", port=8000, loop=asyncio.get_running_loop())
         server = Server(config)
         await server.serve()
-        uvicorn.run(app, host="127.0.0.1", port=8000, loop=asyncio.get_event_loop())
 
 
 if __name__ == "__main__":

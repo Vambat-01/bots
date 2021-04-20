@@ -1,4 +1,3 @@
-import requests
 from core.keyboard import Keyboard
 from typing import Optional
 from core.utils import log
@@ -6,6 +5,7 @@ from core.telegram_api import TelegramApi
 from trivia.telegram_models import UpdatesResponse
 import json
 import aiohttp
+from contextlib import asynccontextmanager
 
 
 class LiveTelegramApi(TelegramApi):
@@ -13,11 +13,8 @@ class LiveTelegramApi(TelegramApi):
         self.token = token
         self.session = aiohttp.ClientSession()
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, type, value, traceback):
-        return self.session.closed
+    async def close(self):
+        await self.session.close()
 
     async def get_updates(self, offset: int) -> UpdatesResponse:
         """
@@ -62,7 +59,8 @@ class LiveTelegramApi(TelegramApi):
         response = await self.session.post(url, json=body)
         log(f"Send message status code: {response.status} ")
         if response.status != 200:
-            log(f"TelegramAPI: Unexpected status code: {response.status}. Response body: {response.text}")
+            response_text = await response.text()
+            log(f"TelegramAPI: Unexpected status code: {response.status}. Response body: {response_text}")
 
     async def answer_callback_query(self, callback_query_id: str) -> None:
         url = f"https://api.telegram.org/bot{self.token}/answerCallbackQuery"
@@ -100,3 +98,27 @@ class LiveTelegramApi(TelegramApi):
         }
         response = await self.session.post(url, json=body)
         log(f"TelegramAPI delete_webhook status code: {response.status}")
+
+
+class AsyncLiveTelegramApiContextManager:
+    def __init__(self, token: str):
+        self.token = token
+        self.live_telegram_api: Optional[LiveTelegramApi] = None
+
+    async def __aenter__(self):
+        assert self.live_telegram_api is None
+        self.live_telegram_api = LiveTelegramApi(self.token)
+        return self.live_telegram_api
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        assert self.live_telegram_api is not None
+        await self.live_telegram_api.close()
+
+
+@asynccontextmanager
+async def make_live_telegram_api(token: str):
+    telegram = LiveTelegramApi(token)
+    try:
+        yield telegram
+    finally:
+        await telegram.close()
