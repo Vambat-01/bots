@@ -106,11 +106,13 @@ class AsyncLiveTelegramApiContextManager:
         self.live_telegram_api: Optional[LiveTelegramApi] = None
 
     async def __aenter__(self):
+        print("aenter")
         assert self.live_telegram_api is None
         self.live_telegram_api = LiveTelegramApi(self.token)
         return self.live_telegram_api
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
+        print("aexit")
         assert self.live_telegram_api is not None
         await self.live_telegram_api.close()
 
