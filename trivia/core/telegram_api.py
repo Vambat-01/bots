@@ -10,17 +10,17 @@ class TelegramApi(metaclass=ABCMeta):
     """
 
     @abstractmethod
-    def get_updates(self, offset: int) -> UpdatesResponse:
+    async def get_updates(self, offset: int) -> UpdatesResponse:
         """
             Получение входящего обновления
         """
         pass
 
     @abstractmethod
-    def send_message(self, chat_id: int,
-                     text: str,
-                     parse_mode: Optional[str] = None,
-                     keyboard: Optional[Keyboard] = None) -> None:
+    async def send_message(self, chat_id: int,
+                           text: str,
+                           parse_mode: Optional[str] = None,
+                           keyboard: Optional[Keyboard] = None) -> None:
         """
             Отправляет текстовое сообщение
         :param chat_id: идентификация чата
@@ -32,7 +32,7 @@ class TelegramApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def answer_callback_query(self, callback_query_id: str) -> None:
+    async def answer_callback_query(self, callback_query_id: str) -> None:
         """
             Метод для отправки ответов на запросы обратного вызова, отправленные со встроенных клавиатур
             Telegram Api documentation ( https://core.telegram.org/bots/api#answercallbackquery ).
@@ -42,7 +42,7 @@ class TelegramApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def edit_message(self, chat_id: int, message_id: int, text: str, parse_mode: Optional[str] = None) -> None:
+    async def edit_message(self, chat_id: int, message_id: int, text: str, parse_mode: Optional[str] = None) -> None:
         """
             Метод для редактирования существующего сообщения в истории сообщений, вместо отправления нового сообщения.
             Telegram Api documentation ( https://core.telegram.org/bots/api#editmessagetext )
@@ -55,7 +55,7 @@ class TelegramApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def set_webhook(self, url: str) -> None:
+    async def set_webhook(self, url: str) -> None:
         """
             Метод регистрирует переданный url в качестве адреса для получения обновлений из Телеграма.
             При установленном вебхуке метод getUpdates не будет работать.
@@ -66,7 +66,7 @@ class TelegramApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def delete_webhook(self, drop_pending_updates: bool) -> None:
+    async def delete_webhook(self, drop_pending_updates: bool) -> None:
         """
             Метод удаляет регистрацию вебхука. После удаления можно пользоваться методом getUpdates.
             Telegram Api documentation ( https://core.telegram.org/bots/api#deletewebhook ).
