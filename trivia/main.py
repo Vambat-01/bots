@@ -25,7 +25,6 @@ async def main():
     random = RandomImpl()
     state_factory = BotStateFactory(storage, random)
     async with make_live_telegram_api(args.token) as telegram_api:
-        telegram_api = telegram_api
         bot_state_to_dict_bijection = BotStateToDictBijection(state_factory)
         bot = Bot(telegram_api, lambda: GreetingState(state_factory), bot_state_to_dict_bijection)
 
