@@ -11,4 +11,4 @@ COPY ./trivia/trivia /app/trivia/trivia
 COPY ./trivia/core /app/trivia/core
 COPY ./trivia/main.py /app/trivia/main.py
 
- CMD["python", "./trivia/main.py", "-file”, “resources/bot_questions_mini.json", "-token", "1162468954:AAEk6dzuhBqfgRm0WO_3QRbZWe0WnYv0_Qs"]
+ CMD ["python", "./trivia/main.py", "-file”, “resources/bot_questions_mini.json", "-token", "1162468954:AAEk6dzuhBqfgRm0WO_3QRbZWe0WnYv0_Qs"]
