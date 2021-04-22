@@ -1,6 +1,6 @@
 from uvicorn import Config, Server  # type: ignore
 from core.bot import Bot
-from core.live_telegram_api import LiveTelegramApi, make_live_telegram_api
+from core.live_telegram_api import make_live_telegram_api
 from trivia.bot_state import BotStateFactory, GreetingState
 from trivia.question_storage import JsonQuestionStorage
 from core.random import RandomImpl
@@ -51,4 +51,5 @@ async def main():
 
 
 if __name__ == "__main__":
+    print("maim")
     asyncio.run(main())
