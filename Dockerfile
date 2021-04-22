@@ -1,6 +1,6 @@
 FROM python:3.7
 
-RUN pip install fastapi uvicorn argparse asyncio
+RUN pip install fastapi uvicorn argparse asyncio dataclasses_json aiohttp aiohttp
 
 EXPOSE 8000
 
@@ -11,4 +11,6 @@ COPY ./trivia/trivia /app/trivia/trivia
 COPY ./trivia/core /app/trivia/core
 COPY ./trivia/main.py /app/trivia/main.py
 
-CMD ["python", "./trivia/main.py", "-file", "resources/bot_questions_mini.json", "-token", "1162468954:AAEk6dzuhBqfgRm0WO_3QRbZWe0WnYv0_Qs"]
+WORKDIR /app/trivia
+
+CMD ["python", "./main.py", "-file", "resources/bot_questions_mini.json", "-token", "1162468954:AAEk6dzuhBqfgRm0WO_3QRbZWe0WnYv0_Qs"]

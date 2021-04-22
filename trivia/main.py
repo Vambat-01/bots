@@ -9,6 +9,7 @@ import argparse
 from fastapi import FastAPI
 from trivia.telegram_models import Update
 import asyncio
+from core.utils import log
 
 
 async def main():
@@ -51,5 +52,5 @@ async def main():
 
 
 if __name__ == "__main__":
-    print("maim")
+    log("Starting bot")
     asyncio.run(main())
