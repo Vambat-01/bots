@@ -1,6 +1,6 @@
 FROM python:3.7
 
-RUN pip install fastapi uvicorn argparse asyncio dataclasses_json aiohttp aiohttp
+RUN pip install fastapi uvicorn argparse asyncio dataclasses_json aiohttp
 
 EXPOSE 8000
 

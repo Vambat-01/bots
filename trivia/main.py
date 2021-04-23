@@ -18,6 +18,8 @@ async def main():
     parser.add_argument("-file", type=str, required=True, help="Путь к json  файлу с вопросами для бота")
     parser.add_argument("-server", dest="server", action="store_true", help="Бот запускается, как сервер")
     parser.add_argument("-server_url", help="Адрес сервера для регистрации в Telegram")
+    parser.add_argument("-host", help="Адрес host")
+    parser.add_argument("-port", help="Port  соединения")
     parser.set_defaults(server=False)
     args = parser.parse_args()
 
@@ -47,7 +49,7 @@ async def main():
             async def on_update(update: Update):
                 await bot.process_update(update)
 
-            config = Config(app=app, host="127.0.0.1", port=8000, loop=asyncio.get_running_loop())
+            config = Config(app=app, host=args.host, port=args.port, loop=asyncio.get_running_loop())
             server = Server(config)
             await server.serve()
 
