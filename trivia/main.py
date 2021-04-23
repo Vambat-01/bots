@@ -16,10 +16,10 @@ import os
 async def main():
     parser = argparse.ArgumentParser(description="Запуск бота")
     parser.add_argument("-file", type=str, required=True, help="Путь к json  файлу с вопросами для бота")
+    parser.add_argument("-host", type=str, required=True, help="Адрес host")
+    parser.add_argument("-port", type=int, required=True, help="Port  соединения")
     parser.add_argument("-server", dest="server", action="store_true", help="Бот запускается, как сервер")
     parser.add_argument("-server_url", help="Адрес сервера для регистрации в Telegram")
-    parser.add_argument("-host", help="Адрес host")
-    parser.add_argument("-port", help="Port  соединения")
     parser.set_defaults(server=False)
     args = parser.parse_args()
 
