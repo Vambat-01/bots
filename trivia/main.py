@@ -10,22 +10,23 @@ from fastapi import FastAPI
 from trivia.telegram_models import Update
 import asyncio
 from core.utils import log
+import os
 
 
 async def main():
     parser = argparse.ArgumentParser(description="Запуск бота")
     parser.add_argument("-file", type=str, required=True, help="Путь к json  файлу с вопросами для бота")
-    parser.add_argument("-token", type=str, required=True, help="Телеграм токен бота")
     parser.add_argument("-server", dest="server", action="store_true", help="Бот запускается, как сервер")
     parser.add_argument("-server_url", help="Адрес сервера для регистрации в Telegram")
     parser.set_defaults(server=False)
     args = parser.parse_args()
 
+    token = os.environ["BOT_TOKEN"]
     last_update_id = 0
     storage = JsonQuestionStorage(args.file)
     random = RandomImpl()
     state_factory = BotStateFactory(storage, random)
-    async with make_live_telegram_api(args.token) as telegram_api:
+    async with make_live_telegram_api(token) as telegram_api:
         bot_state_to_dict_bijection = BotStateToDictBijection(state_factory)
         bot = Bot(telegram_api, lambda: GreetingState(state_factory), bot_state_to_dict_bijection)
 

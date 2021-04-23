@@ -13,4 +13,4 @@ COPY ./trivia/main.py /app/trivia/main.py
 
 WORKDIR /app/trivia
 
-CMD ["python", "./main.py", "-file", "resources/bot_questions_mini.json", "-token", "1162468954:AAEk6dzuhBqfgRm0WO_3QRbZWe0WnYv0_Qs"]
+CMD ["python", "./main.py", "-file", "resources/bot_questions_mini.json"]
