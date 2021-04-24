@@ -13,4 +13,4 @@ COPY ./trivia/main.py /app/trivia/main.py
 
 WORKDIR /app/trivia
 
-CMD ["python", "./main.py", "-file", "resources/bot_questions_mini.json"]
+CMD ["python", "./main.py", "-file", "resources/bot_questions_mini.json", "-host", "127.0.0.1", "-port", "8000"]

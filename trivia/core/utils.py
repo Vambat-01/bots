@@ -16,4 +16,4 @@ def log(message: str) -> None:
     :return: None
     """
     time_now = datetime.datetime.now()
-    print(f"{time_now} {message}")
+    print(f"{time_now} {message}", flush=True)

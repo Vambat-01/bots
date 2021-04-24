@@ -30,6 +30,7 @@ class LiveTelegramApi(TelegramApi):
             "timeout": 10
         }
         response = await self.session.get(url, json=body)
+        log(f"Status code get_update {response.status}")
         response_body = await response.text()
         response_json = json.loads(response_body)
         update_data = UpdatesResponse.parse_obj(response_json)
