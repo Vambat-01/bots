@@ -61,6 +61,7 @@ class Bot:
         """
         chat_id = update.get_chat_id(update)
         state = self._get_state_for_chat(chat_id)
+        
         bot_response = await self._process_update(update, state)
         if bot_response is not None:
             if bot_response.message is not None:
