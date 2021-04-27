@@ -2,8 +2,6 @@ FROM python:3.7
 
 RUN pip install fastapi uvicorn argparse asyncio dataclasses_json aiohttp
 
-EXPOSE 8000
-
 COPY ./trivia/resources /app/trivia/resources
 COPY ./trivia/core /app/trivia/core
 COPY ./trivia/test /app/trivia/test
