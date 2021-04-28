@@ -11,6 +11,8 @@ from trivia.telegram_models import Update
 import asyncio
 from core.utils import log
 import os
+from core.live_redis_api import make_live_redis_api
+from test.test_bot import FakeRedisApi
 
 
 async def main():
@@ -28,30 +30,38 @@ async def main():
     storage = JsonQuestionStorage(args.file)
     random = RandomImpl()
     state_factory = BotStateFactory(storage, random)
+    bot_state_to_dict_bijection = BotStateToDictBijection(state_factory)
     async with make_live_telegram_api(token) as telegram_api:
-        bot_state_to_dict_bijection = BotStateToDictBijection(state_factory)
-        bot = Bot(telegram_api, lambda: GreetingState(state_factory), bot_state_to_dict_bijection)
+        with make_live_redis_api("localhost", 6379, 0) as live_redis:
+            if not args.server:
+                bot = Bot(telegram_api,
+                          FakeRedisApi(),
+                          lambda: GreetingState(state_factory),
+                          bot_state_to_dict_bijection
+                          )
+            else:
+                bot = Bot(telegram_api, live_redis, lambda: GreetingState(state_factory), bot_state_to_dict_bijection)
 
-        if not args.server:
-            await telegram_api.delete_webhook(True)
-            while True:
-                update_response = await telegram_api.get_updates(last_update_id + 1)
-                upd_resp = update_response
-                result = upd_resp.result
-                for update in result:
-                    last_update_id = update.update_id
+            if not args.server:
+                await telegram_api.delete_webhook(True)
+                while True:
+                    update_response = await telegram_api.get_updates(last_update_id + 1)
+                    upd_resp = update_response
+                    result = upd_resp.result
+                    for update in result:
+                        last_update_id = update.update_id
+                        await bot.process_update(update)
+            else:
+                app = FastAPI()
+                await telegram_api.set_webhook(str(args.server_url))
+
+                @app.post("/")
+                async def on_update(update: Update):
                     await bot.process_update(update)
-        else:
-            app = FastAPI()
-            await telegram_api.set_webhook(str(args.server_url))
 
-            @app.post("/")
-            async def on_update(update: Update):
-                await bot.process_update(update)
-
-            config = Config(app=app, host=args.host, port=args.port, loop=asyncio.get_running_loop())
-            server = Server(config)
-            await server.serve()
+                config = Config(app=app, host=args.host, port=args.port, loop=asyncio.get_running_loop())
+                server = Server(config)
+                await server.serve()
 
 
 if __name__ == "__main__":
