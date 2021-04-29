@@ -9,20 +9,20 @@ class LiveRedisApi(RedisApi):
         self.host = host
         self.port = port
         self.db = db
-        self.redis = redis.Redis(host=self.host, port=self.port, )
+        self._redis = redis.Redis(host=self.host, port=self.port, )
 
     def close(self):
-        self.redis.close()
+        self._redis.close()
 
     async def lock_chat(self, chat_id: int) -> None:
         while True:
-            was_set = self.redis.set(str(chat_id), "1", ex=5, nx=True)
+            was_set = self._redis.set(str(chat_id), "1", ex=5, nx=True)
             if was_set:
                 return
             await asyncio.sleep(1)
 
     def delete_key(self, chat_id: int) -> None:
-        self.redis.delete(str(chat_id))
+        self._redis.delete(str(chat_id))
 
 
 @contextmanager
