@@ -1,5 +1,5 @@
 from typing import Optional, List
-from unittest import TestCase, IsolatedAsyncioTestCase
+from unittest import IsolatedAsyncioTestCase
 from core.bot_state import BotState
 from core.bot_state_logging_wrapper import BotStateLoggingWrapper
 from core.message import Message
@@ -18,7 +18,7 @@ from trivia.bijection import BotStateToDictBijection
 from trivia.bot_state import InGameState
 from trivia.telegram_models import UpdatesResponse, Update
 from pathlib import Path
-from core.redis_api import RedisApi
+from core.live_redis_api import FakeRedisApi
 
 
 CHAT_ID_1 = 125
@@ -105,14 +105,6 @@ class FakeState(BotState):
         message = Message(CHAT_ID_1, self.reply_text)
         bot_response = BotResponse(message, new_state=self.next_state)
         return bot_response
-
-
-class FakeRedisApi(RedisApi):
-    async def lock_chat(self, chat_id: int) -> None:
-        pass
-
-    def delete_key(self, chat_id: int) -> None:
-        pass
 
 
 class FakeTelegramApi(TelegramApi):

@@ -94,7 +94,7 @@ class Bot:
                                                          first_message.parse_mode,
                                                          first_message.keyboard
                                                          )
-        self.redis_api.delete_key(chat_id)
+        self.redis_api.unlock_chat(chat_id)
 
     async def _process_update(self, update: Update, state: BotState) -> Optional[BotResponse]:
         if update.message:

@@ -11,38 +11,33 @@ from trivia.telegram_models import Update
 import asyncio
 from core.utils import log
 import os
-from core.live_redis_api import make_live_redis_api
-from test.test_bot import FakeRedisApi
+from core.live_redis_api import make_live_redis_api, FakeRedisApi
+from trivia.start_bot_model import StartBot
+import json
 
 
 async def main():
     parser = argparse.ArgumentParser(description="Запуск бота")
-    parser.add_argument("-file", type=str, required=True, help="Путь к json  файлу с вопросами для бота")
-    parser.add_argument("-host", type=str, required=True, help="Адрес host")
-    parser.add_argument("-port", type=int, required=True, help="Port  соединения")
-    parser.add_argument("-server", dest="server", action="store_true", help="Бот запускается, как сервер")
-    parser.add_argument("-server_url", help="Адрес сервера для регистрации в Telegram")
-    parser.set_defaults(server=False)
+    parser.add_argument("-start_file", type=str, required=True, help="Путь к json файлу для запуска бота")
     args = parser.parse_args()
 
-    token = os.environ["BOT_TOKEN"]
-    last_update_id = 0
-    storage = JsonQuestionStorage(args.file)
-    random = RandomImpl()
-    state_factory = BotStateFactory(storage, random)
-    bot_state_to_dict_bijection = BotStateToDictBijection(state_factory)
-    async with make_live_telegram_api(token) as telegram_api:
-        with make_live_redis_api("localhost", 6379, 0) as live_redis:
-            if not args.server:
+    with open(args.start_file) as json_file:
+        start_bot = json.load(json_file)
+        start = StartBot.parse_obj(start_bot)
+
+        token = os.environ["BOT_TOKEN"]
+        last_update_id = 0
+        storage = JsonQuestionStorage(start.file)
+        random = RandomImpl()
+        state_factory = BotStateFactory(storage, random)
+        bot_state_to_dict_bijection = BotStateToDictBijection(state_factory)
+        async with make_live_telegram_api(token) as telegram_api:
+            if not start.server:
                 bot = Bot(telegram_api,
                           FakeRedisApi(),
                           lambda: GreetingState(state_factory),
                           bot_state_to_dict_bijection
                           )
-            else:
-                bot = Bot(telegram_api, live_redis, lambda: GreetingState(state_factory), bot_state_to_dict_bijection)
-
-            if not args.server:
                 await telegram_api.delete_webhook(True)
                 while True:
                     update_response = await telegram_api.get_updates(last_update_id + 1)
@@ -52,14 +47,21 @@ async def main():
                         last_update_id = update.update_id
                         await bot.process_update(update)
             else:
-                app = FastAPI()
-                await telegram_api.set_webhook(str(args.server_url))
+                with make_live_redis_api(start.redis_host, start.redis_port, start.redis_db) as redis_api:
+                    bot = Bot(telegram_api, redis_api, lambda: GreetingState(state_factory),
+                              bot_state_to_dict_bijection)
+                    app = FastAPI()
+                    await telegram_api.set_webhook(str(start.server_url))
 
                 @app.post("/")
                 async def on_update(update: Update):
                     await bot.process_update(update)
 
-                config = Config(app=app, host=args.host, port=args.port, loop=asyncio.get_running_loop())
+                config = Config(app=app,
+                                host=int(start.server_host),
+                                port=start.server_port,
+                                loop=asyncio.get_running_loop()
+                                )
                 server = Server(config)
                 await server.serve()
 

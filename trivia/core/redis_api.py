@@ -15,7 +15,7 @@ class RedisApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def delete_key(self, chat_id: int) -> None:
+    def unlock_chat(self, chat_id: int) -> None:
         """
         Удаляет один или несколько ключей
         :param chat_id: идентификацикация чата

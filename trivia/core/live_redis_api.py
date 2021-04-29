@@ -21,7 +21,7 @@ class LiveRedisApi(RedisApi):
                 return
             await asyncio.sleep(1)
 
-    def delete_key(self, chat_id: int) -> None:
+    def unlock_chat(self, chat_id: int) -> None:
         self._redis.delete(str(chat_id))
 
 
@@ -32,3 +32,11 @@ def make_live_redis_api(host: str, port: int, db: int):
         yield live_redis
     finally:
         live_redis.close()
+
+
+class FakeRedisApi(RedisApi):
+    async def lock_chat(self, chat_id: int) -> None:
+        pass
+
+    def unlock_chat(self, chat_id: int) -> None:
+        pass
