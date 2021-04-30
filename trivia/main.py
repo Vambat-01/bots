@@ -12,27 +12,27 @@ import asyncio
 from core.utils import log
 import os
 from core.live_redis_api import make_live_redis_api, FakeRedisApi
-from trivia.start_bot_model import StartBot
+from trivia.bot_config import BotConfig, LiveRedisApiConfig
 import json
 
 
 async def main():
     parser = argparse.ArgumentParser(description="Запуск бота")
-    parser.add_argument("-start_file", type=str, required=True, help="Путь к json файлу для запуска бота")
+    parser.add_argument("-config", type=str, required=True, help="Путь к json файлу для запуска бота")
     args = parser.parse_args()
 
-    with open(args.start_file) as json_file:
+    with open(args.config) as json_file:
         start_bot = json.load(json_file)
-        start = StartBot.parse_obj(start_bot)
+        config = BotConfig.parse_obj(start_bot)
 
         token = os.environ["BOT_TOKEN"]
         last_update_id = 0
-        storage = JsonQuestionStorage(start.file)
+        storage = JsonQuestionStorage(config.questions_filepath)
         random = RandomImpl()
         state_factory = BotStateFactory(storage, random)
         bot_state_to_dict_bijection = BotStateToDictBijection(state_factory)
         async with make_live_telegram_api(token) as telegram_api:
-            if not start.server:
+            if not config.is_server:
                 bot = Bot(telegram_api,
                           FakeRedisApi(),
                           lambda: GreetingState(state_factory),
@@ -47,19 +47,20 @@ async def main():
                         last_update_id = update.update_id
                         await bot.process_update(update)
             else:
-                with make_live_redis_api(start.redis_host, start.redis_port, start.redis_db) as redis_api:
+                live_redis_config = LiveRedisApiConfig()
+                with make_live_redis_api(live_redis_config, config.redis.host, config.redis.port, 0) as redis_api:
                     bot = Bot(telegram_api, redis_api, lambda: GreetingState(state_factory),
                               bot_state_to_dict_bijection)
                     app = FastAPI()
-                    await telegram_api.set_webhook(str(start.server_url))
+                    await telegram_api.set_webhook(str(config.server.url))
 
                 @app.post("/")
                 async def on_update(update: Update):
                     await bot.process_update(update)
 
                 config = Config(app=app,
-                                host=int(start.server_host),
-                                port=start.server_port,
+                                host=int(config.server.host),
+                                port=config.server.port,
                                 loop=asyncio.get_running_loop()
                                 )
                 server = Server(config)

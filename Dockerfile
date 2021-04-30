@@ -11,4 +11,4 @@ COPY ./trivia/main.py /app/trivia/main.py
 
 WORKDIR /app/trivia
 
-CMD ["python", "./main.py", "-start_file", "resources/run_bot.json"]
+CMD ["python", "./main.py", "-config", "resources/run_bot.json"]

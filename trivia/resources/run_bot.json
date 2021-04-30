@@ -1,10 +1,16 @@
 {  
-    "file": "resources/bot_questions_mini.json",
-    "server_host": "127.0.0.1",
-    "server_port": 8000,
-    "server": false,
-    "server_url": "https",
-    "redis_host": "localhost",
-    "redis_port": 6379,
-    "redis_db": 0   
+    "questions_filepath": "resources/bot_questions_mini.json",
+    "is_server": false,
+    "server":{
+        "host": "127.0.0.1",
+        "port": 8000,        
+        "url": "<FILL IT. E.g. use ngrok URL>"
+    },
+    "redis":{
+        "host": "localhost",
+        "port": 6379,
+        "expire_sec": 5,
+        "max_attempts": 500,
+        "delay": 1
+    } 
 }
