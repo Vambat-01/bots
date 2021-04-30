@@ -16,38 +16,36 @@ class LockChatException(Exception):
 
 
 class LiveRedisApi(RedisApi):
-    def __init__(self, config: LiveRedisApiConfig, host: str, port: int, db: int):
+    def __init__(self, config: LiveRedisApiConfig):
         self.config = config
-        self._redis = redis.Redis(host=host, port=port, db=db)
+        self._redis = redis.Redis(host=config.host, port=config.port, db=0)
 
     def close(self):
         self._redis.close()
 
     async def lock_chat(self, chat_id: int) -> None:
-        attempt_count = 0
-        while True:
+        for _ in range(self.config.max_attempts):
             was_set = self._redis.set(str(chat_id), "1", ex=self.config.expire_sec, nx=True)
             if was_set:
                 return
-            await asyncio.sleep(self.config.delay)
-            attempt_count += 1
-            if attempt_count == self.config.max_attempts:
-                raise LockChatException(chat_id, self.config.max_attempts)
+            await asyncio.sleep(self.config.delay_ms / 1000)
+
+        raise LockChatException(chat_id, self.config.max_attempts)
 
     def unlock_chat(self, chat_id: int) -> None:
         self._redis.delete(str(chat_id))
 
 
 @contextmanager
-def make_live_redis_api(config: LiveRedisApiConfig, host: str, port: int, db: int):
-    live_redis = LiveRedisApi(config, host, port, db)
+def make_live_redis_api(config: LiveRedisApiConfig):
+    live_redis = LiveRedisApi(config)
     try:
         yield live_redis
     finally:
         live_redis.close()
 
 
-class FakeRedisApi(RedisApi):
+class DoNothingRedisApi(RedisApi):
     async def lock_chat(self, chat_id: int) -> None:
         pass
 

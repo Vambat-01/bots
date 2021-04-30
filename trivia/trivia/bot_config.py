@@ -4,7 +4,7 @@ from pathlib import Path
 
 class ServerConfig(BaseModel):
     """
-    Класс для натсроек Server
+    Настройки работы бота в режиме сервера.
     """
     host: str
     port: int
@@ -13,18 +13,18 @@ class ServerConfig(BaseModel):
 
 class LiveRedisApiConfig(BaseModel):
     """
-    Класс для настроек Redis
+    Настройки Redis клиента
     """
     host: str
     port: int
     expire_sec: int
     max_attempts: int
-    delay: int
+    delay_ms: int
 
 
 class BotConfig(BaseModel):
     """
-    Класс, чтбы распарсить json файла для запуска Бота
+    Настройки бота
     """
     questions_filepath: Path
     is_server: bool

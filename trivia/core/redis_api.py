@@ -10,13 +10,13 @@ class RedisApi(metaclass=ABCMeta):
     async def lock_chat(self, chat_id: int) -> None:
         """
         Получает mutex на чат
-        :param chat_id: идентификация чата
+        :param chat_id: идентификатор чата
         """
         pass
 
     @abstractmethod
     def unlock_chat(self, chat_id: int) -> None:
         """
-        Удаляет один или несколько ключей
-        :param chat_id: идентификацикация чата
+        Убирает mutex на чат
+        :param chat_id: идентификатор чата
         """

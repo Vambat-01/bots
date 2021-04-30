@@ -11,19 +11,19 @@ from trivia.telegram_models import Update
 import asyncio
 from core.utils import log
 import os
-from core.live_redis_api import make_live_redis_api, FakeRedisApi
+from core.live_redis_api import make_live_redis_api, DoNothingRedisApi
 from trivia.bot_config import BotConfig, LiveRedisApiConfig
 import json
 
 
 async def main():
     parser = argparse.ArgumentParser(description="Запуск бота")
-    parser.add_argument("-config", type=str, required=True, help="Путь к json файлу для запуска бота")
+    parser.add_argument("-config", type=str, required=True, help="Путь к json файлу с настройками")
     args = parser.parse_args()
 
     with open(args.config) as json_file:
-        start_bot = json.load(json_file)
-        config = BotConfig.parse_obj(start_bot)
+        config_json = json.load(json_file)
+        config = BotConfig.parse_obj(config_json)
 
         token = os.environ["BOT_TOKEN"]
         last_update_id = 0
@@ -34,7 +34,7 @@ async def main():
         async with make_live_telegram_api(token) as telegram_api:
             if not config.is_server:
                 bot = Bot(telegram_api,
-                          FakeRedisApi(),
+                          DoNothingRedisApi(),
                           lambda: GreetingState(state_factory),
                           bot_state_to_dict_bijection
                           )
@@ -47,8 +47,7 @@ async def main():
                         last_update_id = update.update_id
                         await bot.process_update(update)
             else:
-                live_redis_config = LiveRedisApiConfig()
-                with make_live_redis_api(live_redis_config, config.redis.host, config.redis.port, 0) as redis_api:
+                with make_live_redis_api(config.redis) as redis_api:
                     bot = Bot(telegram_api, redis_api, lambda: GreetingState(state_factory),
                               bot_state_to_dict_bijection)
                     app = FastAPI()
