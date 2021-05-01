@@ -9,11 +9,11 @@ import argparse
 from fastapi import FastAPI
 from trivia.telegram_models import Update
 import asyncio
-from core.utils import log
 import os
 from core.live_redis_api import make_live_redis_api, DoNothingRedisApi
-from trivia.bot_config import BotConfig, LiveRedisApiConfig
+from trivia.bot_config import BotConfig
 import json
+import logging
 
 
 async def main():
@@ -67,5 +67,6 @@ async def main():
 
 
 if __name__ == "__main__":
-    log("Starting bot")
+    logging.basicConfig(format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)
+    logging.info("Starting bot")
     asyncio.run(main())

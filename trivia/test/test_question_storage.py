@@ -1,11 +1,12 @@
 import unittest
 from trivia.question_storage import JsonQuestionStorage, SqliteQuestionStorage, Question
 from typing import List
+from pathlib import Path
 
 
 class JsonQuestionStorageTest(unittest.TestCase):
     def test_loads_question_correctly(self):
-        json_file = "resources/test_questions.json"
+        json_file = Path("resources/test_questions.json")
         storage = JsonQuestionStorage(json_file)
         questions = storage.load_questions()
         self.assertEqual(3, len(questions))

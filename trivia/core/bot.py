@@ -1,5 +1,5 @@
+import logging
 from typing import Optional, Dict, Callable
-from core.utils import log
 from core.telegram_api import TelegramApi
 from core.bot_state import BotState, BotResponse
 from core.message import Message
@@ -100,7 +100,7 @@ class Bot:
         if update.message:
             chat_id = update.get_chat_id(update)
             message_text = update.message.text
-            log(f"chat_id : {chat_id}. text: {message_text} ")
+            logging.info(f"chat_id : {chat_id}. text: {message_text} ")
             if message_text.startswith("/"):
                 user_command = Command(chat_id, message_text)
                 bot_response: Optional[BotResponse] = state.process_command(user_command)
@@ -121,7 +121,7 @@ class Bot:
             bot_response = state.process_callback_query(callback_query)
             return bot_response
         else:
-            log("skipping update")
+            logging.info("skipping update")
             return None
 
     def save(self) -> JsonDict:

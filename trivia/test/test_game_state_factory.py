@@ -1,13 +1,13 @@
 from unittest import TestCase
 from trivia.bot_state import BotStateFactory
 from trivia.question_storage import Question, JsonQuestionStorage
-
+from pathlib import Path
 from test.test_utils import ReversedShuffleRandom
 
 
 class BotStateFactoryTest(TestCase):
     def test_answer_shuffling_for_in_game_state(self):
-        json_file = "resources/test_questions.json"
+        json_file = Path("resources/test_questions.json")
         storage = JsonQuestionStorage(json_file)
         random = ReversedShuffleRandom()
         state_factory = BotStateFactory(storage, random)

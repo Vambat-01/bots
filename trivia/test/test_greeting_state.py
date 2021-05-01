@@ -4,6 +4,7 @@ from core.command import Command
 from trivia.bot_state import GreetingState, IdleState, BotStateFactory
 from trivia.question_storage import JsonQuestionStorage
 from test.test_utils import DoNothingRandom
+from pathlib import Path
 
 
 class GreetingStateTest(TestCase):
@@ -11,7 +12,7 @@ class GreetingStateTest(TestCase):
         chat_id = 200
         text = "Hi bot"
         user_message = Message(chat_id, text)
-        json_file = "resources/test_questions.json"
+        json_file = Path("resources/test_questions.json")
         storage = JsonQuestionStorage(json_file)
         random = DoNothingRandom()
         state_factory = BotStateFactory(storage, random)
@@ -25,7 +26,7 @@ class GreetingStateTest(TestCase):
         chat_id = 250
         text = "/start"
         user_command = Command(chat_id, text)
-        json_file = "resources/test_questions.json"
+        json_file = Path("resources/test_questions.json")
         storage = JsonQuestionStorage(json_file)
         random = DoNothingRandom()
         state_factory = BotStateFactory(storage, random)
@@ -41,7 +42,7 @@ class GreetingStateTest(TestCase):
         chat_id = 255
         text = "start"
         user_command = Command(chat_id, text)
-        json_file = "resources/test_questions.json"
+        json_file = Path("resources/test_questions.json")
         storage = JsonQuestionStorage(json_file)
         random = DoNothingRandom()
         state_factory = BotStateFactory(storage, random)

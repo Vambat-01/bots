@@ -2,7 +2,7 @@ import requests
 from typing import List, Dict
 from pathlib import Path
 from itertools import chain
-from core.utils import log
+import logging
 from time import sleep
 from trivia.question_storage import Question, JsonQuestionStorage
 import argparse
@@ -28,7 +28,7 @@ def download(q_type: int, q_count: int, delay: int) -> List[Dict]:
                             "count": q_count
                             })
 
-    log(f"Request status code: {response.status_code} ")
+    logging.info(f"Request status code: {response.status_code} ")
 
     if response.status_code == 200:
         data = response.json()["data"]
@@ -39,7 +39,7 @@ def download(q_type: int, q_count: int, delay: int) -> List[Dict]:
         return data
 
     elif response.status_code == 429:
-        log(f"Got 429. Sleeping {delay} sec before next attempt")
+        logging.info(f"Got 429. Sleeping {delay} sec before next attempt")
         sleep(delay)
         delay = min(delay * 2, MAX_DELAY)
         return download(q_type, q_count, delay)

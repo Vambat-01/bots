@@ -13,7 +13,7 @@ from pathlib import Path
 
 
 CHAT_ID = 300
-TEST_QUESTIONS_PATH = "resources/test_questions.json"
+TEST_QUESTIONS_PATH = Path("resources/test_questions.json")
 GAME_ID = "123"
 
 

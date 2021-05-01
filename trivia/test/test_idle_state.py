@@ -5,6 +5,7 @@ from trivia.bot_state import IdleState, InGameState, BotStateFactory
 from trivia.question_storage import JsonQuestionStorage
 from typing import cast
 from test.test_utils import DoNothingRandom
+from pathlib import Path
 
 
 class IdleStateTest(TestCase):
@@ -12,7 +13,7 @@ class IdleStateTest(TestCase):
         chat_id = 260
         text = "Hello"
         user_message = Message(chat_id, text)
-        json_file = "resources/test_questions.json"
+        json_file = Path("resources/test_questions.json")
         storage = JsonQuestionStorage(json_file)
         random = DoNothingRandom()
         state_factory = BotStateFactory(storage, random)
@@ -26,7 +27,7 @@ class IdleStateTest(TestCase):
         chat_id = 265
         text = "/start"
         user_command = Command(chat_id, text)
-        json_file = "resources/test_questions.json"
+        json_file = Path("resources/test_questions.json")
         storage = JsonQuestionStorage(json_file)
         questions = storage.load_questions()
         random = DoNothingRandom()
@@ -44,7 +45,7 @@ class IdleStateTest(TestCase):
         chat_id = 270
         text = "/help"
         user_command = Command(chat_id, text)
-        json_file = "resources/test_questions.json"
+        json_file = Path("resources/test_questions.json")
         storage = JsonQuestionStorage(json_file)
         random = DoNothingRandom()
         state_factory = BotStateFactory(storage, random)
@@ -58,7 +59,7 @@ class IdleStateTest(TestCase):
         chat_id = 275
         text = "/bla-bla"
         user_command = Command(chat_id, text)
-        json_file = "resources/test_questions.json"
+        json_file = Path("resources/test_questions.json")
         storage = JsonQuestionStorage(json_file)
         random = DoNothingRandom()
         state_factory = BotStateFactory(storage, random)
