@@ -1,5 +1,5 @@
 from typing import Optional, List
-from unittest import TestCase, IsolatedAsyncioTestCase
+from unittest import IsolatedAsyncioTestCase
 from core.bot_state import BotState
 from core.bot_state_logging_wrapper import BotStateLoggingWrapper
 from core.message import Message
@@ -18,7 +18,7 @@ from trivia.bijection import BotStateToDictBijection
 from trivia.bot_state import InGameState
 from trivia.telegram_models import UpdatesResponse, Update
 from pathlib import Path
-import asyncio
+from core.live_redis_api import DoNothingRedisApi
 
 
 CHAT_ID_1 = 125
@@ -162,7 +162,7 @@ class BotTest(IsolatedAsyncioTestCase):
         state = FakeState("bot message", next_state)
         bot_state_to_dict_bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
         game_state = Bot.State()
-        bot = Bot(telegram_api, lambda: state, bot_state_to_dict_bijection, game_state)
+        bot = Bot(telegram_api, DoNothingRedisApi(), lambda: state, bot_state_to_dict_bijection, game_state)
         update = response_body
         await bot.process_update(update)
         expected = {CHAT_ID_1: BotStateLoggingWrapper(next_state)}
@@ -195,7 +195,7 @@ class BotTest(IsolatedAsyncioTestCase):
         state = FakeState("bot message")
         bot_state_to_dict_bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
         game_state = Bot.State()
-        bot = Bot(telegram_api, lambda: state, bot_state_to_dict_bijection, game_state)
+        bot = Bot(telegram_api, DoNothingRedisApi(), lambda: state, bot_state_to_dict_bijection, game_state)
         await bot.process_update(update)
         expected = {CHAT_ID_1: state}
         self.assertEqual(expected, bot.state.chat_states)
@@ -222,7 +222,7 @@ class BotTest(IsolatedAsyncioTestCase):
         telegram_api = FakeTelegramApi()
         bot_state_to_dict_bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
         game_state = Bot.State()
-        bot = Bot(telegram_api, create_initial_state, bot_state_to_dict_bijection, game_state)
+        bot = Bot(telegram_api, DoNothingRedisApi(), create_initial_state, bot_state_to_dict_bijection, game_state)
         await bot.process_update(update1)
         await bot.process_update(update2)
 
@@ -236,8 +236,9 @@ class BotTest(IsolatedAsyncioTestCase):
         bot_state_to_dict_bijection = BotStateToDictBijection(state_factory)
         game_state = Bot.State({125: in_game_state, 150: in_game_state})
         create_initial_state = lambda: in_game_state
-        bot1 = Bot(telegram_api, create_initial_state, bot_state_to_dict_bijection, game_state)
-        bot2 = Bot(telegram_api, create_initial_state, bot_state_to_dict_bijection, Bot.State())
+        redis_api = DoNothingRedisApi()
+        bot1 = Bot(telegram_api, redis_api, create_initial_state, bot_state_to_dict_bijection, game_state)
+        bot2 = Bot(telegram_api, redis_api, create_initial_state, bot_state_to_dict_bijection, Bot.State())
         self.assertNotEqual(bot1, bot2)
         encoded = bot1.save()
         json_encoded = json.dumps(encoded, cls=JSONEncoder, ensure_ascii=False)

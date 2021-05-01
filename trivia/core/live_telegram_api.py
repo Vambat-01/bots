@@ -34,7 +34,6 @@ class LiveTelegramApi(TelegramApi):
         response_body = await response.text()
         response_json = json.loads(response_body)
         update_data = UpdatesResponse.parse_obj(response_json)
-
         return update_data
 
     async def send_message(self,

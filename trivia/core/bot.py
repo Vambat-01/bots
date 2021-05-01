@@ -10,6 +10,7 @@ from trivia.bijection import Bijection
 from dataclasses import dataclass, field
 from core.utils import JsonDict
 from trivia.telegram_models import Update
+from core.redis_api import RedisApi
 
 
 class Bot:
@@ -28,11 +29,13 @@ class Bot:
 
     def __init__(self,
                  telegram_api: TelegramApi,
+                 redis_api: RedisApi,
                  create_initial_state: Callable[[], BotState],
                  state_to_dict_bijection: Bijection[BotState, JsonDict],
                  state: State = State()
                  ):
         self.telegram_api = telegram_api
+        self.redis_api = redis_api
         self.create_initial_state = create_initial_state
         self.state_to_dict_bijection = state_to_dict_bijection
         self.state = state
@@ -49,6 +52,7 @@ class Bot:
         return f"""
                 Bot:
                     telegram_api = {self.telegram_api}
+                    redis_api = {self.redis_api}
                     create_initial_state = {self.create_initial_state}
                     state_to_dict_bijection = {self.state_to_dict_bijection}
                     state = {self.state}
@@ -60,8 +64,9 @@ class Bot:
         :return: None
         """
         chat_id = update.get_chat_id(update)
+
+        await self.redis_api.lock_chat(chat_id)
         state = self._get_state_for_chat(chat_id)
-        
         bot_response = await self._process_update(update, state)
         if bot_response is not None:
             if bot_response.message is not None:
@@ -89,6 +94,7 @@ class Bot:
                                                          first_message.parse_mode,
                                                          first_message.keyboard
                                                          )
+        self.redis_api.unlock_chat(chat_id)
 
     async def _process_update(self, update: Update, state: BotState) -> Optional[BotResponse]:
         if update.message:

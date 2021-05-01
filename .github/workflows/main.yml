@@ -38,6 +38,7 @@ jobs:
           python -m pip install pydantic
           python -m pip install fastapi
           python -m pip install aiohttp
+          python -m pip install redis
 
       # Runs unit tests
       - name: Run unit tests
