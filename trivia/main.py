@@ -67,6 +67,10 @@ async def main():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)
+    logging.basicConfig(filename="/home/vambat/projects/bots/trivia/out/trivia_bot.log",
+                        format='%(asctime)s - %(message)s',
+                        datefmt='%d-%b-%y %H:%M:%S',
+                        level=logging.INFO
+                        )
     logging.info("Starting bot")
     asyncio.run(main())

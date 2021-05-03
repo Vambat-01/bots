@@ -128,5 +128,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Bot invariment
+# Bot invariant
 bot.env
+
+# Bot lolling
+./trivia/out
