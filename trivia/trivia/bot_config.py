@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from pathlib import Path
+from typing import Optional
 
 
 class ServerConfig(BaseModel):
@@ -30,3 +31,4 @@ class BotConfig(BaseModel):
     is_server: bool
     server: ServerConfig
     redis: LiveRedisApiConfig
+    log_path: Optional[str]
