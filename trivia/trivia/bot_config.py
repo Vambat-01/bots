@@ -31,4 +31,4 @@ class BotConfig(BaseModel):
     is_server: bool
     server: ServerConfig
     redis: LiveRedisApiConfig
-    log_path: Optional[str]
+    out_path: Optional[str]

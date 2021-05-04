@@ -11,4 +11,4 @@ COPY ./trivia/main.py /app/trivia/main.py
 
 WORKDIR /app/trivia
 
-CMD ["python", "./main.py", "-config", "resources/config.json", "-log_path", "./out"]
+CMD ["python", "./main.py", "-config", "resources/config.json"]

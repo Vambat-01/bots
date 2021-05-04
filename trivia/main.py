@@ -21,33 +21,32 @@ async def main():
     parser = argparse.ArgumentParser(description="Запуск бота")
     parser.add_argument("-config", type=str, required=True, help="Путь к json файлу с настройками")
     parser.add_argument("-server_url", help="Адрес сервера для регистрации в телеграм")
-    parser.add_argument("-log_path", help="Путь к логу для бота")
+    parser.add_argument("-out_path", help="Директория для сохранения вывода")
     args = parser.parse_args()
 
     with open(args.config) as json_file:
         config_json = json.load(json_file)
         config = BotConfig.parse_obj(config_json)
 
-        if config.log_path:
-            log_path = Path(config.log_path)
+        if args.out_path or config.out_path:
+            if args.out_path:
+                log_path = Path(args.out_path)
+
+            elif config.out_path:
+                log_path = Path(config.out_path)
+
             if not log_path.exists():
                 log_path.mkdir()
+                file_name = f"{log_path}/trivia_bot.log"
 
-        elif args.log_path:
-            log_path = Path(args.log_path)
-            if not log_path.exists():
-                log_path.mkdir()
-
-            logging.basicConfig(filename=f"{log_path}/trivia_bot.log",
-                                format='%(asctime)s - %(message)s',
-                                datefmt='%d-%b-%y %H:%M:%S',
-                                level=logging.INFO
-                                )
         else:
-            logging.basicConfig(format='%(asctime)s - %(message)s',
-                                datefmt='%d-%b-%y %H:%M:%S',
-                                level=logging.INFO
-                                )
+            file_name = None
+
+        logging.basicConfig(filename=file_name,
+                            format='%(asctime)s - %(message)s',
+                            datefmt='%d-%b-%y %H:%M:%S',
+                            level=logging.INFO
+                            )
 
         logging.info("Starting bot")
 
@@ -73,8 +72,8 @@ async def main():
                         last_update_id = update.update_id
                         try:
                             await bot.process_update(update)
-                        except Exception as ex:
-                            logging.info(ex)
+                        except Exception:
+                            logging.exception("Failed to process update")
             else:
                 with make_live_redis_api(config.redis) as redis_api:
                     bot = Bot(telegram_api, redis_api, lambda: GreetingState(state_factory),
@@ -82,24 +81,28 @@ async def main():
 
                     app = FastAPI()
                     if args.server_url:
-                        await telegram_api.set_webhook(args.server_url)
+                        server_url = args.server_url
                     else:
-                        await telegram_api.set_webhook(str(config.server.url))
+                        server_url = str(config.server.url)
+
+                    await telegram_api.set_webhook(server_url)
 
                 @app.post("/")
                 async def on_update(update: Update):
+                    logging.info(f"APP_POST {last_update_id}")
                     try:
                         await bot.process_update(update)
 
-                    except LockChatException as exlc:
-                        raise HTTPException(status_code=505, detail="Bad Gatawey")
+                    except LockChatException:
+                        logging.exception("Failed to lock chat")
+                        raise HTTPException(status_code=502, detail="Bad Gateway")
 
                     except Exception as ex:
-                        logging.info(ex)
+                        logging.error(ex)
                         raise HTTPException(status_code=500, detail="Something went wrong")
 
                 config = Config(app=app,
-                                host=int(config.server.host),
+                                host=config.server.host,
                                 port=config.server.port,
                                 loop=asyncio.get_running_loop()
                                 )
