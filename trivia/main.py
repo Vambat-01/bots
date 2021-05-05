@@ -1,6 +1,6 @@
 from uvicorn import Config, Server  # type: ignore
 from core.bot import Bot
-from core.live_telegram_api import make_live_telegram_api
+from core.live_telegram_api import make_live_telegram_api, LiveTelegramApi
 from trivia.bot_state import BotStateFactory, GreetingState
 from trivia.question_storage import JsonQuestionStorage
 from core.random import RandomImpl
@@ -15,6 +15,7 @@ from trivia.bot_config import BotConfig
 import json
 import logging
 from pathlib import Path
+from typing import Any, Optional
 
 
 async def main():
@@ -57,57 +58,71 @@ async def main():
         state_factory = BotStateFactory(storage, random)
         bot_state_to_dict_bijection = BotStateToDictBijection(state_factory)
         async with make_live_telegram_api(token) as telegram_api:
-            if not config.is_server:
-                bot = Bot(telegram_api,
-                          DoNothingRedisApi(),
-                          lambda: GreetingState(state_factory),
-                          bot_state_to_dict_bijection
-                          )
-                await telegram_api.delete_webhook(True)
-                while True:
-                    update_response = await telegram_api.get_updates(last_update_id + 1)
-                    upd_resp = update_response
-                    result = upd_resp.result
-                    for update in result:
-                        last_update_id = update.update_id
-                        try:
-                            await bot.process_update(update)
-                        except Exception:
-                            logging.exception("Failed to process update")
+            if config.is_server:
+                await run_server(config, telegram_api, state_factory, bot_state_to_dict_bijection, args.server_url)
             else:
-                with make_live_redis_api(config.redis) as redis_api:
-                    bot = Bot(telegram_api, redis_api, lambda: GreetingState(state_factory),
-                              bot_state_to_dict_bijection)
+                await run_client(telegram_api, state_factory, bot_state_to_dict_bijection, last_update_id)
 
-                    app = FastAPI()
-                    if args.server_url:
-                        server_url = args.server_url
-                    else:
-                        server_url = str(config.server.url)
 
-                    await telegram_api.set_webhook(server_url)
+async def run_server(config: BotConfig,
+                     telegram_api: Any,
+                     state_factory: BotStateFactory,
+                     bot_state_to_dict_bijection: BotStateToDictBijection,
+                     arg_server: Optional[str]):
+    with make_live_redis_api(config.redis) as redis_api:
+        bot = Bot(telegram_api, redis_api, lambda: GreetingState(state_factory),
+                  bot_state_to_dict_bijection)
 
-                @app.post("/")
-                async def on_update(update: Update):
-                    logging.info(f"APP_POST {last_update_id}")
-                    try:
-                        await bot.process_update(update)
+        app = FastAPI()
+        if arg_server:
+            server_url = arg_server
+        else:
+            server_url = str(config.server.url)
 
-                    except LockChatException:
-                        logging.exception("Failed to lock chat")
-                        raise HTTPException(status_code=502, detail="Bad Gateway")
+        await telegram_api.set_webhook(server_url)
 
-                    except Exception as ex:
-                        logging.error(ex)
-                        raise HTTPException(status_code=500, detail="Something went wrong")
+    @app.post("/")
+    async def on_update(update: Update):
+        try:
+            await bot.process_update(update)
 
-                config = Config(app=app,
-                                host=config.server.host,
-                                port=config.server.port,
-                                loop=asyncio.get_running_loop()
-                                )
-                server = Server(config)
-                await server.serve()
+        except LockChatException:
+            logging.exception("Failed to lock chat")
+            raise HTTPException(status_code=502, detail="Bad Gateway")
+
+        except Exception as ex:
+            logging.error(ex)
+            raise HTTPException(status_code=500, detail="Something went wrong")
+
+    config = Config(app=app,
+                    host=config.server.host,
+                    port=config.server.port,
+                    loop=asyncio.get_running_loop()
+                    )
+    server = Server(config)
+    await server.serve()
+
+
+async def run_client(telegram_api: Any,
+                     state_factory: BotStateFactory,
+                     bot_state_to_dict_bijection: BotStateToDictBijection,
+                     last_update_id: int):
+    bot = Bot(telegram_api,
+              DoNothingRedisApi(),
+              lambda: GreetingState(state_factory),
+              bot_state_to_dict_bijection
+              )
+    await telegram_api.delete_webhook(True)
+    while True:
+        update_response = await telegram_api.get_updates(last_update_id + 1)
+        upd_resp = update_response
+        result = upd_resp.result
+        for update in result:
+            last_update_id = update.update_id
+            try:
+                await bot.process_update(update)
+            except Exception:
+                logging.exception("Failed to process update")
 
 
 if __name__ == "__main__":

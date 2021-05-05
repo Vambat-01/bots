@@ -89,7 +89,6 @@ class LiveTelegramApi(TelegramApi):
             "url": url_https
         }
         response = await self.session.post(url, json=body)
-        logging.info(f"TELEGRAM API url_https: {url_https}")
         logging.info(f"TelegramAPI set_webhook status code: {response.status}")
 
     async def delete_webhook(self, drop_pending_updates: bool) -> None:
