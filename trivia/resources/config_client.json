@@ -1,10 +1,10 @@
 {  
     "questions_filepath": "resources/bot_questions_mini.json",
-    "is_server": false,
+    "is_server": true,
     "server":{
-        "host": "127.0.0.1",
+        "host": "0.0.0.0",
         "port": 8000,        
-        "url": "https://bf55c8a4d5e3.ngrok.io"
+        "url": "https://7255ce83479a.ngrok.io"
     },
     "redis":{
         "host": "localhost",

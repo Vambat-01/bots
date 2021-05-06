@@ -21,9 +21,8 @@ class Bot:
     @dataclass
     class State:
         """
-        Вспомогательный класс для хранения парамметров class InGameState
-        :param last_update_id: идентификатор последнего обновления
-        :param chat_state: словарь для хранения состояния бота
+        Вспомогательный класс для хранения хранения состояния бота class InGameState
+        :param chat_states: словарь для хранения состояния бота
         """
         chat_states: Dict[int, BotState] = field(default_factory=dict)
 
@@ -97,7 +96,7 @@ class Bot:
         self.redis_api.unlock_chat(chat_id)
 
     async def _process_update(self, update: Update, state: BotState) -> Optional[BotResponse]:
-        if update.message:
+        if update.message and update.message.text:
             chat_id = update.get_chat_id(update)
             message_text = update.message.text
             logging.info(f"chat_id : {chat_id}. text: {message_text} ")
@@ -109,11 +108,11 @@ class Bot:
                 user_message = Message(chat_id, message_text)
                 bot_response = state.process_message(user_message)
                 return bot_response
-        elif update.callback_query:
+        elif update.callback_query and update.callback_query.message:
             callback_query_id = update.callback_query.id
             chat_id = update.callback_query.message.chat.id
             message_text = update.callback_query.message.text
-            message = Message(chat_id, message_text)
+            message = Message(chat_id, str(message_text))
             callback_query_data = update.callback_query.data
             message_id = update.callback_query.message.message_id
             callback_query = CallbackQuery(callback_query_data, message, message_id)

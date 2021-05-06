@@ -6,7 +6,7 @@ from trivia.question_storage import JsonQuestionStorage
 from core.random import RandomImpl
 from trivia.bijection import BotStateToDictBijection
 import argparse
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from trivia.telegram_models import Update
 import asyncio
 import os
@@ -16,6 +16,8 @@ import json
 import logging
 from pathlib import Path
 from typing import Any, Optional
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import PlainTextResponse
 
 
 async def main():
@@ -81,18 +83,16 @@ async def run_server(config: BotConfig,
 
         await telegram_api.set_webhook(server_url)
 
+    @app.exception_handler(RequestValidationError)
+    async def validation_exception_handler(request, exc):
+        logging.exception(exc)
+        return PlainTextResponse(str(exc), status_code=400)
+
     @app.post("/")
     async def on_update(update: Update):
-        try:
-            await bot.process_update(update)
+        await bot.process_update(update)
 
-        except LockChatException:
-            logging.exception("Failed to lock chat")
-            raise HTTPException(status_code=502, detail="Bad Gateway")
-
-        except Exception as ex:
-            logging.error(ex)
-            raise HTTPException(status_code=500, detail="Something went wrong")
+        raise HTTPException(status_code=400, detail="Something went wrong")
 
     config = Config(app=app,
                     host=config.server.host,

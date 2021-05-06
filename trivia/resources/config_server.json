@@ -4,7 +4,7 @@
     "server":{
         "host": "0.0.0.0",
         "port": 8000,        
-        "url": "https://bf55c8a4d5e3.ngrok.io"
+        "url": "https://7dd3ea1d0672.ngrok.io"
     },
     "redis":{
         "host": "redis",

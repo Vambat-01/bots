@@ -32,7 +32,7 @@ class Message(BaseModel):
     from_: Optional[User] = Field(alias="from")
     chat: Chat
     date: int
-    text: Optional[str]
+    text: str
 
 
 class CallBackQuery(BaseModel):
@@ -42,7 +42,7 @@ class CallBackQuery(BaseModel):
     id: str
     from_: User = Field(alias="from")
     message: Optional[Message]
-    data: Optional[str]
+    data: str
 
 
 class Update(BaseModel):
@@ -55,7 +55,7 @@ class Update(BaseModel):
 
     def get_chat_id(self, update: "Update") -> int:
         chat_id = 0
-        if update.callback_query:
+        if update.callback_query and update.callback_query.message:
             chat_id = update.callback_query.message.chat.id
         elif update.message:
             chat_id = update.message.chat.id
