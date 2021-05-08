@@ -9,7 +9,7 @@ class ServerConfig(BaseModel):
     """
     host: str
     port: int
-    url: str
+    url: Optional[str]
 
 
 class LiveRedisApiConfig(BaseModel):
@@ -28,7 +28,7 @@ class BotConfig(BaseModel):
     Настройки бота
     """
     questions_filepath: Path
-    is_server: bool
+    is_server: Optional[bool]
     server: ServerConfig
     redis: LiveRedisApiConfig
     out_path: Optional[str]

@@ -98,6 +98,8 @@ class Bot:
     async def _process_update(self, update: Update, state: BotState) -> Optional[BotResponse]:
         if update.message and update.message.text:
             chat_id = update.get_chat_id(update)
+            if not update.message.text:
+                raise MessageException("Message text is not found")
             message_text = update.message.text
             logging.info(f"chat_id : {chat_id}. text: {message_text} ")
             if message_text.startswith("/"):
@@ -111,8 +113,10 @@ class Bot:
         elif update.callback_query and update.callback_query.message:
             callback_query_id = update.callback_query.id
             chat_id = update.callback_query.message.chat.id
+            if not update.callback_query.message.text:
+                raise CallbackQueryException("CallbackQuery data is not found")
             message_text = update.callback_query.message.text
-            message = Message(chat_id, str(message_text))
+            message = Message(chat_id, message_text)
             callback_query_data = update.callback_query.data
             message_id = update.callback_query.message.message_id
             callback_query = CallbackQuery(callback_query_data, message, message_id)
@@ -152,3 +156,24 @@ class Bot:
             state = self.create_initial_state()
             self.state.chat_states[chat_id] = state
         return state
+
+
+class BotException(Exception):
+    """
+    Класс вызова исключения для Бота
+    """
+    pass
+
+
+class MessageException(BotException):
+    """
+    Класс вызова исключения для Message
+    """
+    pass
+
+
+class CallbackQueryException(BotException):
+    """
+    Класс вызова исключения для CallbackQuery
+    """
+    pass

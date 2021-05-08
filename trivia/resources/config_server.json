@@ -3,8 +3,7 @@
     "is_server": true,
     "server":{
         "host": "0.0.0.0",
-        "port": 8000,        
-        "url": "https://7dd3ea1d0672.ngrok.io"
+        "port": 8000
     },
     "redis":{
         "host": "redis",

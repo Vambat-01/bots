@@ -1,12 +1,12 @@
 from uvicorn import Config, Server  # type: ignore
 from core.bot import Bot
-from core.live_telegram_api import make_live_telegram_api, LiveTelegramApi
+from core.live_telegram_api import make_live_telegram_api
 from trivia.bot_state import BotStateFactory, GreetingState
 from trivia.question_storage import JsonQuestionStorage
 from core.random import RandomImpl
 from trivia.bijection import BotStateToDictBijection
 import argparse
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI
 from trivia.telegram_models import Update
 import asyncio
 import os
@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any, Optional
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import PlainTextResponse
+from core.bot import BotException
 
 
 async def main():
@@ -31,17 +32,10 @@ async def main():
         config_json = json.load(json_file)
         config = BotConfig.parse_obj(config_json)
 
-        if args.out_path or config.out_path:
-            if args.out_path:
-                log_path = Path(args.out_path)
-
-            elif config.out_path:
-                log_path = Path(config.out_path)
-
-            if not log_path.exists():
-                log_path.mkdir()
-                file_name = f"{log_path}/trivia_bot.log"
-
+        if args.out_path:
+            file_name = check_directory(args.out_path)
+        elif config.out_path:
+            file_name = check_directory(config.out_path)
         else:
             file_name = None
 
@@ -78,29 +72,39 @@ async def run_server(config: BotConfig,
         app = FastAPI()
         if arg_server:
             server_url = arg_server
+        elif os.environ["SERVER_URL"]:
+            server_url = os.environ["SERVER_URL"]
         else:
             server_url = str(config.server.url)
 
         await telegram_api.set_webhook(server_url)
 
-    @app.exception_handler(RequestValidationError)
-    async def validation_exception_handler(request, exc):
-        logging.exception(exc)
-        return PlainTextResponse(str(exc), status_code=400)
+        @app.exception_handler(BotException)
+        async def bot_exception(request, ext):
+            logging.exception(ext)
+            return PlainTextResponse(str(ext), status_code=502)
 
-    @app.post("/")
-    async def on_update(update: Update):
-        await bot.process_update(update)
+        @app.exception_handler(LockChatException)
+        async def lock_chat_exception(request, ex):
+            logging.exception(ex)
+            return PlainTextResponse(str(ex), status_code=502)
 
-        raise HTTPException(status_code=400, detail="Something went wrong")
+        @app.exception_handler(RequestValidationError)
+        async def validation_exception_handler(request, exc):
+            logging.exception(exc)
+            return PlainTextResponse(str(exc), status_code=400)
 
-    config = Config(app=app,
-                    host=config.server.host,
-                    port=config.server.port,
-                    loop=asyncio.get_running_loop()
-                    )
-    server = Server(config)
-    await server.serve()
+        @app.post("/")
+        async def on_update(update: Update):
+            await bot.process_update(update)
+
+        config = Config(app=app,
+                        host=config.server.host,
+                        port=config.server.port,
+                        loop=asyncio.get_running_loop()
+                        )
+        server = Server(config)
+        await server.serve()
 
 
 async def run_client(telegram_api: Any,
@@ -123,6 +127,13 @@ async def run_client(telegram_api: Any,
                 await bot.process_update(update)
             except Exception:
                 logging.exception("Failed to process update")
+
+
+def check_directory(path: str) -> str:
+    log_path = Path(path)
+    if not log_path.exists():
+        log_path.mkdir()
+    return f"{log_path}/trivia_bot.log"
 
 
 if __name__ == "__main__":
