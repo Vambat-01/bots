@@ -96,12 +96,16 @@ class Bot:
         self.redis_api.unlock_chat(chat_id)
 
     async def _process_update(self, update: Update, state: BotState) -> Optional[BotResponse]:
-        if update.message and update.message.text:
-            chat_id = update.get_chat_id(update)
+        print("ЗАШЕЛ _PROCESS_UPDATE")
+
+        if update.message:
             if not update.message.text:
-                raise MessageException("Message text is not found")
+                print("BOT.PY NO TEXT")
+                raise EmptyMessageTextException("Message text is not found")
+            chat_id = update.get_chat_id(update)
             message_text = update.message.text
             logging.info(f"chat_id : {chat_id}. text: {message_text} ")
+
             if message_text.startswith("/"):
                 user_command = Command(chat_id, message_text)
                 bot_response: Optional[BotResponse] = state.process_command(user_command)
@@ -113,10 +117,11 @@ class Bot:
         elif update.callback_query and update.callback_query.message:
             callback_query_id = update.callback_query.id
             chat_id = update.callback_query.message.chat.id
-            if not update.callback_query.message.text:
-                raise CallbackQueryException("CallbackQuery data is not found")
             message_text = update.callback_query.message.text
             message = Message(chat_id, message_text)
+
+            if not update.callback_query.message.date:
+                raise EmptyCallbackQueryDataException("CallbackQuery data is not found")
             callback_query_data = update.callback_query.data
             message_id = update.callback_query.message.message_id
             callback_query = CallbackQuery(callback_query_data, message, message_id)
@@ -165,14 +170,14 @@ class BotException(Exception):
     pass
 
 
-class MessageException(BotException):
+class EmptyMessageTextException(BotException):
     """
     Класс вызова исключения для Message
     """
     pass
 
 
-class CallbackQueryException(BotException):
+class EmptyCallbackQueryDataException(BotException):
     """
     Класс вызова исключения для CallbackQuery
     """

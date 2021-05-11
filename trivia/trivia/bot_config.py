@@ -29,6 +29,7 @@ class BotConfig(BaseModel):
     """
     questions_filepath: Path
     is_server: Optional[bool]
+    is_client: Optional[bool]
     server: ServerConfig
     redis: LiveRedisApiConfig
     out_path: Optional[str]

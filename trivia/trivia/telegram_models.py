@@ -32,7 +32,7 @@ class Message(BaseModel):
     from_: Optional[User] = Field(alias="from")
     chat: Chat
     date: int
-    text: str
+    text: Optional[str]
 
 
 class CallBackQuery(BaseModel):
@@ -42,7 +42,7 @@ class CallBackQuery(BaseModel):
     id: str
     from_: User = Field(alias="from")
     message: Optional[Message]
-    data: str
+    data: Optional[str]
 
 
 class Update(BaseModel):

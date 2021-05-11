@@ -1,6 +1,7 @@
 {  
     "questions_filepath": "resources/bot_questions_mini.json",
-    "is_server": true,
+    "is_server": false,
+    "is_client": true,
     "server":{
         "host": "0.0.0.0",
         "port": 8000

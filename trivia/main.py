@@ -6,7 +6,7 @@ from trivia.question_storage import JsonQuestionStorage
 from core.random import RandomImpl
 from trivia.bijection import BotStateToDictBijection
 import argparse
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from trivia.telegram_models import Update
 import asyncio
 import os
@@ -33,9 +33,9 @@ async def main():
         config = BotConfig.parse_obj(config_json)
 
         if args.out_path:
-            file_name = check_directory(args.out_path)
+            file_name = get_log_filename(args.out_path)
         elif config.out_path:
-            file_name = check_directory(config.out_path)
+            file_name = get_log_filename(config.out_path)
         else:
             file_name = None
 
@@ -56,7 +56,7 @@ async def main():
         async with make_live_telegram_api(token) as telegram_api:
             if config.is_server:
                 await run_server(config, telegram_api, state_factory, bot_state_to_dict_bijection, args.server_url)
-            else:
+            elif config.is_client:
                 await run_client(telegram_api, state_factory, bot_state_to_dict_bijection, last_update_id)
 
 
@@ -81,16 +81,19 @@ async def run_server(config: BotConfig,
 
         @app.exception_handler(BotException)
         async def bot_exception(request, ext):
+            print("ЗАШЕЛ в BotException")
             logging.exception(ext)
-            return PlainTextResponse(str(ext), status_code=502)
+            return PlainTextResponse(str(ext), status_code=400)
 
         @app.exception_handler(LockChatException)
         async def lock_chat_exception(request, ex):
+            print("ЗАШЕЛ в LockChatException")
             logging.exception(ex)
             return PlainTextResponse(str(ex), status_code=502)
 
         @app.exception_handler(RequestValidationError)
         async def validation_exception_handler(request, exc):
+            print("ЗАШЕЛ в RequestValidationError")
             logging.exception(exc)
             return PlainTextResponse(str(exc), status_code=400)
 
@@ -105,6 +108,11 @@ async def run_server(config: BotConfig,
                         )
         server = Server(config)
         await server.serve()
+
+        @app.post("/test")
+        async def on_update_test(request: Request):
+            json_body = await request.json()
+            print(json_body)
 
 
 async def run_client(telegram_api: Any,
@@ -129,8 +137,8 @@ async def run_client(telegram_api: Any,
                 logging.exception("Failed to process update")
 
 
-def check_directory(path: str) -> str:
-    log_path = Path(path)
+def get_log_filename(directory: str) -> str:
+    log_path = Path(directory)
     if not log_path.exists():
         log_path.mkdir()
     return f"{log_path}/trivia_bot.log"
