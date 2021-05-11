@@ -81,21 +81,25 @@ async def run_server(config: BotConfig,
 
         @app.exception_handler(BotException)
         async def bot_exception(request, ext):
-            print("ЗАШЕЛ в BotException")
             logging.exception(ext)
             return PlainTextResponse(str(ext), status_code=400)
 
         @app.exception_handler(LockChatException)
         async def lock_chat_exception(request, ex):
-            print("ЗАШЕЛ в LockChatException")
             logging.exception(ex)
             return PlainTextResponse(str(ex), status_code=502)
 
         @app.exception_handler(RequestValidationError)
         async def validation_exception_handler(request, exc):
-            print("ЗАШЕЛ в RequestValidationError")
             logging.exception(exc)
             return PlainTextResponse(str(exc), status_code=400)
+
+        @app.post("/test")
+        async def on_update_test(request: Request):
+            body = await request.body()
+            str_json = body.decode("utf-8")
+            json_body = json.loads(str_json)
+            print(json_body)
 
         @app.post("/")
         async def on_update(update: Update):
@@ -109,10 +113,7 @@ async def run_server(config: BotConfig,
         server = Server(config)
         await server.serve()
 
-        @app.post("/test")
-        async def on_update_test(request: Request):
-            json_body = await request.json()
-            print(json_body)
+
 
 
 async def run_client(telegram_api: Any,

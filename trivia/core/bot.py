@@ -63,7 +63,6 @@ class Bot:
         :return: None
         """
         chat_id = update.get_chat_id(update)
-
         await self.redis_api.lock_chat(chat_id)
         state = self._get_state_for_chat(chat_id)
         bot_response = await self._process_update(update, state)
@@ -96,11 +95,8 @@ class Bot:
         self.redis_api.unlock_chat(chat_id)
 
     async def _process_update(self, update: Update, state: BotState) -> Optional[BotResponse]:
-        print("ЗАШЕЛ _PROCESS_UPDATE")
-
         if update.message:
             if not update.message.text:
-                print("BOT.PY NO TEXT")
                 raise EmptyMessageTextException("Message text is not found")
             chat_id = update.get_chat_id(update)
             message_text = update.message.text
@@ -114,14 +110,17 @@ class Bot:
                 user_message = Message(chat_id, message_text)
                 bot_response = state.process_message(user_message)
                 return bot_response
+
         elif update.callback_query and update.callback_query.message:
+            if not update.callback_query.data:
+                raise EmptyCallbackQueryDataException("CallbackQuery data is not found")
+
+            if not update.callback_query.message.text:
+                raise EmptyMessageTextException("Message text is not found")
             callback_query_id = update.callback_query.id
             chat_id = update.callback_query.message.chat.id
             message_text = update.callback_query.message.text
             message = Message(chat_id, message_text)
-
-            if not update.callback_query.message.date:
-                raise EmptyCallbackQueryDataException("CallbackQuery data is not found")
             callback_query_data = update.callback_query.data
             message_id = update.callback_query.message.message_id
             callback_query = CallbackQuery(callback_query_data, message, message_id)
