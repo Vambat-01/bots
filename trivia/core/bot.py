@@ -21,7 +21,7 @@ class Bot:
     @dataclass
     class State:
         """
-        Вспомогательный класс для хранения хранения состояния бота class InGameState
+        Вспомогательный класс для хранения состояний бота
         :param chat_states: словарь для хранения состояния бота
         """
         chat_states: Dict[int, BotState] = field(default_factory=dict)
@@ -98,6 +98,7 @@ class Bot:
         if update.message:
             if not update.message.text:
                 raise EmptyMessageTextException("Message text is not found")
+
             chat_id = update.get_chat_id(update)
             message_text = update.message.text
             logging.info(f"chat_id : {chat_id}. text: {message_text} ")
@@ -111,7 +112,10 @@ class Bot:
                 bot_response = state.process_message(user_message)
                 return bot_response
 
-        elif update.callback_query and update.callback_query.message:
+        elif update.callback_query:
+            if not update.callback_query.message:
+                raise EmptyCallbackQueryMessageException("CallbackQuery message is not found")
+
             if not update.callback_query.data:
                 raise EmptyCallbackQueryDataException("CallbackQuery data is not found")
 
@@ -177,6 +181,13 @@ class EmptyMessageTextException(BotException):
 
 
 class EmptyCallbackQueryDataException(BotException):
+    """
+    Класс вызова исключения для CallbackQuery
+    """
+    pass
+
+
+class EmptyCallbackQueryMessageException(BotException):
     """
     Класс вызова исключения для CallbackQuery
     """

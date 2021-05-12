@@ -56,7 +56,7 @@ async def main():
         async with make_live_telegram_api(token) as telegram_api:
             if config.is_server:
                 await run_server(config, telegram_api, state_factory, bot_state_to_dict_bijection, args.server_url)
-            elif config.is_client:
+            else:
                 await run_client(telegram_api, state_factory, bot_state_to_dict_bijection, last_update_id)
 
 
@@ -64,33 +64,33 @@ async def run_server(config: BotConfig,
                      telegram_api: Any,
                      state_factory: BotStateFactory,
                      bot_state_to_dict_bijection: BotStateToDictBijection,
-                     arg_server: Optional[str]):
+                     server_url: Optional[str]):
     with make_live_redis_api(config.redis) as redis_api:
         bot = Bot(telegram_api, redis_api, lambda: GreetingState(state_factory),
                   bot_state_to_dict_bijection)
 
         app = FastAPI()
-        if arg_server:
-            server_url = arg_server
+        if server_url:
+            server_url = server_url
         elif os.environ["SERVER_URL"]:
             server_url = os.environ["SERVER_URL"]
         else:
-            server_url = str(config.server.url)
+            server_url = config.server.url
 
         await telegram_api.set_webhook(server_url)
 
         @app.exception_handler(BotException)
-        async def bot_exception(request, ext):
+        async def on_bot_exception(request, ext):
             logging.exception(ext)
             return PlainTextResponse(str(ext), status_code=400)
 
         @app.exception_handler(LockChatException)
-        async def lock_chat_exception(request, ex):
+        async def on_lock_chat_exception(request, ex):
             logging.exception(ex)
             return PlainTextResponse(str(ex), status_code=502)
 
         @app.exception_handler(RequestValidationError)
-        async def validation_exception_handler(request, exc):
+        async def on_invalid_request_exception(request, exc):
             logging.exception(exc)
             return PlainTextResponse(str(exc), status_code=400)
 
@@ -114,8 +114,6 @@ async def run_server(config: BotConfig,
         await server.serve()
 
 
-
-
 async def run_client(telegram_api: Any,
                      state_factory: BotStateFactory,
                      bot_state_to_dict_bijection: BotStateToDictBijection,
@@ -128,8 +126,7 @@ async def run_client(telegram_api: Any,
     await telegram_api.delete_webhook(True)
     while True:
         update_response = await telegram_api.get_updates(last_update_id + 1)
-        upd_resp = update_response
-        result = upd_resp.result
+        result = update_response.result
         for update in result:
             last_update_id = update.update_id
             try:
