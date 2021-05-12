@@ -168,27 +168,27 @@ class Bot:
 
 class BotException(Exception):
     """
-    Класс вызова исключения для Бота
+    Класс вызова исключения для Бота, когда из телеграма приходит не правильный update
     """
     pass
 
 
 class EmptyMessageTextException(BotException):
     """
-    Класс вызова исключения для Message
+    Класс вызова исключения для Message, когда отсутствует поле 'text'
     """
     pass
 
 
 class EmptyCallbackQueryDataException(BotException):
     """
-    Класс вызова исключения для CallbackQuery
+    Класс вызова исключения для CallbackQuery, когда отсутствует поде 'data'
     """
     pass
 
 
 class EmptyCallbackQueryMessageException(BotException):
     """
-    Класс вызова исключения для CallbackQuery
+    Класс вызова исключения для CallbackQuery, когда отсутствует поле 'message'
     """
     pass

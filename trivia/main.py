@@ -69,30 +69,25 @@ async def run_server(config: BotConfig,
         bot = Bot(telegram_api, redis_api, lambda: GreetingState(state_factory),
                   bot_state_to_dict_bijection)
 
-        app = FastAPI()
-        if server_url:
-            server_url = server_url
-        elif os.environ["SERVER_URL"]:
-            server_url = os.environ["SERVER_URL"]
-        else:
-            server_url = config.server.url
-
+        server_url = next(filter(None, [server_url, os.environ["SERVER_URL"], config.server.url]))
         await telegram_api.set_webhook(server_url)
 
+        app = FastAPI()
+
         @app.exception_handler(BotException)
-        async def on_bot_exception(request, ext):
-            logging.exception(ext)
-            return PlainTextResponse(str(ext), status_code=400)
+        async def on_bot_exception(request: Request, exception: BotException):
+            logging.exception(exception)
+            return PlainTextResponse(str(exception), status_code=400)
 
         @app.exception_handler(LockChatException)
-        async def on_lock_chat_exception(request, ex):
-            logging.exception(ex)
-            return PlainTextResponse(str(ex), status_code=502)
+        async def on_lock_chat_exception(request: Request, exception: LockChatException):
+            logging.exception(exception)
+            return PlainTextResponse(str(exception), status_code=502)
 
         @app.exception_handler(RequestValidationError)
-        async def on_invalid_request_exception(request, exc):
-            logging.exception(exc)
-            return PlainTextResponse(str(exc), status_code=400)
+        async def on_invalid_request_exception(request: Request, exception: RequestValidationError):
+            logging.exception(exception)
+            return PlainTextResponse(str(exception), status_code=400)
 
         @app.post("/test")
         async def on_update_test(request: Request):

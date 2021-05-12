@@ -8,17 +8,21 @@ class BotSystemTests(IsolatedAsyncioTestCase):
     """
     Для запуска тестов должны быть запущены бот (в режиме server) и redis.
     """
-    async def _check_status_code(self, body: Json, expect: int, error_text: Optional[str] = None):
+    async def _check_status_code(self, body: Json, expected_status_code: int, error_text: Optional[str] = None):
         url = "http://localhost:8000"
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=body) as request:
-                self.assertEqual(request.status, expect)
+                self.assertEqual(request.status, expected_status_code)
                 if error_text:
                     request_text = await request.text()
                     self.assertEqual(error_text, request_text)
 
-    async def test_when_request_is_correct(self):
+    async def test_when_message_request_is_correct(self):
         body = _get_message(False)
+        await self._check_status_code(body, 200)
+
+    async def test_when_callback_query_request_is_correct(self):
+        body = _get_callback_query(False, False, False)
         await self._check_status_code(body, 200)
 
     async def test_when_request_is_not_correct(self):
@@ -54,7 +58,7 @@ class BotSystemTests(IsolatedAsyncioTestCase):
         await self._check_status_code(body, 400, text_error)
 
 
-def _get_message(text_is_empty: bool) -> Json:
+def _get_message(has_text: bool) -> Json:
     body = {
         "update_id": 125,
         "message": {
@@ -76,13 +80,13 @@ def _get_message(text_is_empty: bool) -> Json:
             "text": "1"
         }
     }
-    if text_is_empty:
+    if has_text:
         del body["message"]["text"]
 
     return body
 
 
-def _get_callback_query(data_is_empty: bool, message_text_is_empty: bool, message_is_empty: bool) -> Json:
+def _get_callback_query(has_data: bool, has_message_text: bool, has_message: bool) -> Json:
     body = {
         "update_id": 671152178,
         "callback_query": {
@@ -149,13 +153,13 @@ def _get_callback_query(data_is_empty: bool, message_text_is_empty: bool, messag
             "data": "900168c3-943b-4177-b212-553720ee24d2.0.1"
         }
     }
-    if data_is_empty:
+    if has_data:
         del body["callback_query"]["data"]
 
-    if message_is_empty:
+    if has_message:
         del body["callback_query"]["message"]
 
-    if message_text_is_empty:
+    if has_message_text:
         del body["callback_query"]["message"]["text"]
 
     return body
