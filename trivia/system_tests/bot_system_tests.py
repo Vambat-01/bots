@@ -81,7 +81,7 @@ def _get_message(has_text: bool) -> Json:
         }
     }
     if not has_text:
-        del body["message"]["text"]     # type: ignorecd 
+        del body["message"]["text"]     # type: ignore
 
     return body
 
