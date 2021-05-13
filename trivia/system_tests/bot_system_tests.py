@@ -11,10 +11,10 @@ class BotSystemTests(IsolatedAsyncioTestCase):
     async def _check_status_code(self, body: Json, expected_status_code: int, error_text: Optional[str] = None):
         url = "http://localhost:8000"
         async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=body) as request:
-                self.assertEqual(request.status, expected_status_code)
+            async with session.post(url, json=body) as response:
+                self.assertEqual(response.status, expected_status_code)
                 if error_text:
-                    request_text = await request.text()
+                    request_text = await response.text()
                     self.assertEqual(error_text, request_text)
 
     async def test_when_message_request_is_correct(self):

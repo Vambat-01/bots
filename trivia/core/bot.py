@@ -97,7 +97,7 @@ class Bot:
     async def _process_update(self, update: Update, state: BotState) -> Optional[BotResponse]:
         if update.message:
             if not update.message.text:
-                raise EmptyMessageTextException("Message text is not found")
+                raise InvalidUpdateException("Message text is not found")
 
             chat_id = update.get_chat_id(update)
             message_text = update.message.text
@@ -114,13 +114,13 @@ class Bot:
 
         elif update.callback_query:
             if not update.callback_query.message:
-                raise EmptyCallbackQueryMessageException("CallbackQuery message is not found")
+                raise InvalidUpdateException("CallbackQuery message is not found")
 
             if not update.callback_query.data:
-                raise EmptyCallbackQueryDataException("CallbackQuery data is not found")
+                raise InvalidUpdateException("CallbackQuery data is not found")
 
             if not update.callback_query.message.text:
-                raise EmptyMessageTextException("Message text is not found")
+                raise InvalidUpdateException("Message text is not found")
             callback_query_id = update.callback_query.id
             chat_id = update.callback_query.message.chat.id
             message_text = update.callback_query.message.text
@@ -168,27 +168,14 @@ class Bot:
 
 class BotException(Exception):
     """
-    Класс вызова исключения для Бота, когда из телеграма приходит не правильный update
+    Ошибка обработки апдейта ботом
     """
     pass
 
 
-class EmptyMessageTextException(BotException):
+class InvalidUpdateException(BotException):
     """
-    Класс вызова исключения для Message, когда отсутствует поле 'text'
-    """
-    pass
-
-
-class EmptyCallbackQueryDataException(BotException):
-    """
-    Класс вызова исключения для CallbackQuery, когда отсутствует поде 'data'
+    Класс вызова исключения для бота, когда приходит не правильное обновление
     """
     pass
 
-
-class EmptyCallbackQueryMessageException(BotException):
-    """
-    Класс вызова исключения для CallbackQuery, когда отсутствует поле 'message'
-    """
-    pass

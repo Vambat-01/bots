@@ -28,7 +28,7 @@ class BotConfig(BaseModel):
     Настройки бота
     """
     questions_filepath: Path
-    is_server: Optional[bool]
+    is_server: bool
     server: ServerConfig
     redis: LiveRedisApiConfig
     out_path: Optional[str]

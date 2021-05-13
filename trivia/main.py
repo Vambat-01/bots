@@ -1,6 +1,6 @@
 from uvicorn import Config, Server  # type: ignore
 from core.bot import Bot
-from core.live_telegram_api import make_live_telegram_api
+from core.live_telegram_api import make_live_telegram_api, LiveTelegramApi
 from trivia.bot_state import BotStateFactory, GreetingState
 from trivia.question_storage import JsonQuestionStorage
 from core.random import RandomImpl
@@ -61,7 +61,7 @@ async def main():
 
 
 async def run_server(config: BotConfig,
-                     telegram_api: Any,
+                     telegram_api: LiveTelegramApi,
                      state_factory: BotStateFactory,
                      bot_state_to_dict_bijection: BotStateToDictBijection,
                      server_url: Optional[str]):
@@ -88,13 +88,6 @@ async def run_server(config: BotConfig,
         async def on_invalid_request_exception(request: Request, exception: RequestValidationError):
             logging.exception(exception)
             return PlainTextResponse(str(exception), status_code=400)
-
-        @app.post("/test")
-        async def on_update_test(request: Request):
-            body = await request.body()
-            str_json = body.decode("utf-8")
-            json_body = json.loads(str_json)
-            print(json_body)
 
         @app.post("/")
         async def on_update(update: Update):
