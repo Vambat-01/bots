@@ -18,11 +18,11 @@ class BotSystemTests(IsolatedAsyncioTestCase):
                     self.assertEqual(error_text, request_text)
 
     async def test_when_message_request_is_correct(self):
-        body = _get_message(False)
+        body = _get_message(True)
         await self._check_status_code(body, 200)
 
     async def test_when_callback_query_request_is_correct(self):
-        body = _get_callback_query(False, False, False)
+        body = _get_callback_query(True, True, True)
         await self._check_status_code(body, 200)
 
     async def test_when_request_is_not_correct(self):
@@ -33,27 +33,27 @@ class BotSystemTests(IsolatedAsyncioTestCase):
         await self._check_status_code(body, 400)
 
     async def test_when_message_text_is_empty(self):
-        body = _get_message(True)
+        body = _get_message(False)
         await self._check_status_code(body, 400)
 
     async def test_text_error_when_message_text_is_empty(self):
-        body = _get_message(True)
+        body = _get_message(False)
         text_error = "Message text is not found"
         await self._check_status_code(body, 400, text_error)
 
     async def test_when_callback_query_data_is_empty(self):
-        body = _get_callback_query(True, False, False)
+        body = _get_callback_query(False, True, True)
         text_error = "CallbackQuery data is not found"
         await self._check_status_code(body, 400, text_error)
 
     async def test_when_callback_query_message_text_is_empty(self):
 
-        body = _get_callback_query(False, True, False)
+        body = _get_callback_query(True, False, True)
         text_error = "Message text is not found"
         await self._check_status_code(body, 400, text_error)
 
     async def test_when_callback_query_message_is_empty(self):
-        body = _get_callback_query(False, False, True)
+        body = _get_callback_query(True, True, False)
         text_error = "CallbackQuery message is not found"
         await self._check_status_code(body, 400, text_error)
 
@@ -80,8 +80,8 @@ def _get_message(has_text: bool) -> Json:
             "text": "1"
         }
     }
-    if has_text:
-        del body["message"]["text"]
+    if not has_text:
+        del body["message"]["text"]     # type: ignorecd 
 
     return body
 
@@ -153,13 +153,13 @@ def _get_callback_query(has_data: bool, has_message_text: bool, has_message: boo
             "data": "900168c3-943b-4177-b212-553720ee24d2.0.1"
         }
     }
-    if has_data:
-        del body["callback_query"]["data"]
+    if not has_data:
+        del body["callback_query"]["data"]      # type: ignore
 
-    if has_message:
-        del body["callback_query"]["message"]
+    if not has_message:
+        del body["callback_query"]["message"]     # type: ignore
 
-    if has_message_text:
-        del body["callback_query"]["message"]["text"]
+    if not has_message_text:
+        del body["callback_query"]["message"]["text"]     # type: ignore
 
     return body
