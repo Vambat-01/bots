@@ -21,9 +21,8 @@ class Bot:
     @dataclass
     class State:
         """
-        Вспомогательный класс для хранения парамметров class InGameState
-        :param last_update_id: идентификатор последнего обновления
-        :param chat_state: словарь для хранения состояния бота
+        Вспомогательный класс для хранения состояний бота
+        :param chat_states: словарь для хранения состояния бота
         """
         chat_states: Dict[int, BotState] = field(default_factory=dict)
 
@@ -64,7 +63,6 @@ class Bot:
         :return: None
         """
         chat_id = update.get_chat_id(update)
-
         await self.redis_api.lock_chat(chat_id)
         state = self._get_state_for_chat(chat_id)
         bot_response = await self._process_update(update, state)
@@ -98,9 +96,13 @@ class Bot:
 
     async def _process_update(self, update: Update, state: BotState) -> Optional[BotResponse]:
         if update.message:
+            if not update.message.text:
+                raise InvalidUpdateException("Message text is not found")
+
             chat_id = update.get_chat_id(update)
             message_text = update.message.text
             logging.info(f"chat_id : {chat_id}. text: {message_text} ")
+
             if message_text.startswith("/"):
                 user_command = Command(chat_id, message_text)
                 bot_response: Optional[BotResponse] = state.process_command(user_command)
@@ -109,7 +111,16 @@ class Bot:
                 user_message = Message(chat_id, message_text)
                 bot_response = state.process_message(user_message)
                 return bot_response
+
         elif update.callback_query:
+            if not update.callback_query.message:
+                raise InvalidUpdateException("CallbackQuery message is not found")
+
+            if not update.callback_query.data:
+                raise InvalidUpdateException("CallbackQuery data is not found")
+
+            if not update.callback_query.message.text:
+                raise InvalidUpdateException("Message text is not found")
             callback_query_id = update.callback_query.id
             chat_id = update.callback_query.message.chat.id
             message_text = update.callback_query.message.text
@@ -153,3 +164,18 @@ class Bot:
             state = self.create_initial_state()
             self.state.chat_states[chat_id] = state
         return state
+
+
+class BotException(Exception):
+    """
+    Ошибка обработки апдейта ботом
+    """
+    pass
+
+
+class InvalidUpdateException(BotException):
+    """
+    Исключения для бота, когда пришло не правильное обновление и бот не может его обработать
+    """
+    pass
+

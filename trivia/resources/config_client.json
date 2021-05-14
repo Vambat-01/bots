@@ -3,8 +3,7 @@
     "is_server": false,
     "server":{
         "host": "127.0.0.1",
-        "port": 8000,        
-        "url": "<FILL IT. E.g. use ngrok URL>"
+        "port": 8000
     },
     "redis":{
         "host": "localhost",
@@ -12,5 +11,5 @@
         "expire_sec": 5,
         "max_attempts": 10,
         "delay_ms": 200
-    } 
+    }
 }

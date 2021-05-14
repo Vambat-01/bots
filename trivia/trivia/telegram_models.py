@@ -10,7 +10,7 @@ class User(BaseModel):
     id: int
     is_bot: bool
     first_name: str
-    username: str
+    username: Optional[str]
 
 
 class Chat(BaseModel):
@@ -18,9 +18,9 @@ class Chat(BaseModel):
      https://core.telegram.org/bots/api#chat
     """
     id: int
-    first_name: str
-    last_name: str
-    username: str
+    first_name: Optional[str]
+    last_name: Optional[str]
+    username: Optional[str]
     type: str
 
 
@@ -29,10 +29,10 @@ class Message(BaseModel):
      https://core.telegram.org/bots/api#message
     """
     message_id: int
-    from_: User = Field(alias="from")
+    from_: Optional[User] = Field(alias="from")
     chat: Chat
     date: int
-    text: str
+    text: Optional[str]
 
 
 class CallBackQuery(BaseModel):
@@ -41,8 +41,8 @@ class CallBackQuery(BaseModel):
     """
     id: str
     from_: User = Field(alias="from")
-    message: Message
-    data: str
+    message: Optional[Message]
+    data: Optional[str]
 
 
 class Update(BaseModel):
@@ -55,7 +55,7 @@ class Update(BaseModel):
 
     def get_chat_id(self, update: "Update") -> int:
         chat_id = 0
-        if update.callback_query:
+        if update.callback_query and update.callback_query.message:
             chat_id = update.callback_query.message.chat.id
         elif update.message:
             chat_id = update.message.chat.id
