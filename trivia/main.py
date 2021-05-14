@@ -1,6 +1,7 @@
 from uvicorn import Config, Server  # type: ignore
 from core.bot import Bot
-from core.live_telegram_api import make_live_telegram_api, LiveTelegramApi
+from core.live_telegram_api import make_live_telegram_api
+from core.telegram_api import TelegramApi
 from trivia.bot_state import BotStateFactory, GreetingState
 from trivia.question_storage import JsonQuestionStorage
 from core.random import RandomImpl
@@ -61,7 +62,7 @@ async def main():
 
 
 async def run_server(config: BotConfig,
-                     telegram_api: LiveTelegramApi,
+                     telegram_api: TelegramApi,
                      state_factory: BotStateFactory,
                      bot_state_to_dict_bijection: BotStateToDictBijection,
                      server_url: Optional[str]):
