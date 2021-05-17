@@ -67,16 +67,16 @@ class BotSystemTests(IsolatedAsyncioTestCase):
         for _ in range(500):
             await self._check_status_code(body, 200)
 
-    async def test_in_loop_500_times_text_error_when_message_text_is_empty(self):
+    async def test_in_loop_550_times_text_error_when_message_text_is_empty(self):
         body = _get_message(False)
         text_error = "Message text is not found"
-        for _ in range(500):
+        for _ in range(550):
             await self._check_status_code(body, 400, text_error)
 
-    async def test_in_loop_500_times_text_error_when_callback_query_data_is_empty(self):
+    async def test_in_loop_550_times_text_error_when_callback_query_data_is_empty(self):
         body = _get_callback_query(False, True, True)
         text_error = "CallbackQuery data is not found"
-        for _ in range(500):
+        for _ in range(550):
             await self._check_status_code(body, 400, text_error)
 
 
