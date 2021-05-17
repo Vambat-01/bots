@@ -64,35 +64,38 @@ class Bot:
         """
         chat_id = update.get_chat_id(update)
         await self.redis_api.lock_chat(chat_id)
-        state = self._get_state_for_chat(chat_id)
-        bot_response = await self._process_update(update, state)
-        if bot_response is not None:
-            if bot_response.message is not None:
-                await self.telegram_api.send_message(bot_response.message.chat_id,
-                                                     bot_response.message.text,
-                                                     bot_response.message.parse_mode,
-                                                     bot_response.message.keyboard
-                                                     )
+        try:
+            state = self._get_state_for_chat(chat_id)
+            bot_response = await self._process_update(update, state)
 
-            if bot_response.message_edit is not None:
-                await self.telegram_api.edit_message(bot_response.message_edit.chat_id,
-                                                     bot_response.message_edit.message_id,
-                                                     bot_response.message_edit.text,
-                                                     bot_response.message_edit.parse_mode
-                                                     )
-
-            if bot_response.new_state is not None:
-                new_state: BotState = bot_response.new_state
-                wrapped_new_state = BotStateLoggingWrapper(new_state)
-                self.state.chat_states[chat_id] = wrapped_new_state
-                first_message = wrapped_new_state.on_enter(chat_id)
-                if first_message is not None:
-                    await self.telegram_api.send_message(first_message.chat_id,
-                                                         first_message.text,
-                                                         first_message.parse_mode,
-                                                         first_message.keyboard
+            if bot_response is not None:
+                if bot_response.message is not None:
+                    await self.telegram_api.send_message(bot_response.message.chat_id,
+                                                         bot_response.message.text,
+                                                         bot_response.message.parse_mode,
+                                                         bot_response.message.keyboard
                                                          )
-        self.redis_api.unlock_chat(chat_id)
+
+                if bot_response.message_edit is not None:
+                    await self.telegram_api.edit_message(bot_response.message_edit.chat_id,
+                                                         bot_response.message_edit.message_id,
+                                                         bot_response.message_edit.text,
+                                                         bot_response.message_edit.parse_mode
+                                                         )
+
+                if bot_response.new_state is not None:
+                    new_state: BotState = bot_response.new_state
+                    wrapped_new_state = BotStateLoggingWrapper(new_state)
+                    self.state.chat_states[chat_id] = wrapped_new_state
+                    first_message = wrapped_new_state.on_enter(chat_id)
+                    if first_message is not None:
+                        await self.telegram_api.send_message(first_message.chat_id,
+                                                             first_message.text,
+                                                             first_message.parse_mode,
+                                                             first_message.keyboard
+                                                             )
+        finally:
+            self.redis_api.unlock_chat(chat_id)
 
     async def _process_update(self, update: Update, state: BotState) -> Optional[BotResponse]:
         if update.message:
