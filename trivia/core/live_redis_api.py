@@ -33,7 +33,6 @@ class LiveRedisApi(RedisApi):
                 return
             await asyncio.sleep(self._config.delay_ms / 1000)
 
-        self.unlock_chat(chat_id)
         raise LockChatException(chat_id, self._config.max_attempts)
 
     def unlock_chat(self, chat_id: int) -> None:
