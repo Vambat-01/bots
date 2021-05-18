@@ -3,7 +3,7 @@ from core.bot import Bot
 from core.live_telegram_api import make_live_telegram_api
 from core.telegram_api import TelegramApi
 from trivia.bot_state import BotStateFactory, GreetingState
-from trivia.question_storage import JsonQuestionStorage
+from trivia.question_storage import JsonQuestionStorage, SqliteQuestionStorage
 from core.random import RandomImpl
 from trivia.bijection import BotStateToDictBijection
 import argparse
@@ -52,7 +52,12 @@ async def main():
         last_update_id = 0
         storage = JsonQuestionStorage(config.questions_filepath)
         random = RandomImpl()
-        state_factory = BotStateFactory(storage, random)
+        state_factory = BotStateFactory(storage,
+                                        random,
+                                        config.difficulty_questions.easy,
+                                        config.difficulty_questions.medium,
+                                        config.difficulty_questions.hard
+                                        )
         bot_state_to_dict_bijection = BotStateToDictBijection(state_factory)
         async with make_live_telegram_api(token) as telegram_api:
             if config.is_server:

@@ -3,7 +3,7 @@ from typing import List
 from abc import ABCMeta, abstractmethod
 from dataclasses import dataclass
 from collections import defaultdict
-from enum import Enum
+from enum import IntEnum
 from pathlib import Path
 import sqlite3
 from dataclasses_json import dataclass_json
@@ -28,7 +28,7 @@ class Question:
     :param correct_answer: Правильный ответ. Индекс правильного ответа в списке `answers`
     """
 
-    class Difficulty(Enum):
+    class Difficulty(IntEnum):
         EASY = 0
         MEDIUM = 1
         HARD = 2
@@ -139,7 +139,7 @@ class SqliteQuestionStorage(QuestionStorage):
     @staticmethod
     def _create(connection: sqlite3.Connection) -> "SqliteQuestionStorage":
         """
-        Сощдаст все необходимые таблицы в SQLite базе данных. Таблицы будут пустыми
+        Создаст все необходимые таблицы в SQLite базе данных. Таблицы будут пустыми
         :param connection: подключение к базе данных
         """
         cur = connection.cursor()
