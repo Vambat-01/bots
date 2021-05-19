@@ -12,7 +12,7 @@ from trivia.bot_state import BotResponse
 from core.utils import dedent_and_strip
 from enum import Enum
 from trivia.bot_state import BotStateFactory
-from test.test_utils import DoNothingRandom
+from test.test_utils import DoNothingRandom, make_bot_config
 from trivia.question_storage import JsonQuestionStorage, Question, JSONEncoder, JSONDecoder
 from trivia.bijection import BotStateToDictBijection
 from trivia.bot_state import InGameState
@@ -24,6 +24,7 @@ from core.live_redis_api import DoNothingRedisApi
 CHAT_ID_1 = 125
 CHAT_ID_2 = 150
 TEST_QUESTIONS_PATH = Path("resources/test_questions.json")
+TEST_CONFIG_PATH = Path("resources/test_config_client.json")
 GAME_ID = "125"
 
 
@@ -354,7 +355,8 @@ def make_callback_query_update(callback_data: str, chat_id: int) -> Update:
 def _make_state_factory(questions_file_path: Path) -> BotStateFactory:
     storage = JsonQuestionStorage(questions_file_path)
     random = DoNothingRandom()
-    state_factory = BotStateFactory(storage, random, 1, 1, 1)
+    config = make_bot_config(TEST_CONFIG_PATH)
+    state_factory = BotStateFactory(storage, random, config)
     return state_factory
 
 
