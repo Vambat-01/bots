@@ -1,9 +1,9 @@
 {  
-    "questions_filepath": "resources/all_questions_for_bot.json",
-    "difficulty_questions":{
-        "easy": 1,
-        "medium": 1,
-        "hard": 1
+    "questions_filepath": "resources/bot_questions_mini.json",
+    "question_difficulties":{
+        "easy_question_count": 1,
+        "medium_question_count": 1,
+        "hard_question_count": 1
     },
     "is_server": false,
     "server":{

@@ -23,13 +23,13 @@ class LiveRedisApiConfig(BaseModel):
     delay_ms: int
 
 
-class DifficultQuestions(BaseModel):
+class GameConfig(BaseModel):
     """
     Настройки количествао вопросов разной сложности
     """
-    easy: int
-    medium: int
-    hard: int
+    easy_question_count: int
+    medium_question_count: int
+    hard_question_count: int
 
 
 class BotConfig(BaseModel):
@@ -37,7 +37,7 @@ class BotConfig(BaseModel):
     Настройки бота
     """
     questions_filepath: Path
-    difficulty_questions: DifficultQuestions
+    question_difficulties: GameConfig
     is_server: bool
     server: ServerConfig
     redis: LiveRedisApiConfig

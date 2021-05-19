@@ -14,6 +14,7 @@ from trivia import format
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json
 from core.utils import JsonDict
+from trivia.bot_config import BotConfig
 
 
 class BotStateFactory:
@@ -21,12 +22,10 @@ class BotStateFactory:
         Служит для создания состояний бота
     """
 
-    def __init__(self, questions_storage: QuestionStorage, random: Random, easy: int, medium: int, hard: int):
+    def __init__(self, questions_storage: QuestionStorage, random: Random, config: BotConfig):
         self.questions_storage = questions_storage
         self.random = random
-        self.easy = easy
-        self.medium = medium
-        self.hard = hard
+        self.config = config
 
     def __eq__(self, other):
         if type(other) is type(self):
@@ -60,7 +59,11 @@ class BotStateFactory:
 
         all_questions = self.questions_storage.load_questions()
         self.random.shuffle(all_questions)
-        game_questions = select_questions(all_questions, self.easy, self.medium, self.hard)
+        game_questions = select_questions(all_questions,
+                                          self.config.question_difficulties.easy_question_count,
+                                          self.config.question_difficulties.medium_question_count,
+                                          self.config.question_difficulties.hard_question_count
+                                          )
         new_game_questions = []
         game_id = str(uuid.uuid4())
 
