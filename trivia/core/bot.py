@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from core.utils import JsonDict
 from trivia.telegram_models import Update
 from core.redis_api import RedisApi
+from core.chat_state_storage import ChatStateStorage, DictChatStateStorage
 
 
 class Bot:
@@ -18,26 +19,28 @@ class Bot:
         Обрабатывает полученные команды и сообщения от пользователя
     """
 
-    @dataclass
-    class State:
-        """
-        Вспомогательный класс для хранения состояний бота
-        :param chat_states: словарь для хранения состояния бота
-        """
-        chat_states: Dict[int, BotState] = field(default_factory=dict)
+    # @dataclass
+    # class State:
+    #     """
+    #     Вспомогательный класс для хранения состояний бота
+    #     :param chat_states: словарь для хранения состояния бота
+    #     """
+    #     chat_states: Dict[int, BotState] = field(default_factory=dict)
 
     def __init__(self,
                  telegram_api: TelegramApi,
                  redis_api: RedisApi,
                  create_initial_state: Callable[[], BotState],
                  state_to_dict_bijection: Bijection[BotState, JsonDict],
-                 state: State = State()
+                 chat_state_storage: ChatStateStorage
+                 # state: State = State()
                  ):
         self.telegram_api = telegram_api
         self.redis_api = redis_api
         self.create_initial_state = create_initial_state
         self.state_to_dict_bijection = state_to_dict_bijection
-        self.state = state
+        # self.state = state
+        self.chat_state_storage = chat_state_storage
 
     def __eq__(self, other):
         if type(other) is type(self):
@@ -52,9 +55,8 @@ class Bot:
                 Bot:
                     telegram_api = {self.telegram_api}
                     redis_api = {self.redis_api}
-                    create_initial_state = {self.create_initial_state}
                     state_to_dict_bijection = {self.state_to_dict_bijection}
-                    state = {self.state}
+                    state = {self.chat_state_storage}
                 """
 
     async def process_update(self, update: Update) -> None:
@@ -62,9 +64,16 @@ class Bot:
            Обрабатывает полученные команды и сообщения от пользователя
         :return: None
         """
+        logging.info("ЗАШЕЛ В PROCESS UPDATE")
         chat_id = update.get_chat_id(update)
         await self.redis_api.lock_chat(chat_id)
-        state = self._get_state_for_chat(chat_id)
+        # state = self._get_state_for_chat(chat_id)
+        state = self.chat_state_storage.get_state(chat_id)
+        print(f"ТИП ХРАНИЛИЩА {type(self.chat_state_storage)}")
+        print("---------------------------")
+        print(f"STATE - {state}")
+        if not state:
+            state = self.create_initial_state()
         bot_response = await self._process_update(update, state)
         if bot_response is not None:
             if bot_response.message is not None:
@@ -82,17 +91,24 @@ class Bot:
                                                      )
 
             if bot_response.new_state is not None:
-                new_state: BotState = bot_response.new_state
-                wrapped_new_state = BotStateLoggingWrapper(new_state)
-                self.state.chat_states[chat_id] = wrapped_new_state
+                state: BotState = bot_response.new_state
+                wrapped_new_state = BotStateLoggingWrapper(state)
+                # self.state.chat_states[chat_id] = wrapped_new_state
+                st = self.chat_state_storage.get_state(chat_id)
+                if st:
+                 st = wrapped_new_state
                 first_message = wrapped_new_state.on_enter(chat_id)
+                # self.chat_state_storage.set_state(chat_id, state)
                 if first_message is not None:
                     await self.telegram_api.send_message(first_message.chat_id,
                                                          first_message.text,
                                                          first_message.parse_mode,
                                                          first_message.keyboard
                                                          )
+        print(f"STATE перед сохранение - {state}")
+        self.chat_state_storage.set_state(chat_id, state)
         self.redis_api.unlock_chat(chat_id)
+        logging.info("ВЫШЕЛ ИЗ PROCESS UPDATE")
 
     async def _process_update(self, update: Update, state: BotState) -> Optional[BotResponse]:
         if update.message:
@@ -135,35 +151,35 @@ class Bot:
             logging.info("skipping update")
             return None
 
-    def save(self) -> JsonDict:
-        """
-        Сохраняет состояние в словарь. Словарь может быть использован для дальнейшего восстановления
-        :return: dict
-        """
-        dict_to_state = {}
-        for chat_id, state in self.state.chat_states.items():
-            dict_to_state[str(chat_id)] = self.state_to_dict_bijection.forward(state)
-
-        return dict_to_state
-
-    def load(self, data: JsonDict) -> None:
-        """
-        Загружает состояние из сохраненного ранее словаря
-        :param data: dict
-        :return: None
-        """
-        state = Bot.State()
-        for chat_id, st in data.items():
-            state.chat_states[int(chat_id)] = self.state_to_dict_bijection.backward(st)
-        self.state = state
-
-    def _get_state_for_chat(self, chat_id: int) -> BotState:
-        if chat_id in self.state.chat_states:
-            state = self.state.chat_states[chat_id]
-        else:
-            state = self.create_initial_state()
-            self.state.chat_states[chat_id] = state
-        return state
+    # def save(self) -> JsonDict:
+    #     """
+    #     Сохраняет состояние в словарь. Словарь может быть использован для дальнейшего восстановления
+    #     :return: dict
+    #     """
+    #     dict_to_state = {}
+    #     for chat_id, state in self.state.chat_states.items():
+    #         dict_to_state[str(chat_id)] = self.state_to_dict_bijection.forward(state)
+    #
+    #     return dict_to_state
+    #
+    # def load(self, data: JsonDict) -> None:
+    #     """
+    #     Загружает состояние из сохраненного ранее словаря
+    #     :param data: dict
+    #     :return: None
+    #     """
+    #     state = Bot.State()
+    #     for chat_id, st in data.items():
+    #         state.chat_states[int(chat_id)] = self.state_to_dict_bijection.backward(st)
+    #     self.state = state
+    #
+    # def _get_state_for_chat(self, chat_id: int) -> BotState:
+    #     if chat_id in self.state.chat_states:
+    #         state = self.state.chat_states[chat_id]
+    #     else:
+    #         state = self.create_initial_state()
+    #         self.state.chat_states[chat_id] = state
+    #     return state
 
 
 class BotException(Exception):

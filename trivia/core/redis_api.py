@@ -1,4 +1,6 @@
 from abc import ABCMeta, abstractmethod
+from core.bot_state import BotState
+from typing import Optional
 
 
 class RedisApi(metaclass=ABCMeta):
@@ -20,3 +22,22 @@ class RedisApi(metaclass=ABCMeta):
         Убирает mutex на чат
         :param chat_id: идентификатор чата
         """
+        pass
+
+    @abstractmethod
+    def set_state(self, chat_id: str, state: str):
+        """
+        Сохраняет состояние бота в Redis
+        :param chat_id: идентификатор чата
+        :param state: состояние бота
+        """
+        pass
+
+    @abstractmethod
+    def get_state(self, chat_id: str) -> Optional[str]:
+        """
+        Получает состояние бота из Redis
+        :param chat_id: идентификатор чата
+        :return:  опциональное состояние бота
+        """
+        pass

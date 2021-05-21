@@ -20,6 +20,7 @@ from typing import Any, Optional
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import PlainTextResponse
 from core.bot import BotException
+from core.chat_state_storage import ChatStateStorage, DictChatStateStorage, RedisChatStateStorage
 
 
 async def main():
@@ -54,21 +55,40 @@ async def main():
         random = RandomImpl()
         state_factory = BotStateFactory(storage, random)
         bot_state_to_dict_bijection = BotStateToDictBijection(state_factory)
+        chat_state_storage = DictChatStateStorage()
         async with make_live_telegram_api(token) as telegram_api:
             if config.is_server:
-                await run_server(config, telegram_api, state_factory, bot_state_to_dict_bijection, args.server_url)
+                await run_server(config,
+                                 telegram_api,
+                                 state_factory,
+                                 bot_state_to_dict_bijection,
+                                 args.server_url
+                                 )
             else:
-                await run_client(telegram_api, state_factory, bot_state_to_dict_bijection, last_update_id)
+                await run_client(telegram_api,
+                                 state_factory,
+                                 bot_state_to_dict_bijection,
+                                 last_update_id
+                                 )
 
 
 async def run_server(config: BotConfig,
                      telegram_api: TelegramApi,
                      state_factory: BotStateFactory,
                      bot_state_to_dict_bijection: BotStateToDictBijection,
-                     server_url: Optional[str]):
+                     server_url: Optional[str]
+                     ):
     with make_live_redis_api(config.redis) as redis_api:
-        bot = Bot(telegram_api, redis_api, lambda: GreetingState(state_factory),
-                  bot_state_to_dict_bijection)
+        # bot = Bot(telegram_api, redis_api, lambda: greeting_state,
+        #           bot_state_to_dict_bijection)
+        chat_state_storage = RedisChatStateStorage(redis_api, bot_state_to_dict_bijection)
+        # chat_state_storage = DictChatStateStorage()
+        bot = Bot(telegram_api,
+                  redis_api,
+                  lambda: GreetingState(state_factory),
+                  bot_state_to_dict_bijection,
+                  chat_state_storage
+                  )
 
         server_url = next(filter(None, [server_url, os.environ["SERVER_URL"], config.server.url]))
         await telegram_api.set_webhook(server_url)
@@ -106,11 +126,15 @@ async def run_server(config: BotConfig,
 async def run_client(telegram_api: Any,
                      state_factory: BotStateFactory,
                      bot_state_to_dict_bijection: BotStateToDictBijection,
-                     last_update_id: int):
+                     last_update_id: int
+                     ):
+    # bot = Bot(telegram_api, DoNothingRedisApi(), bot_state_to_dict_bijection, chat_state_storage)
+    chat_state_storage = DictChatStateStorage()
     bot = Bot(telegram_api,
               DoNothingRedisApi(),
               lambda: GreetingState(state_factory),
-              bot_state_to_dict_bijection
+              bot_state_to_dict_bijection,
+              chat_state_storage
               )
     await telegram_api.delete_webhook(True)
     while True:

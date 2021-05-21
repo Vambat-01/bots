@@ -3,6 +3,8 @@ import redis
 import asyncio
 from contextlib import contextmanager
 from trivia.bot_config import LiveRedisApiConfig
+from core.bot_state import BotState
+from typing import Optional
 
 
 class LockChatException(Exception):
@@ -28,7 +30,7 @@ class LiveRedisApi(RedisApi):
 
     async def lock_chat(self, chat_id: int) -> None:
         for _ in range(self._config.max_attempts):
-            was_set = self._redis.set(str(chat_id), "1", ex=self._config.expire_sec, nx=True)
+            was_set = self._redis.set(f"lock_{str(chat_id)}", "1", ex=self._config.expire_sec, nx=True)
             if was_set:
                 return
             await asyncio.sleep(self._config.delay_ms / 1000)
@@ -37,6 +39,13 @@ class LiveRedisApi(RedisApi):
 
     def unlock_chat(self, chat_id: int) -> None:
         self._redis.delete(str(chat_id))
+
+    def set_state(self, chat_id: str, state: str):
+        self._redis.set(chat_id, state)
+
+    def get_state(self, chat_id: str) -> Optional[BotState]:
+        state = self._redis.get(chat_id)
+        return state
 
 
 @contextmanager
@@ -53,4 +62,10 @@ class DoNothingRedisApi(RedisApi):
         pass
 
     def unlock_chat(self, chat_id: int) -> None:
+        pass
+
+    def set_state(self, chat_id: int, state: str):
+        pass
+
+    def get_state(self, chat_id: int) -> Optional[BotState]:
         pass
