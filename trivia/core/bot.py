@@ -68,10 +68,9 @@ class Bot:
         chat_id = update.get_chat_id(update)
         await self.redis_api.lock_chat(chat_id)
         # state = self._get_state_for_chat(chat_id)
-        state = self.chat_state_storage.get_state(chat_id)
+        state = self.chat_state_storage.get_state(f"state_{chat_id}")
         print(f"ТИП ХРАНИЛИЩА {type(self.chat_state_storage)}")
         print("---------------------------")
-        print(f"STATE - {state}")
         if not state:
             state = self.create_initial_state()
         bot_response = await self._process_update(update, state)
@@ -91,10 +90,10 @@ class Bot:
                                                      )
 
             if bot_response.new_state is not None:
-                state: BotState = bot_response.new_state
+                state = bot_response.new_state
                 wrapped_new_state = BotStateLoggingWrapper(state)
                 # self.state.chat_states[chat_id] = wrapped_new_state
-                st = self.chat_state_storage.get_state(chat_id)
+                st = self.chat_state_storage.get_state(f"state_{chat_id}")
                 if st:
                  st = wrapped_new_state
                 first_message = wrapped_new_state.on_enter(chat_id)
@@ -105,8 +104,7 @@ class Bot:
                                                          first_message.parse_mode,
                                                          first_message.keyboard
                                                          )
-        print(f"STATE перед сохранение - {state}")
-        self.chat_state_storage.set_state(chat_id, state)
+        self.chat_state_storage.set_state(f"state_{chat_id}", state)
         self.redis_api.unlock_chat(chat_id)
         logging.info("ВЫШЕЛ ИЗ PROCESS UPDATE")
 

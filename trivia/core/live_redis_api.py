@@ -30,7 +30,8 @@ class LiveRedisApi(RedisApi):
 
     async def lock_chat(self, chat_id: int) -> None:
         for _ in range(self._config.max_attempts):
-            was_set = self._redis.set(f"lock_{str(chat_id)}", "1", ex=self._config.expire_sec, nx=True)
+            was_set = self._redis.set(f"lock_{chat_id}", "1", ex=self._config.expire_sec, nx=True)
+            print("ВРЕМЯ ЖИЗНИ В CHAT LOCK", self._redis.ttl(f"lock_{chat_id}"))
             if was_set:
                 return
             await asyncio.sleep(self._config.delay_ms / 1000)
@@ -38,14 +39,17 @@ class LiveRedisApi(RedisApi):
         raise LockChatException(chat_id, self._config.max_attempts)
 
     def unlock_chat(self, chat_id: int) -> None:
-        self._redis.delete(str(chat_id))
+        self._redis.delete(f"lock_{chat_id}")
 
     def set_state(self, chat_id: str, state: str):
         self._redis.set(chat_id, state)
 
-    def get_state(self, chat_id: str) -> Optional[BotState]:
-        state = self._redis.get(chat_id)
-        return state
+    def get_state(self, chat_id: str) -> Optional[str]:
+        bytes_state = self._redis.get(chat_id)
+        if bytes_state:
+            str_state = bytes_state.decode()
+            return str_state
+        return None
 
 
 @contextmanager
@@ -64,8 +68,8 @@ class DoNothingRedisApi(RedisApi):
     def unlock_chat(self, chat_id: int) -> None:
         pass
 
-    def set_state(self, chat_id: int, state: str):
+    def set_state(self, chat_id: str, state: str):
         pass
 
-    def get_state(self, chat_id: int) -> Optional[BotState]:
+    def get_state(self, chat_id: str) -> Optional[str]:
         pass
