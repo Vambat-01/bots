@@ -3,11 +3,8 @@ from core.message import Message
 from core.command import Command
 from trivia.bot_state import GreetingState, IdleState, BotStateFactory
 from trivia.question_storage import JsonQuestionStorage
-from test.test_utils import DoNothingRandom, make_bot_config
+from test.test_utils import DoNothingRandom, make_game_config
 from pathlib import Path
-
-
-TEST_CONFIG_PATH = Path("resources/test_config_client.json")
 
 
 class GreetingStateTest(TestCase):
@@ -18,8 +15,8 @@ class GreetingStateTest(TestCase):
         json_file = Path("resources/test_questions.json")
         storage = JsonQuestionStorage(json_file)
         random = DoNothingRandom()
-        config = make_bot_config(TEST_CONFIG_PATH)
-        state_factory = BotStateFactory(storage, random, config)
+        game_config = make_game_config(1, 1, 1)
+        state_factory = BotStateFactory(storage, random, game_config)
         state = GreetingState(state_factory)
         message_resp = state.process_message(user_message)
         self.assertEqual("<i>&#129417Trivia bot greeting you</i>", message_resp.message.text)
@@ -33,13 +30,13 @@ class GreetingStateTest(TestCase):
         json_file = Path("resources/test_questions.json")
         storage = JsonQuestionStorage(json_file)
         random = DoNothingRandom()
-        config = make_bot_config(TEST_CONFIG_PATH)
-        state_factory = BotStateFactory(storage, random, config)
+        game_config = make_game_config(1, 1, 1)
+        state_factory = BotStateFactory(storage, random, game_config)
         state = GreetingState(state_factory)
         command_resp = state.process_command(user_command)
         self.assertEqual("<i>&#129417Trivia bot greeting you. Enter command /start or /help </i>",
                          command_resp.message.text
-        )
+                         )
         self.assertEqual(250, command_resp.message.chat_id)
         self.assertEqual(IdleState(state_factory), command_resp.new_state)
 
@@ -50,18 +47,11 @@ class GreetingStateTest(TestCase):
         json_file = Path("resources/test_questions.json")
         storage = JsonQuestionStorage(json_file)
         random = DoNothingRandom()
-        config = make_bot_config(TEST_CONFIG_PATH)
-        state_factory = BotStateFactory(storage, random, config)
+        game_config = make_game_config(1, 1, 1)
+        state_factory = BotStateFactory(storage, random, game_config)
         state = GreetingState(state_factory)
         command_resp = state.process_command(user_command)
         self.assertEqual("<i>Something went wrong. Try again</i>", command_resp.message.text)
         self.assertEqual(255, command_resp.message.chat_id)
         self.assertEqual(None, command_resp.new_state)
-
-
-
-
-
-
-
 

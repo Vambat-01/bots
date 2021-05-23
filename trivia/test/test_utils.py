@@ -1,7 +1,6 @@
 from core.random import Random
 import json
-from pathlib import Path
-from trivia.bot_config import BotConfig
+from trivia.bot_config import GameConfig
 
 
 class DoNothingRandom(Random):
@@ -14,8 +13,11 @@ class ReversedShuffleRandom(Random):
         data.reverse()
 
 
-def make_bot_config(config_path: Path) -> BotConfig:
-    with open(config_path) as json_file:
-        config_json = json.load(json_file)
-        config = BotConfig.parse_obj(config_json)
-        return config
+def make_game_config(easy: int, medium: int, hard: int) -> GameConfig:
+    json_body = {
+            "easy_question_count": easy,
+            "medium_question_count": medium,
+            "hard_question_count": hard
+        }
+    game_config = GameConfig.parse_obj(json_body)
+    return game_config

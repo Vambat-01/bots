@@ -2,7 +2,7 @@ import json
 from unittest import TestCase
 from trivia.bot_state import BotStateFactory, GreetingState, IdleState, InGameState
 from trivia.question_storage import JsonQuestionStorage
-from test.test_utils import DoNothingRandom, make_bot_config
+from test.test_utils import DoNothingRandom, make_game_config
 from trivia.bijection import BotStateToDictBijection
 from trivia.question_storage import Question
 from pathlib import Path
@@ -41,8 +41,8 @@ class BijectionTest(TestCase):
 def _make_state_factory(questions_file_path: Path) -> BotStateFactory:
     storage = JsonQuestionStorage(questions_file_path)
     random = DoNothingRandom()
-    config = make_bot_config(Path("resources/test_config_client.json"))
-    state_factory = BotStateFactory(storage, random, config)
+    game_config = make_game_config(1, 1, 1)
+    state_factory = BotStateFactory(storage, random, game_config)
     return state_factory
 
 

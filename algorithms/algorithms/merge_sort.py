@@ -25,6 +25,7 @@ def merge(a: List[int], b: List[int]) -> List[int]:
 def merge_sort(nums: List[int]) -> List[int]:
     if len(nums) < 2:
         return nums
+
     middle = len(nums) // 2
     left = merge_sort(nums[:middle])
     right = merge_sort(nums[middle:])

@@ -14,7 +14,7 @@ from trivia import format
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json
 from core.utils import JsonDict
-from trivia.bot_config import BotConfig
+from trivia.bot_config import GameConfig
 
 
 class BotStateFactory:
@@ -22,7 +22,7 @@ class BotStateFactory:
         Служит для создания состояний бота
     """
 
-    def __init__(self, questions_storage: QuestionStorage, random: Random, config: BotConfig):
+    def __init__(self, questions_storage: QuestionStorage, random: Random, config: GameConfig):
         self.questions_storage = questions_storage
         self.random = random
         self.config = config
@@ -60,9 +60,9 @@ class BotStateFactory:
         all_questions = self.questions_storage.load_questions()
         self.random.shuffle(all_questions)
         game_questions = select_questions(all_questions,
-                                          self.config.question_difficulties.easy_question_count,
-                                          self.config.question_difficulties.medium_question_count,
-                                          self.config.question_difficulties.hard_question_count
+                                          self.config.easy_question_count,
+                                          self.config.medium_question_count,
+                                          self.config.hard_question_count
                                           )
         new_game_questions = []
         game_id = str(uuid.uuid4())
@@ -472,6 +472,13 @@ def make_keyboard_for_question(num_answers: int, game_id: str, question_id: int)
         return Keyboard([row])
 
 
+class NotEnoughQuestionsException(Exception):
+    """
+    Ошибка не хватки нужного количества вопросов для бота
+    """
+    pass
+
+
 def select_questions(questions: List[Question], easy: int, medium: int, hard: int) -> List[Question]:
     """
         Создает List[Questions] из вопросов
@@ -486,13 +493,20 @@ def select_questions(questions: List[Question], easy: int, medium: int, hard: in
         if question.difficulty == Question.Difficulty.EASY and easy != 0:
             new_questions.append(question)
             easy -= 1
+
         if question.difficulty == Question.Difficulty.MEDIUM and medium != 0:
             new_questions.append(question)
             medium -= 1
+
         if question.difficulty == Question.Difficulty.HARD and hard != 0:
             new_questions.append(question)
             hard -= 1
+
         if easy == medium == hard == 0:
             break
+
+    if easy != 0 or medium != 0 or hard != 0:
+        raise NotEnoughQuestionsException("Not enough questions for the list questions")
+
     sort_questions = sorted(new_questions, key=lambda k: k.difficulty)
     return sort_questions
