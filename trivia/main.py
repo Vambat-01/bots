@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Optional
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import PlainTextResponse
-from core.bot import BotException
+from core.bot_exeption import BotException, NotEnoughQuestionsException
 
 
 async def main():
@@ -77,8 +77,12 @@ async def run_server(config: BotConfig,
 
         @app.exception_handler(BotException)
         async def on_bot_exception(request: Request, exception: BotException):
-            logging.exception(exception)
-            return PlainTextResponse(str(exception), status_code=400)
+            if isinstance(exception, NotEnoughQuestionsException):
+                logging.exception(exception)
+                return PlainTextResponse(str(exception), status_code=503)
+            else:
+                logging.exception(exception)
+                return PlainTextResponse(str(exception), status_code=400)
 
         @app.exception_handler(LockChatException)
         async def on_lock_chat_exception(request: Request, exception: LockChatException):

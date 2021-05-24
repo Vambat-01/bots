@@ -8,17 +8,18 @@ from core.callback_query import CallbackQuery
 from core.keyboard import Keyboard
 from core.bot import Bot, TelegramApi
 import json
-from trivia.bot_state import BotResponse, NotEnoughQuestionsException
+from trivia.bot_state import BotResponse
 from core.utils import dedent_and_strip
 from enum import Enum
 from trivia.bot_state import BotStateFactory
-from test.test_utils import DoNothingRandom, make_game_config
+from test.test_utils import DoNothingRandom
 from trivia.question_storage import JsonQuestionStorage, Question, JSONEncoder, JSONDecoder
 from trivia.bijection import BotStateToDictBijection
 from trivia.bot_state import InGameState
 from trivia.telegram_models import UpdatesResponse, Update
 from pathlib import Path
 from core.live_redis_api import DoNothingRedisApi
+from trivia.bot_config import GameConfig
 
 
 CHAT_ID_1 = 125
@@ -246,16 +247,6 @@ class BotTest(IsolatedAsyncioTestCase):
         bot2.load(json_decoded)
         self.assertEqual(bot1, bot2)
 
-    def test_select_questions(self):
-        storage = JsonQuestionStorage(TEST_QUESTIONS_PATH)
-        random = DoNothingRandom()
-        game_config = make_game_config(5, 5, 5)
-        state_factory = BotStateFactory(storage, random, game_config)
-        with self.assertRaises(NotEnoughQuestionsException) as context:
-            state_factory.create_in_game_state()
-
-        self.assertTrue("Not enough questions for the list questions", context.exception)
-
 
 def make_message_update(text: str, chat_id: int) -> Update:
     """
@@ -364,8 +355,7 @@ def make_callback_query_update(callback_data: str, chat_id: int) -> Update:
 def _make_state_factory(questions_file_path: Path) -> BotStateFactory:
     storage = JsonQuestionStorage(questions_file_path)
     random = DoNothingRandom()
-    game_config = make_game_config(1, 1, 1)
-    state_factory = BotStateFactory(storage, random, game_config)
+    state_factory = BotStateFactory(storage, random, GameConfig.make_game_config(1, 1, 1))
     return state_factory
 
 

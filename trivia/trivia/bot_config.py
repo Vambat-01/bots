@@ -31,6 +31,17 @@ class GameConfig(BaseModel):
     medium_question_count: int
     hard_question_count: int
 
+    @staticmethod
+    def make_game_config(easy_question_count: int,
+                         medium_question_count: int,
+                         hard_question_count: int
+                         ) -> "GameConfig":
+
+        return GameConfig(easy_question_count=easy_question_count,
+                          medium_question_count=medium_question_count,
+                          hard_question_count=hard_question_count
+                          )
+
 
 class BotConfig(BaseModel):
     """

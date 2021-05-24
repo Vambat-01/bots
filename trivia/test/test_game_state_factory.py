@@ -2,7 +2,9 @@ from unittest import TestCase
 from trivia.bot_state import BotStateFactory
 from trivia.question_storage import Question, JsonQuestionStorage
 from pathlib import Path
-from test.test_utils import ReversedShuffleRandom, make_game_config
+from test.test_utils import ReversedShuffleRandom, DoNothingRandom
+from core.bot_exeption import NotEnoughQuestionsException
+from trivia.bot_config import GameConfig
 
 
 class BotStateFactoryTest(TestCase):
@@ -10,8 +12,7 @@ class BotStateFactoryTest(TestCase):
         json_file = Path("resources/test_questions.json")
         storage = JsonQuestionStorage(json_file)
         random = ReversedShuffleRandom()
-        game_config = make_game_config(1, 1, 1)
-        state_factory = BotStateFactory(storage, random, game_config)
+        state_factory = BotStateFactory(storage, random, GameConfig.make_game_config(1, 1, 1))
         actual = state_factory.create_in_game_state()
 
         questions_list = [Question("7+3", ["11", "10"], 1, Question.Difficulty.EASY, 1),
@@ -19,3 +20,12 @@ class BotStateFactoryTest(TestCase):
                           Question("27+3", ["31", "30"], 3, Question.Difficulty.HARD, 1)
                           ]
         self.assertEqual(questions_list, actual.state.questions)
+
+    def test_select_questions(self):
+        storage = JsonQuestionStorage(Path("resources/test_questions.json"))
+        random = DoNothingRandom()
+        state_factory = BotStateFactory(storage, random, GameConfig.make_game_config(5, 5, 5))
+        with self.assertRaises(NotEnoughQuestionsException) as context:
+            state_factory.create_in_game_state()
+
+        self.assertTrue("Not enough questions build a questions list", context.exception)

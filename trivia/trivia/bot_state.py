@@ -8,13 +8,14 @@ from trivia.question_storage import Question, QuestionStorage
 from typing import Optional
 from core.button import Button
 import uuid
-from core.random import Random, RandomImpl
+from core.random import Random
 from core.bot_state import BotState, BotResponse
 from trivia import format
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json
 from core.utils import JsonDict
 from trivia.bot_config import GameConfig
+from core.bot_exeption import NotEnoughQuestionsException
 
 
 class BotStateFactory:
@@ -472,13 +473,6 @@ def make_keyboard_for_question(num_answers: int, game_id: str, question_id: int)
         return Keyboard([row])
 
 
-class NotEnoughQuestionsException(Exception):
-    """
-    Ошибка не хватки нужного количества вопросов для бота
-    """
-    pass
-
-
 def select_questions(questions: List[Question], easy: int, medium: int, hard: int) -> List[Question]:
     """
         Создает List[Questions] из вопросов
@@ -506,7 +500,7 @@ def select_questions(questions: List[Question], easy: int, medium: int, hard: in
             break
 
     if easy != 0 or medium != 0 or hard != 0:
-        raise NotEnoughQuestionsException("Not enough questions for the list questions")
+        raise NotEnoughQuestionsException("Not enough questions build a questions list")
 
     sort_questions = sorted(new_questions, key=lambda k: k.difficulty)
     return sort_questions
