@@ -45,7 +45,7 @@ class LiveRedisApi(RedisApi):
         self._redis.set(chat_id, state)
 
     def get_state(self, chat_id: str) -> Optional[str]:
-        bytes_state = self._redis.get(chat_id)
+        bytes_state: bytes = self._redis.get(chat_id)
         if bytes_state:
             str_state = bytes_state.decode()
             return str_state
