@@ -20,7 +20,7 @@ from typing import Any, Optional
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import PlainTextResponse
 from core.bot import BotException
-from core.chat_state_storage import ChatStateStorage, DictChatStateStorage, RedisChatStateStorage
+from core.chat_state_storage import DictChatStateStorage, RedisChatStateStorage
 
 
 async def main():
@@ -55,7 +55,6 @@ async def main():
         random = RandomImpl()
         state_factory = BotStateFactory(storage, random)
         bot_state_to_dict_bijection = BotStateToDictBijection(state_factory)
-        chat_state_storage = DictChatStateStorage()
         async with make_live_telegram_api(token) as telegram_api:
             if config.is_server:
                 await run_server(config,
@@ -79,10 +78,7 @@ async def run_server(config: BotConfig,
                      server_url: Optional[str]
                      ):
     with make_live_redis_api(config.redis) as redis_api:
-        # bot = Bot(telegram_api, redis_api, lambda: greeting_state,
-        #           bot_state_to_dict_bijection)
         chat_state_storage = RedisChatStateStorage(redis_api, bot_state_to_dict_bijection)
-        # chat_state_storage = DictChatStateStorage()
         bot = Bot(telegram_api,
                   redis_api,
                   lambda: GreetingState(state_factory),
@@ -128,7 +124,6 @@ async def run_client(telegram_api: Any,
                      bot_state_to_dict_bijection: BotStateToDictBijection,
                      last_update_id: int
                      ):
-    # bot = Bot(telegram_api, DoNothingRedisApi(), bot_state_to_dict_bijection, chat_state_storage)
     chat_state_storage = DictChatStateStorage()
     bot = Bot(telegram_api,
               DoNothingRedisApi(),

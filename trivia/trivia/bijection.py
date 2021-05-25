@@ -2,6 +2,7 @@ from core.bot_state_to_dict_bijection import Bijection
 from core.bot_state import BotState
 from trivia.bot_state import GreetingState, IdleState, InGameState, BotStateFactory
 from core.utils import JsonDict
+from core.bot_state_logging_wrapper import BotStateLoggingWrapper
 
 
 class StateSaveException(Exception):
@@ -26,10 +27,15 @@ class BotStateToDictBijection(Bijection[BotState, JsonDict]):
             bot_state_type = "IdleState"
         elif isinstance(obj, InGameState):
             bot_state_type = "InGameState"
+        elif isinstance(obj, BotStateLoggingWrapper):
+            inner_dict = self.forward(obj.inner)
+            inner_dict["is_logging_wrapper"] = True
+            return inner_dict
         else:
             raise StateSaveException(f"Unknown BotState type")
 
         return {
+            "is_logging_wrapper": False,
             "bot_state_type": bot_state_type,
             "bot_state_data": bot_state_data
         }
@@ -37,6 +43,7 @@ class BotStateToDictBijection(Bijection[BotState, JsonDict]):
     def backward(self, obj: JsonDict) -> BotState:
         bot_state_type = obj["bot_state_type"]
         bot_state_data = obj["bot_state_data"]
+        is_logging_wrapper = obj["is_logging_wrapper"]
 
         if bot_state_type == "GreetingState":
             bot_state = GreetingState(self.bot_state_factory)
@@ -48,4 +55,7 @@ class BotStateToDictBijection(Bijection[BotState, JsonDict]):
             raise StateSaveException(f"Unknown bot_state type: {bot_state_type}")
 
         bot_state.load(bot_state_data)
+        if is_logging_wrapper:
+            return BotStateLoggingWrapper(bot_state)
+
         return bot_state

@@ -36,26 +36,6 @@ class DictChatStateStorage(ChatStateStorage):
     def __init__(self):
         self.chat_states: Dict[str, BotState] = {}
 
-    # def save(self) -> JsonDict:
-    #     dict_to_state = {}
-    #     for chat_id, state in self.state.chat_states.items():
-    #         dict_to_state[str(chat_id)] = self.state_to_dict_bijection.forward(state)
-    #
-    #     return dict_to_state
-    #
-    # def load(self, data: JsonDict) -> None:
-    #     state = DictChatStateStorage.State()
-    #     for chat_id, st in data.items():
-    #         state.chat_states[int(chat_id)] = self.state_to_dict_bijection.backward(st)
-    #     self.state = state
-
-    # def get_state_for_chat(self, chat_id: int) -> BotState:
-    #     if chat_id in self.state.chat_states:
-    #         state = self.state.chat_states[chat_id]
-    #     else:
-    #         state = self.create_initial_state()
-    #         self.state.chat_states[chat_id] = state
-    #     return state
     def set_state(self, chat_id: str, state: BotState):
         self.chat_states[chat_id] = state
 
@@ -86,5 +66,3 @@ class RedisChatStateStorage(ChatStateStorage):
             state = self.bot_state_to_dict_bijection.backward(dict_state)
             return state
         return None
-
-
