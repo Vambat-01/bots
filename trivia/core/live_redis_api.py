@@ -31,7 +31,6 @@ class LiveRedisApi(RedisApi):
     async def lock_chat(self, chat_id: int) -> None:
         for _ in range(self._config.max_attempts):
             was_set = self._redis.set(f"lock_{chat_id}", "1", ex=self._config.expire_sec, nx=True)
-            print("ВРЕМЯ ЖИЗНИ В CHAT LOCK", self._redis.ttl(f"lock_{chat_id}"))
             if was_set:
                 return
             await asyncio.sleep(self._config.delay_ms / 1000)
@@ -45,7 +44,7 @@ class LiveRedisApi(RedisApi):
         self._redis.set(chat_id, state)
 
     def get_state(self, chat_id: str) -> Optional[str]:
-        bytes_state: bytes = self._redis.get(chat_id)
+        bytes_state: bytes = self._redis.get(chat_id)   # type: ignore
         if bytes_state:
             str_state = bytes_state.decode()
             return str_state
