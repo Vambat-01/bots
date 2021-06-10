@@ -39,7 +39,7 @@ jobs:
           python -m pip install fastapi
           python -m pip install aiohttp
           python -m pip install redis
-          pytonn -m pip install types-requests
+          python -m pip install types-requests
 
       # Runs unit tests
       - name: Run unit tests
