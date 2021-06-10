@@ -39,6 +39,8 @@ jobs:
           python -m pip install fastapi
           python -m pip install aiohttp
           python -m pip install redis
+          python -m pip install types-request
+          python -m pip install types-redis
 
       # Runs unit tests
       - name: Run unit tests
