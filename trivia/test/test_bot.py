@@ -21,6 +21,7 @@ from core.live_redis_api import DoNothingRedisApi
 from core.chat_state_storage import DictChatStateStorage
 
 
+
 CHAT_ID_1 = 125
 CHAT_ID_2 = 150
 TEST_QUESTIONS_PATH = Path("resources/test_questions.json")
