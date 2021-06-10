@@ -9,35 +9,35 @@ class RedisApi(metaclass=ABCMeta):
     """
 
     @abstractmethod
-    async def lock_chat(self, chat_id: int) -> None:
+    async def lock(self, key: str) -> None:
         """
-        Получает mutex на чат
-        :param chat_id: идентификатор чата
-        """
-        pass
-
-    @abstractmethod
-    def unlock_chat(self, chat_id: int) -> None:
-        """
-        Убирает mutex на чат
-        :param chat_id: идентификатор чата
+        Получает mutex на ключ
+        :param key: ключ
         """
         pass
 
     @abstractmethod
-    def set_state(self, chat_id: str, state: str):
+    def unlock(self, key: str) -> None:
         """
-        Сохраняет состояние бота в Redis
-        :param chat_id: идентификатор чата
-        :param state: состояние бота
+        Убирает mutex на ключ
+        :param key: ключ
         """
         pass
 
     @abstractmethod
-    def get_state(self, chat_id: str) -> Optional[str]:
+    def set_key(self, key: str, value: str):
         """
-        Получает состояние бота из Redis
-        :param chat_id: идентификатор чата
-        :return:  опциональное состояние бота
+        Сохраняет состояние бота
+        :param key: ключ
+        :param value: значение
         """
         pass
+
+    @abstractmethod
+    def get_key(self, key: str) -> Optional[str]:
+        """
+        Получает состояние бота
+        :param key: ключ
+        :return:  опциональный str
+        """
+        return None

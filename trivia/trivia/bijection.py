@@ -16,6 +16,8 @@ class BotStateToDictBijection(Bijection[BotState, JsonDict]):
     """
     Биекция для сохранения состояния бота в словарь
     """
+    is_logging_wrapper = "is_logging_wrapper"
+
     def __init__(self, bot_state_factory: BotStateFactory):
         self.bot_state_factory = bot_state_factory
 
@@ -29,15 +31,15 @@ class BotStateToDictBijection(Bijection[BotState, JsonDict]):
             bot_state_type = "InGameState"
         elif isinstance(obj, BotStateLoggingWrapper):
             inner_dict = self.forward(obj.inner)
-            inner_dict["is_logging_wrapper"] = True
+            inner_dict[BotStateToDictBijection.is_logging_wrapper] = True
             return inner_dict
         else:
             raise StateSaveException(f"Unknown BotState type")
 
         return {
-            "is_logging_wrapper": False,
+            BotStateToDictBijection.is_logging_wrapper: False,
             "bot_state_type": bot_state_type,
-            "bot_state_data": bot_state_data
+            "bot_state_data": bot_state_data,
         }
 
     def backward(self, obj: JsonDict) -> BotState:

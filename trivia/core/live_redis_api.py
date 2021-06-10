@@ -11,13 +11,13 @@ class LockChatException(Exception):
     """
     Класс вызова исключения для Redis
     """
-    def __init__(self, chat_id: int, max_attempts: int):
+    def __init__(self, key: str, max_attempts: int):
         super().__init__()
-        self.chat_id = chat_id
+        self.key = key
         self.max_attempts = max_attempts
 
     def __str__(self):
-        return f"Failed to lock chat {self.chat_id} after {self.max_attempts} attempts"
+        return f"Failed to lock chat {self.key} after {self.max_attempts} attempts"
 
 
 class LiveRedisApi(RedisApi):
@@ -28,26 +28,28 @@ class LiveRedisApi(RedisApi):
     def close(self):
         self._redis.close()
 
-    async def lock_chat(self, chat_id: int) -> None:
+    async def lock(self, key: str) -> None:
         for _ in range(self._config.max_attempts):
-            was_set = self._redis.set(f"lock_{chat_id}", "1", ex=self._config.expire_sec, nx=True)
+            was_set = self._redis.set(key, "1", ex=self._config.expire_sec, nx=True)
             if was_set:
+
                 return
             await asyncio.sleep(self._config.delay_ms / 1000)
 
-        raise LockChatException(chat_id, self._config.max_attempts)
+        raise LockChatException(key, self._config.max_attempts)
 
-    def unlock_chat(self, chat_id: int) -> None:
-        self._redis.delete(f"lock_{chat_id}")
+    def unlock(self, key: str) -> None:
+        self._redis.delete(key)
 
-    def set_state(self, chat_id: str, state: str):
-        self._redis.set(chat_id, state)
+    def set_key(self, key: str, state: str):
+        self._redis.set(key, state)
 
-    def get_state(self, chat_id: str) -> Optional[str]:
-        bytes_state: bytes = self._redis.get(chat_id)   # type: ignore
+    def get_key(self, key: str) -> Optional[str]:
+        bytes_state: bytes = self._redis.get(key)   # type: ignore
         if bytes_state:
             str_state = bytes_state.decode()
             return str_state
+
         return None
 
 
@@ -61,14 +63,14 @@ def make_live_redis_api(config: LiveRedisApiConfig):
 
 
 class DoNothingRedisApi(RedisApi):
-    async def lock_chat(self, chat_id: int) -> None:
+    async def lock(self, key: str) -> None:
         pass
 
-    def unlock_chat(self, chat_id: int) -> None:
+    def unlock(self, key: str) -> None:
         pass
 
-    def set_state(self, chat_id: str, state: str):
+    def set_key(self, key: str, state: str):
         pass
 
-    def get_state(self, chat_id: str) -> Optional[str]:
-        pass
+    def get_key(self, key: str) -> Optional[str]:
+        return None

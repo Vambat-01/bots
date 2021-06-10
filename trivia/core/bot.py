@@ -23,7 +23,6 @@ class Bot:
                  create_initial_state: Callable[[], BotState],
                  state_to_dict_bijection: Bijection[BotState, JsonDict],
                  chat_state_storage: ChatStateStorage
-                 # state: State = State()
                  ):
         self.telegram_api = telegram_api
         self.redis_api = redis_api
@@ -54,8 +53,8 @@ class Bot:
         :return: None
         """
         chat_id = update.get_chat_id(update)
-        await self.redis_api.lock_chat(chat_id)
-        state = self.chat_state_storage.get_state(f"state_{chat_id}")
+        await self.redis_api.lock(f"lock_{chat_id}")
+        state = self.chat_state_storage.get_state(chat_id)
         if not state:
             state = self.create_initial_state()
         bot_response = await self._process_update(update, state)
@@ -83,8 +82,8 @@ class Bot:
                                                          first_message.parse_mode,
                                                          first_message.keyboard
                                                          )
-        self.chat_state_storage.set_state(f"state_{chat_id}", state)
-        self.redis_api.unlock_chat(chat_id)
+        self.chat_state_storage.set_state(chat_id, state)
+        self.redis_api.unlock(f"lock_{chat_id}")
 
     async def _process_update(self, update: Update, state: BotState) -> Optional[BotResponse]:
         if update.message:
@@ -140,4 +139,3 @@ class InvalidUpdateException(BotException):
     Исключения для бота, когда пришло не правильное обновление и бот не может его обработать
     """
     pass
-
