@@ -3,7 +3,6 @@ import redis
 import asyncio
 from contextlib import contextmanager
 from trivia.bot_config import LiveRedisApiConfig
-from core.bot_state import BotState
 from typing import Optional
 
 
