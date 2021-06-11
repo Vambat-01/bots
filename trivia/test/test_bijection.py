@@ -41,7 +41,7 @@ class BijectionTest(TestCase):
 def _make_state_factory(questions_file_path: Path) -> BotStateFactory:
     storage = JsonQuestionStorage(questions_file_path)
     random = DoNothingRandom()
-    game_config = GameConfig.make_game_config(1, 1, 1)
+    game_config = GameConfig.make(1, 1, 1)
     state_factory = BotStateFactory(storage, random, game_config)
     return state_factory
 

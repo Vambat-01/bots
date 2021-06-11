@@ -32,10 +32,10 @@ class GameConfig(BaseModel):
     hard_question_count: int
 
     @staticmethod
-    def make_game_config(easy_question_count: int,
-                         medium_question_count: int,
-                         hard_question_count: int
-                         ) -> "GameConfig":
+    def make(easy_question_count: int,
+             medium_question_count: int,
+             hard_question_count: int
+             ) -> "GameConfig":
 
         return GameConfig(easy_question_count=easy_question_count,
                           medium_question_count=medium_question_count,
@@ -48,7 +48,7 @@ class BotConfig(BaseModel):
     Настройки бота
     """
     questions_filepath: Path
-    question_difficulties: GameConfig
+    game_config: GameConfig
     is_server: bool
     server: ServerConfig
     redis: LiveRedisApiConfig

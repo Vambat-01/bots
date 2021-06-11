@@ -52,7 +52,7 @@ async def main():
         last_update_id = 0
         storage = JsonQuestionStorage(config.questions_filepath)
         random = RandomImpl()
-        state_factory = BotStateFactory(storage, random, config.question_difficulties)
+        state_factory = BotStateFactory(storage, random, config.game_config)
         bot_state_to_dict_bijection = BotStateToDictBijection(state_factory)
         async with make_live_telegram_api(token) as telegram_api:
             if config.is_server:

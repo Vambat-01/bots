@@ -355,7 +355,7 @@ def make_callback_query_update(callback_data: str, chat_id: int) -> Update:
 def _make_state_factory(questions_file_path: Path) -> BotStateFactory:
     storage = JsonQuestionStorage(questions_file_path)
     random = DoNothingRandom()
-    state_factory = BotStateFactory(storage, random, GameConfig.make_game_config(1, 1, 1))
+    state_factory = BotStateFactory(storage, random, GameConfig.make(1, 1, 1))
     return state_factory
 
 

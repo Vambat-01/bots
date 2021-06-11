@@ -12,7 +12,7 @@ class BotStateFactoryTest(TestCase):
         json_file = Path("resources/test_questions.json")
         storage = JsonQuestionStorage(json_file)
         random = ReversedShuffleRandom()
-        state_factory = BotStateFactory(storage, random, GameConfig.make_game_config(1, 1, 1))
+        state_factory = BotStateFactory(storage, random, GameConfig.make(1, 1, 1))
         actual = state_factory.create_in_game_state()
 
         questions_list = [Question("7+3", ["11", "10"], 1, Question.Difficulty.EASY, 1),
@@ -24,7 +24,7 @@ class BotStateFactoryTest(TestCase):
     def test_select_questions(self):
         storage = JsonQuestionStorage(Path("resources/test_questions.json"))
         random = DoNothingRandom()
-        state_factory = BotStateFactory(storage, random, GameConfig.make_game_config(5, 5, 5))
+        state_factory = BotStateFactory(storage, random, GameConfig.make(5, 5, 5))
         with self.assertRaises(NotEnoughQuestionsException) as context:
             state_factory.create_in_game_state()
 
