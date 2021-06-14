@@ -6,9 +6,16 @@ from trivia.bot_config import LiveRedisApiConfig
 from typing import Optional
 
 
-class LockChatException(Exception):
+class RedisException(Exception):
     """
     Класс вызова исключения для Redis
+    """
+    pass
+
+
+class LockException(RedisException):
+    """
+    Класс вызова исключения для Redis, когда не получилось получить lock при максимальном количестве попыток
     """
     def __init__(self, key: str, max_attempts: int):
         super().__init__()
@@ -16,7 +23,7 @@ class LockChatException(Exception):
         self.max_attempts = max_attempts
 
     def __str__(self):
-        return f"Failed to lock chat {self.key} after {self.max_attempts} attempts"
+        return f"Failed to lock {self.key} after {self.max_attempts} attempts"
 
 
 class LiveRedisApi(RedisApi):
@@ -35,13 +42,13 @@ class LiveRedisApi(RedisApi):
                 return
             await asyncio.sleep(self._config.delay_ms / 1000)
 
-        raise LockChatException(key, self._config.max_attempts)
+        raise LockException(key, self._config.max_attempts)
 
     def unlock(self, key: str) -> None:
         self._redis.delete(key)
 
-    def set_key(self, key: str, state: str):
-        self._redis.set(key, state)
+    def set_key(self, key: str, value: str):
+        self._redis.set(key, value)
 
     def get_key(self, key: str) -> Optional[str]:
         bytes_state: bytes = self._redis.get(key)   # type: ignore

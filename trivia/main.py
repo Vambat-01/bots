@@ -11,7 +11,7 @@ from fastapi import FastAPI, Request
 from trivia.telegram_models import Update
 import asyncio
 import os
-from core.live_redis_api import make_live_redis_api, DoNothingRedisApi, LockChatException
+from core.live_redis_api import make_live_redis_api, DoNothingRedisApi, LockException
 from trivia.bot_config import BotConfig
 import json
 import logging
@@ -96,8 +96,8 @@ async def run_server(config: BotConfig,
             logging.exception(exception)
             return PlainTextResponse(str(exception), status_code=400)
 
-        @app.exception_handler(LockChatException)
-        async def on_lock_chat_exception(request: Request, exception: LockChatException):
+        @app.exception_handler(LockException)
+        async def on_lock_chat_exception(request: Request, exception: LockException):
             logging.exception(exception)
             return PlainTextResponse(str(exception), status_code=502)
 

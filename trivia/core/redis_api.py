@@ -1,5 +1,4 @@
 from abc import ABCMeta, abstractmethod
-from core.bot_state import BotState
 from typing import Optional
 
 
@@ -27,7 +26,7 @@ class RedisApi(metaclass=ABCMeta):
     @abstractmethod
     def set_key(self, key: str, value: str):
         """
-        Сохраняет состояние бота
+        Сохраняет состояние
         :param key: ключ
         :param value: значение
         """
@@ -36,8 +35,8 @@ class RedisApi(metaclass=ABCMeta):
     @abstractmethod
     def get_key(self, key: str) -> Optional[str]:
         """
-        Получает состояние бота
+        Получает состояние
         :param key: ключ
-        :return:  опциональный str
+        :return:  если ключ не найден, возвращается None
         """
         return None
