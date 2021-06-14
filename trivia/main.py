@@ -3,7 +3,7 @@ from core.bot import Bot
 from core.live_telegram_api import make_live_telegram_api
 from core.telegram_api import TelegramApi
 from trivia.bot_state import BotStateFactory, GreetingState
-from trivia.question_storage import JsonQuestionStorage
+from trivia.question_storage import JsonQuestionStorage, SqliteQuestionStorage
 from core.random import RandomImpl
 from trivia.bijection import BotStateToDictBijection
 import argparse
@@ -19,8 +19,8 @@ from pathlib import Path
 from typing import Any, Optional
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import PlainTextResponse
-from core.bot import BotException
 from core.chat_state_storage import DictChatStateStorage, RedisChatStateStorage
+from core.bot_exeption import BotException, NotEnoughQuestionsException
 
 
 async def main():
@@ -53,7 +53,7 @@ async def main():
         last_update_id = 0
         storage = JsonQuestionStorage(config.questions_filepath)
         random = RandomImpl()
-        state_factory = BotStateFactory(storage, random)
+        state_factory = BotStateFactory(storage, random, config.game_config)
         bot_state_to_dict_bijection = BotStateToDictBijection(state_factory)
         async with make_live_telegram_api(token) as telegram_api:
             if config.is_server:
@@ -93,8 +93,12 @@ async def run_server(config: BotConfig,
 
         @app.exception_handler(BotException)
         async def on_bot_exception(request: Request, exception: BotException):
-            logging.exception(exception)
-            return PlainTextResponse(str(exception), status_code=400)
+            if isinstance(exception, NotEnoughQuestionsException):
+                logging.exception(exception)
+                return PlainTextResponse(str(exception), status_code=503)
+            else:
+                logging.exception(exception)
+                return PlainTextResponse(str(exception), status_code=400)
 
         @app.exception_handler(RedisException)
         async def on_lock_chat_exception(request: Request, exception: RedisException):

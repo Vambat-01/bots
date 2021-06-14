@@ -19,7 +19,7 @@
         ],
         "points": 2,
         "difficulty": {
-            "__difficulty": 0
+            "__difficulty": 1
         },
         "correct_answer": 0
     },
@@ -31,7 +31,7 @@
         ],
         "points": 3,
         "difficulty": {
-            "__difficulty": 0
+            "__difficulty": 2
         },
         "correct_answer": 0
     }

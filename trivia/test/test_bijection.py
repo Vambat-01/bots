@@ -5,6 +5,7 @@ from test.test_utils import DoNothingRandom
 from trivia.bijection import BotStateToDictBijection
 from trivia.question_storage import Question
 from pathlib import Path
+from trivia.bot_config import GameConfig
 
 
 TEST_QUESTIONS_PATH = Path("resources/test_questions.json")
@@ -40,15 +41,15 @@ class BijectionTest(TestCase):
 def _make_state_factory(questions_file_path: Path) -> BotStateFactory:
     storage = JsonQuestionStorage(questions_file_path)
     random = DoNothingRandom()
-    state_factory = BotStateFactory(storage, random)
+    game_config = GameConfig.make(1, 1, 1)
+    state_factory = BotStateFactory(storage, random, game_config)
     return state_factory
 
 
 def _make_in_game_state(state_factory: BotStateFactory) -> InGameState:
-    difficulty = Question.Difficulty.MEDIUM
-    questions_list = [Question("7+3", ["10", "11"], 1, difficulty, 2),
-                      Question("17+3", ["20", "21"], 2, difficulty, 2),
-                      Question("27+3", ["30", "31"], 3, difficulty, 2)
+    questions_list = [Question("7+3", ["10", "11"], 1, Question.Difficulty.EASY, 2),
+                      Question("17+3", ["20", "21"], 2, Question.Difficulty.MEDIUM, 2),
+                      Question("27+3", ["30", "31"], 3, Question.Difficulty.HARD, 2)
                       ]
     game_state = InGameState.State(questions_list, GAME_ID, 1, 2)
     state = InGameState(state_factory, game_state)

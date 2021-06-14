@@ -10,6 +10,7 @@ from core.utils import dedent_and_strip
 from trivia import format
 from test.test_utils import DoNothingRandom
 from pathlib import Path
+from trivia.bot_config import GameConfig
 
 
 CHAT_ID = 300
@@ -53,7 +54,7 @@ class InGameStateTest(TestCase):
         json_file = Path("resources/test_questions.json")
         storage = JsonQuestionStorage(json_file)
         random = DoNothingRandom()
-        state_factory = BotStateFactory(storage, random)
+        state_factory = BotStateFactory(storage, random, GameConfig.make(1, 1, 1))
         return state_factory
 
     def test_process_message_int_correct(self):
@@ -372,7 +373,7 @@ def _make_in_game_state(questions_file_path: Path) -> InGameState:
     storage = JsonQuestionStorage(questions_file_path)
     questions = storage.load_questions()
     random = DoNothingRandom()
-    state_factory = BotStateFactory(storage, random)
+    state_factory = BotStateFactory(storage, random, GameConfig.make(1, 1, 1))
     game_state = InGameState.State(questions, GAME_ID)
     state = InGameState(state_factory, game_state)
     return state

@@ -11,6 +11,7 @@ from core.utils import JsonDict
 from trivia.telegram_models import Update
 from core.redis_api import RedisApi
 from core.chat_state_storage import ChatStateStorage
+from core.bot_exeption import InvalidUpdateException
 
 
 class Bot:
@@ -126,16 +127,3 @@ class Bot:
             logging.info("skipping update")
             return None
 
-
-class BotException(Exception):
-    """
-    Ошибка обработки апдейта ботом
-    """
-    pass
-
-
-class InvalidUpdateException(BotException):
-    """
-    Исключения для бота, когда пришло не правильное обновление и бот не может его обработать
-    """
-    pass
