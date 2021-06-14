@@ -10,33 +10,27 @@ class RedisApi(metaclass=ABCMeta):
     @abstractmethod
     async def lock(self, key: str) -> None:
         """
-        Получает mutex на ключ
-        :param key: ключ
+        Получает mutex на переданный ключ
         """
         pass
 
     @abstractmethod
     def unlock(self, key: str) -> None:
         """
-        Убирает mutex на ключ
-        :param key: ключ
+        Убирает mutex на переданный ключ
         """
         pass
 
     @abstractmethod
     def set_key(self, key: str, value: str):
         """
-        Сохраняет состояние
-        :param key: ключ
-        :param value: значение
+        Сохраняет состояние на переданные ключ и значение
         """
         pass
 
     @abstractmethod
     def get_key(self, key: str) -> Optional[str]:
         """
-        Получает состояние
-        :param key: ключ
-        :return:  если ключ не найден, возвращается None
+        Получает состояние на переданные ключ и значение
         """
         return None

@@ -24,14 +24,14 @@ class ChatStateStorage(metaclass=ABCMeta):
     def get_state(self, chat_id: int) -> Optional[BotState]:
         """
         Получает состояние бота
-        :return: опциональное состояние бота
+        :return: вернет None, если chat_id не найдет
         """
         pass
 
 
 class DictChatStateStorage(ChatStateStorage):
     """
-    Класс для хранения состояний бота
+    Класс для хранения состояний бота в словаре
     """
     def __init__(self):
         self.chat_states: Dict[int, BotState] = {}
