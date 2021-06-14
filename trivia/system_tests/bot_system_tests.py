@@ -57,6 +57,28 @@ class BotSystemTests(IsolatedAsyncioTestCase):
         text_error = "CallbackQuery message is not found"
         await self._check_status_code(body, 400, text_error)
 
+    async def test_in_loop_500_times_when_message_request_is_correct(self):
+        body = _get_message(True)
+        for _ in range(500):
+            await self._check_status_code(body, 200)
+
+    async def test_in_loop_500_times_test_when_callback_query_request_is_correct(self):
+        body = _get_callback_query(True, True, True)
+        for _ in range(500):
+            await self._check_status_code(body, 200)
+
+    async def test_in_loop_550_times_text_error_when_message_text_is_empty(self):
+        body = _get_message(False)
+        text_error = "Message text is not found"
+        for _ in range(550):
+            await self._check_status_code(body, 400, text_error)
+
+    async def test_in_loop_550_times_text_error_when_callback_query_data_is_empty(self):
+        body = _get_callback_query(False, True, True)
+        text_error = "CallbackQuery data is not found"
+        for _ in range(550):
+            await self._check_status_code(body, 400, text_error)
+
 
 def _get_message(has_text: bool) -> Json:
     body = {

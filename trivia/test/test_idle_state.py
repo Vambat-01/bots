@@ -6,6 +6,7 @@ from trivia.question_storage import JsonQuestionStorage
 from typing import cast
 from test.test_utils import DoNothingRandom
 from pathlib import Path
+from trivia.bot_config import GameConfig
 
 
 class IdleStateTest(TestCase):
@@ -16,7 +17,7 @@ class IdleStateTest(TestCase):
         json_file = Path("resources/test_questions.json")
         storage = JsonQuestionStorage(json_file)
         random = DoNothingRandom()
-        state_factory = BotStateFactory(storage, random)
+        state_factory = BotStateFactory(storage, random, GameConfig.make(1, 1, 1))
         state = IdleState(state_factory)
         message_resp = state.process_message(user_message)
         self.assertEqual("<i>I did not  understand the command. Enter /start or /help</i>", message_resp.message.text)
@@ -31,7 +32,7 @@ class IdleStateTest(TestCase):
         storage = JsonQuestionStorage(json_file)
         questions = storage.load_questions()
         random = DoNothingRandom()
-        state_factory = BotStateFactory(storage, random)
+        state_factory = BotStateFactory(storage, random, GameConfig.make(1, 1, 1))
         state = IdleState(state_factory)
         command_resp = state.process_command(user_command)
         self.assertTrue(isinstance(command_resp.new_state, InGameState))
@@ -48,7 +49,7 @@ class IdleStateTest(TestCase):
         json_file = Path("resources/test_questions.json")
         storage = JsonQuestionStorage(json_file)
         random = DoNothingRandom()
-        state_factory = BotStateFactory(storage, random)
+        state_factory = BotStateFactory(storage, random, GameConfig.make(1, 1, 1))
         state = IdleState(state_factory)
         command_resp = state.process_command(user_command)
         self.assertEqual("<i>Enter /start or /help</i>", command_resp.message.text)
@@ -62,7 +63,7 @@ class IdleStateTest(TestCase):
         json_file = Path("resources/test_questions.json")
         storage = JsonQuestionStorage(json_file)
         random = DoNothingRandom()
-        state_factory = BotStateFactory(storage, random)
+        state_factory = BotStateFactory(storage, random, GameConfig.make(1, 1, 1))
         state = IdleState(state_factory)
         command_resp = state.process_command(user_command)
         self.assertEqual("<i>I did not  understand the command. Enter /start or /help</i>", command_resp.message.text)

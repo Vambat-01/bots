@@ -1,11 +1,16 @@
 {  
     "questions_filepath": "resources/bot_questions_mini.json",
+    "game_config": {
+        "easy_question_count": 1,
+        "medium_question_count": 1,
+        "hard_question_count": 1
+    },
     "is_server": false,
-    "server":{
+    "server": {
         "host": "127.0.0.1",
         "port": 8000
     },
-    "redis":{
+    "redis": {
         "host": "localhost",
         "port": 6379,
         "expire_sec": 5,

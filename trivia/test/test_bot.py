@@ -19,6 +19,7 @@ from trivia.bot_state import InGameState
 from trivia.telegram_models import UpdatesResponse, Update
 from pathlib import Path
 from core.live_redis_api import DoNothingRedisApi
+from trivia.bot_config import GameConfig
 
 
 CHAT_ID_1 = 125
@@ -354,15 +355,14 @@ def make_callback_query_update(callback_data: str, chat_id: int) -> Update:
 def _make_state_factory(questions_file_path: Path) -> BotStateFactory:
     storage = JsonQuestionStorage(questions_file_path)
     random = DoNothingRandom()
-    state_factory = BotStateFactory(storage, random)
+    state_factory = BotStateFactory(storage, random, GameConfig.make(1, 1, 1))
     return state_factory
 
 
 def _make_in_game_state(state_factory: BotStateFactory) -> InGameState:
-    difficulty = Question.Difficulty.MEDIUM
-    questions_list = [Question("7+3", ["10", "11"], 1, difficulty, 2),
-                      Question("17+3", ["20", "21"], 2, difficulty, 2),
-                      Question("27+3", ["30", "31"], 3, difficulty, 2)
+    questions_list = [Question("7+3", ["10", "11"], 1, Question.Difficulty.EASY, 2),
+                      Question("17+3", ["20", "21"], 2, Question.Difficulty.MEDIUM, 2),
+                      Question("27+3", ["30", "31"], 3, Question.Difficulty.HARD, 2)
                       ]
     game_state = InGameState.State(questions_list, GAME_ID, 1, 2)
     state = InGameState(state_factory, game_state)
