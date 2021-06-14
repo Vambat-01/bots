@@ -224,8 +224,8 @@ class BotTest(IsolatedAsyncioTestCase):
         await bot.process_update(update1)
         await bot.process_update(update2)
 
-        expected = {f"state_{CHAT_ID_1}": create_initial_state.state1,
-                    f"state_{CHAT_ID_2}": create_initial_state.state2
+        expected = {CHAT_ID_1: create_initial_state.state1,
+                    CHAT_ID_2: create_initial_state.state2
                     }
         self.assertEqual(expected, bot.chat_state_storage.chat_states)
 
