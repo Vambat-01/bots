@@ -20,7 +20,7 @@ class JsonQuestionStorageTest(unittest.TestCase):
         self.assertEqual(2, len(quest_2.answers))
 
 
-class SqliteQuestiosStorageTest(unittest.TestCase):
+class SqliteQuestionsStorageTest(unittest.TestCase):
     def test_add_load(self):
 
         test_questions = [

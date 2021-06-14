@@ -7,18 +7,18 @@ from core.command import Command
 from core.callback_query import CallbackQuery
 from core.keyboard import Keyboard
 from core.bot import Bot, TelegramApi
-import json
 from trivia.bot_state import BotResponse
 from core.utils import dedent_and_strip
 from enum import Enum
 from trivia.bot_state import BotStateFactory
 from test.test_utils import DoNothingRandom
-from trivia.question_storage import JsonQuestionStorage, Question, JSONEncoder, JSONDecoder
+from trivia.question_storage import JsonQuestionStorage, Question
 from trivia.bijection import BotStateToDictBijection
 from trivia.bot_state import InGameState
 from trivia.telegram_models import UpdatesResponse, Update
 from pathlib import Path
 from core.live_redis_api import DoNothingRedisApi
+from core.chat_state_storage import DictChatStateStorage
 from trivia.bot_config import GameConfig
 
 
@@ -162,12 +162,11 @@ class BotTest(IsolatedAsyncioTestCase):
         next_state = NewFakeState()
         state = FakeState("bot message", next_state)
         bot_state_to_dict_bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
-        game_state = Bot.State()
-        bot = Bot(telegram_api, DoNothingRedisApi(), lambda: state, bot_state_to_dict_bijection, game_state)
+        chat_storage = DictChatStateStorage()
+        bot = Bot(telegram_api, DoNothingRedisApi(), lambda: state, bot_state_to_dict_bijection, chat_storage)
         update = response_body
         await bot.process_update(update)
-        expected = {CHAT_ID_1: BotStateLoggingWrapper(next_state)}
-        self.assertEqual(expected, bot.state.chat_states)
+        self.assertEqual(BotStateLoggingWrapper(next_state), bot.chat_state_storage.get_state(CHAT_ID_1))
         self.assertTrue(next_state.on_enter_is_called)
         self.assertEqual(["bot message", "text message on_enter"], telegram_api.sent_messages)
         if update_type == UpdateType.MESSAGE:
@@ -195,11 +194,10 @@ class BotTest(IsolatedAsyncioTestCase):
         telegram_api = FakeTelegramApi()
         state = FakeState("bot message")
         bot_state_to_dict_bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
-        game_state = Bot.State()
-        bot = Bot(telegram_api, DoNothingRedisApi(), lambda: state, bot_state_to_dict_bijection, game_state)
+        chat_storage = DictChatStateStorage()
+        bot = Bot(telegram_api, DoNothingRedisApi(), lambda: state, bot_state_to_dict_bijection, chat_storage)
         await bot.process_update(update)
-        expected = {CHAT_ID_1: state}
-        self.assertEqual(expected, bot.state.chat_states)
+        self.assertEqual(state, bot.chat_state_storage.get_state(CHAT_ID_1))
         self.assertEqual(["bot message"], telegram_api.sent_messages)
         if is_command:
             self.assertTrue(state.process_command_is_called)
@@ -222,30 +220,15 @@ class BotTest(IsolatedAsyncioTestCase):
         update2 = make_message_update("user 2", CHAT_ID_2)
         telegram_api = FakeTelegramApi()
         bot_state_to_dict_bijection = BotStateToDictBijection(_make_state_factory(TEST_QUESTIONS_PATH))
-        game_state = Bot.State()
-        bot = Bot(telegram_api, DoNothingRedisApi(), create_initial_state, bot_state_to_dict_bijection, game_state)
+        chat_storage = DictChatStateStorage()
+        bot = Bot(telegram_api, DoNothingRedisApi(), create_initial_state, bot_state_to_dict_bijection, chat_storage)
         await bot.process_update(update1)
         await bot.process_update(update2)
 
-        expected = {CHAT_ID_1: create_initial_state.state1, CHAT_ID_2: create_initial_state.state2}
-        self.assertEqual(expected, bot.state.chat_states)
-
-    def test_bot_saving(self):
-        telegram_api = FakeTelegramApi([])
-        state_factory = _make_state_factory(TEST_QUESTIONS_PATH)
-        in_game_state = _make_in_game_state(state_factory)
-        bot_state_to_dict_bijection = BotStateToDictBijection(state_factory)
-        game_state = Bot.State({125: in_game_state, 150: in_game_state})
-        create_initial_state = lambda: in_game_state
-        redis_api = DoNothingRedisApi()
-        bot1 = Bot(telegram_api, redis_api, create_initial_state, bot_state_to_dict_bijection, game_state)
-        bot2 = Bot(telegram_api, redis_api, create_initial_state, bot_state_to_dict_bijection, Bot.State())
-        self.assertNotEqual(bot1, bot2)
-        encoded = bot1.save()
-        json_encoded = json.dumps(encoded, cls=JSONEncoder, ensure_ascii=False)
-        json_decoded = json.loads(json_encoded, cls=JSONDecoder)
-        bot2.load(json_decoded)
-        self.assertEqual(bot1, bot2)
+        expected = {CHAT_ID_1: create_initial_state.state1,
+                    CHAT_ID_2: create_initial_state.state2
+                    }
+        self.assertEqual(expected, bot.chat_state_storage.chat_states)
 
 
 def make_message_update(text: str, chat_id: int) -> Update:

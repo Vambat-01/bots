@@ -1,4 +1,4 @@
-{  
+{
     "questions_filepath": "resources/bot_questions_mini.json",
     "game_config": {
         "easy_question_count": 1,
