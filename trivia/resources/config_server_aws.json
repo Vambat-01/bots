@@ -1,0 +1,22 @@
+{  
+    "questions_filepath": "resources/bot_questions_mini.json",
+    "game_config": {
+        "easy_question_count": 1,
+        "medium_question_count": 1,
+        "hard_question_count": 1
+    },
+    "is_server": true,
+    "server": {
+        "host": "0.0.0.0",
+        "port": 443,
+        "key": "/run/secrets/key",
+        "cert": "/run/secrets/cert"
+    },
+    "redis": {
+        "host": "redis",
+        "port": 6379,
+        "expire_sec": 5,
+        "max_attempts": 10,
+        "delay_ms": 200
+    }
+}

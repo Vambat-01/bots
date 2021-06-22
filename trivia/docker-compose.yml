@@ -1,4 +1,5 @@
-version: "3"
+version: "3.3"
+
 services:
   bot:
     image: "trivia_bot" 
@@ -6,7 +7,17 @@ services:
       - "8000:8000"
     env_file:
       - "bot.env" 
+    secrets:
+      - cert
+      - key
+
   redis:
     image: "redis:alpine"
     ports:
       - "6379:6379"
+
+secrets:
+  cert:
+    file: /home/vambat/Downloads/cert.pem
+  key:
+    file: /home/vambat/Downloads/key.pem

@@ -10,6 +10,8 @@ class ServerConfig(BaseModel):
     host: str
     port: int
     url: Optional[str]
+    key: Optional[str]
+    cert: Optional[str]
 
 
 class LiveRedisApiConfig(BaseModel):

@@ -3,7 +3,7 @@ from core.bot import Bot
 from core.live_telegram_api import make_live_telegram_api
 from core.telegram_api import TelegramApi
 from trivia.bot_state import BotStateFactory, GreetingState
-from trivia.question_storage import JsonQuestionStorage, SqliteQuestionStorage
+from trivia.question_storage import JsonQuestionStorage
 from core.random import RandomImpl
 from trivia.bijection import BotStateToDictBijection
 import argparse
@@ -87,7 +87,10 @@ async def run_server(config: BotConfig,
                   )
 
         server_url = next(filter(None, [server_url, os.environ["SERVER_URL"], config.server.url]))
-        await telegram_api.set_webhook(server_url)
+        if config.server.cert:
+            await telegram_api.set_webhook(server_url, Path(config.server.cert))
+        else:
+            await telegram_api.set_webhook(server_url)
 
         app = FastAPI()
 
@@ -114,11 +117,21 @@ async def run_server(config: BotConfig,
         async def on_update(update: Update):
             await bot.process_update(update)
 
-        config = Config(app=app,
-                        host=config.server.host,
-                        port=config.server.port,
-                        loop=asyncio.get_running_loop()
-                        )
+        if config.server.key:
+            config = Config(app=app,
+                            host=config.server.host,
+                            port=config.server.port,
+                            ssl_keyfile=config.server.key,
+                            ssl_certfile=config.server.cert,
+                            loop=asyncio.get_running_loop()
+                            )
+        else:
+            config = Config(app=app,
+                            host=config.server.host,
+                            port=config.server.port,
+                            loop=asyncio.get_running_loop()
+                            )
+
         server = Server(config)
         await server.serve()
 
