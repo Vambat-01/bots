@@ -25,12 +25,17 @@ from core.bot_exeption import BotException, NotEnoughQuestionsException
 
 async def main():
     parser = argparse.ArgumentParser(description="Запуск бота")
-    parser.add_argument("-config", type=str, required=True, help="Путь к json файлу с настройками")
+    parser.add_argument("-config", help="Путь к json файлу с настройками")
     parser.add_argument("-server_url", help="Адрес сервера для регистрации в телеграм")
     parser.add_argument("-out_path", help="Директория для сохранения вывода")
     args = parser.parse_args()
 
-    with open(args.config) as json_file:
+    if args.config:
+        config_file_path = args.config
+    else:
+        config_file_path = os.environ["CONFIG"]
+        
+    with open(config_file_path) as json_file:
         config_json = json.load(json_file)
         config = BotConfig.parse_obj(config_json)
 

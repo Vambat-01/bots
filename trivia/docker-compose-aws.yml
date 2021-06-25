@@ -6,7 +6,7 @@ services:
     ports:
       - "443:443"
     env_file:
-      - "bot-aws.env"
+      - "bot.env"
     secrets:
       - cert
       - key
