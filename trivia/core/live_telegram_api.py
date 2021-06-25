@@ -87,6 +87,7 @@ class LiveTelegramApi(TelegramApi):
     async def set_webhook(self, url_https: str, cert_filepath: Optional[Path] = None) -> None:
         url = f"https://api.telegram.org/bot{self.token}/setWebhook"
         if not cert_filepath:
+            logging.info("Setting hook without certificate")
             body = {
                 "url": url_https,
             }

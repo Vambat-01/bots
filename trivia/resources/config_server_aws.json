@@ -1,9 +1,9 @@
 {  
-    "questions_filepath": "resources/bot_questions_mini.json",
+    "questions_filepath": "/vol/all_questions_for_bot.json",
     "game_config": {
-        "easy_question_count": 1,
-        "medium_question_count": 1,
-        "hard_question_count": 1
+        "easy_question_count": 0,
+        "medium_question_count": 15,
+        "hard_question_count": 0
     },
     "is_server": true,
     "server": {

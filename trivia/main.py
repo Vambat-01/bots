@@ -117,22 +117,16 @@ async def run_server(config: BotConfig,
         async def on_update(update: Update):
             await bot.process_update(update)
 
+        conf = Config(app=app,
+                      host=config.server.host,
+                      port=config.server.port,
+                      loop=asyncio.get_running_loop()
+                      )
         if config.server.key:
-            config = Config(app=app,
-                            host=config.server.host,
-                            port=config.server.port,
-                            ssl_keyfile=config.server.key,
-                            ssl_certfile=config.server.cert,
-                            loop=asyncio.get_running_loop()
-                            )
-        else:
-            config = Config(app=app,
-                            host=config.server.host,
-                            port=config.server.port,
-                            loop=asyncio.get_running_loop()
-                            )
+            conf.ssl_keyfile = config.server.key
+            conf.ssl_certfile = config.server.cert
 
-        server = Server(config)
+        server = Server(conf)
         await server.serve()
 
 
