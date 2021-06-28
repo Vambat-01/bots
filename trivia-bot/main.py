@@ -92,10 +92,8 @@ async def run_server(config: BotConfig,
                   )
 
         server_url = next(filter(None, [server_url, os.environ["SERVER_URL"], config.server.url]))
-        if config.server.cert:
-            await telegram_api.set_webhook(server_url, Path(config.server.cert))
-        else:
-            await telegram_api.set_webhook(server_url)
+        opt_cert_path = Path(config.server.cert) if config.server.cert else None
+        await telegram_api.set_webhook(server_url, opt_cert_path)
 
         app = FastAPI()
 

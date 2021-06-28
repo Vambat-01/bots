@@ -13,7 +13,7 @@ class ServerConfig(BaseModel):
     port: int
     url: Optional[str]
     key: Optional[str]
-    cert: Optional[str]
+    cert: Optional[Path]
 
 
 class LiveRedisApiConfig(BaseModel):

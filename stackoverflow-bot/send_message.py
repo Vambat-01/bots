@@ -1,11 +1,11 @@
 import requests
-
 import datetime
+import os
+
 
 class SearchError(Exception):
     def __init__(self, message):
         self.message = message
-
 
 
 def log(message):
@@ -26,14 +26,15 @@ def search_stackoverflow(text):
         "sort": "relevance",
         "title": text,
         "page": 1,
-        "pagesize": 5,
-#        "site": "stackoverflow"
+        "pagesize": 5
     })
+
     if response.status_code == 400:
         raise SearchError("The site is not responding. Try later.")
     data = response.json()
     quota_remaining = data["quota_remaining"]
     log(f"Quota remaining: {quota_remaining}")
+
     if len(data["items"]) == 0:
         raise SearchError("Answer not found")
 
@@ -67,9 +68,6 @@ class Bot:
                 self.send_message(chat_id, f"Your search: {text_message}. Got error:{error.message}")
                 self.send_message(chat_id, f"Your search: {text_message}. Got error:{error.message}")
 
-
-
-
     def send_message(self, chat_id, text):
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
         response = requests.get(url, params={
@@ -78,7 +76,7 @@ class Bot:
         })
 
 
-token = "1162468954:AAEk6dzuhBqfgRm0WO_3QRbZWe0WnYv0_Qs"
+token = os.environ["MY_BOT_TOKEN"]
 bot = Bot(token)
 
 while True:

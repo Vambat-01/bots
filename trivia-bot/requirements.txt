@@ -1,0 +1,9 @@
+python -m pip install mypy
+python -m pip install requests
+python -m pip install dataclasses-json
+python -m pip install pydantic
+python -m pip install fastapi
+python -m pip install aiohttp
+python -m pip install redis
+python -m pip install types-requests
+python -m pip install types-redis

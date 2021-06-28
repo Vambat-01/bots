@@ -1,5 +1,5 @@
 import requests
-
+import os
 import datetime
 
 
@@ -39,7 +39,7 @@ class Bot:
         log(f"Send message status code: {response.status_code} ")
 
 
-token = "1162468954:AAEk6dzuhBqfgRm0WO_3QRbZWe0WnYv0_Qs"
+token = os.environ["MY_BOT_TOKEN"]
 bot = Bot(token)
 
 while True:
