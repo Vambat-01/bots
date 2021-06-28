@@ -34,7 +34,6 @@ def search_stackoverflow(text):
     data = response.json()
     quota_remaining = data["quota_remaining"]
     log(f"Quota remaining: {quota_remaining}")
-
     if len(data["items"]) == 0:
         raise SearchError("Answer not found")
 
