@@ -32,7 +32,7 @@ jobs:
 
       - name: Install packages
         run: |
-          pip install -r /trivia-bot/requirements.txt
+          pip install -r $GITHUB_WORKSPACE/trivia-bot/requirements.txt
 
       # Runs unit tests
       - name: Run unit tests
