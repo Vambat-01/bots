@@ -38,12 +38,12 @@ jobs:
       - name: Run unit tests
         run: |
           echo running tests
-          cd $GITHUB_WORKSPACE/trivia/test
+          cd $GITHUB_WORKSPACE/trivia-bot/test
           python -m unittest discover -t ..
 
       # Runs mypy
       - name: Run type check
         run: |
           echo running type check
-          cd $GITHUB_WORKSPACE/trivia
+          cd $GITHUB_WORKSPACE/trivia-bot
           python -m mypy .
