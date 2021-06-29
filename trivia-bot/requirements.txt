@@ -1,4 +1,4 @@
-mypy @ file:///tmp/build/80754af9/mypy_1602520585843/work
+mypy==0.790
 requests==2.23.0
 dataclasses-json==0.5.2
 pydantic==1.8.1
