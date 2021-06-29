@@ -1,9 +1,9 @@
-python -m pip install mypy
-python -m pip install requests
-python -m pip install dataclasses-json
-python -m pip install pydantic
-python -m pip install fastapi
-python -m pip install aiohttp
-python -m pip install redis
-python -m pip install types-requests
-python -m pip install types-redis
+mypy @ file:///tmp/build/80754af9/mypy_1602520585843/work
+requests==2.23.0
+dataclasses-json==0.5.2
+pydantic==1.8.1
+fastapi==0.63.0
+aiohttp==3.7.4.post0
+redis==3.5.3
+types-requests==0.1.9
+types-redis==3.5.0
