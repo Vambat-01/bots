@@ -69,16 +69,15 @@ class BotStateFactory:
         game_id = str(uuid.uuid4())
 
         for question in game_questions:
-            cur_answers = question.answers[question.correct_answer]
-            answers = list(question.answers)
-            self.random.shuffle(answers)
-            correct_answer = 0
-            index_count = 0
+            indexed_answers = list(enumerate(question.answers))
+            self.random.shuffle(indexed_answers)
+            correct_answer = question.correct_answer
+            answers = []
 
-            for answer in answers:
-                if cur_answers == answer:
-                    correct_answer = index_count
-                index_count += 1
+            for (index, (original_index, answer)) in enumerate(indexed_answers):
+                if original_index == 0:
+                    correct_answer = index
+                answers.append(answer)
 
             new_game_questions.append(Question(question.text,
                                                answers,
