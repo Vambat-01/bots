@@ -70,17 +70,18 @@ class BotStateFactory:
 
         for question in game_questions:
             cur_answers = question.answers[question.correct_answer]
-            self.random.shuffle(question.answers)
+            answers = list(question.answers)
+            self.random.shuffle(answers)
             correct_answer = 0
             index_count = 0
 
-            for answer in question.answers:
+            for answer in answers:
                 if cur_answers == answer:
                     correct_answer = index_count
                 index_count += 1
 
             new_game_questions.append(Question(question.text,
-                                               question.answers,
+                                               answers,
                                                question.points,
                                                question.difficulty,
                                                correct_answer

@@ -1,5 +1,5 @@
 {  
-    "questions_filepath": "/vol/all_questions_for_bot.json",
+    "questions_filepath": "/vol/questions.json",
     "game_config": {
         "easy_question_count": 0,
         "medium_question_count": 15,
