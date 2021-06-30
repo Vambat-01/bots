@@ -35,7 +35,9 @@
 
 1. Скопируйте необходимые файлы на `aws-машину`
 	1. Перейдити в репозиторий бота `bots` -> `trivia-bot`. В текущей директории
-		1. В файле `bot.env` исправьте значение `SERVER_URL` на ваше. Пример `SERVER_URL=https://ec2-3-15-202-70.us-east-2.compute.amazonaws.com`
+		1. Есть файл `bot-sample.env`
+			1. Выполните команду `cp bot-sample.env bot.env`
+			1. Заполните `bot.env`
 	1. Скопируйте `bot.env` и `docker-compose-aws.yml` (пример `scp -i <путь к файлу key-pair.pem> <файл, который хотите скопировать> ec2-user@ec2-3-15-202-70.us-east-2.compute.amazonaws.com:~/`)
 	- Скопируйте ваш `json` файл на `aws-машину`. Пример файла, можно найти перейдя `bots` -> `trivia-bot` -> `resources` -> `bot_questions_mini.json`
 	(пример `scp -i <путь к файлу key-pair.pem> <файл, который хотите скопировать> ec2-user@ec2-3-15-202-70.us-east-2.compute.amazonaws.com:~/`)

@@ -130,7 +130,6 @@ dmypy.json
 
 # Bot environment variables
 bot.env
-sof-bot.env
 
 # Bot output
 ./trivia/out

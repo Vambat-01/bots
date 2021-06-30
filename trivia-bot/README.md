@@ -7,6 +7,10 @@
     1. `game_config` - указываете сколько в игре будет легких, средних и сложных вопросов
 1. В файле `mail.py` заполняете
     1. Parameters `-config resources/config_client_local.json`
-    1. Enviroment variables `BOT_TOKEN=<ваш телеграм токен>`. Так же токен можно ввести в файле `bot-env`
+    1. Enviroment variables `BOT_TOKEN=<ваш телеграм токен>`. 
+    1. Еще один способ ввести токен, перейдите в репозиторий бота `bots` -> `trivia-bot`
+		1. Есть файл `bot-sample.env`
+			1. Выполните команду `cp bot-sample.env bot.env`
+			1. Заполните `bot.env`
 
 1. Запускаете бота (файл `mail.py`)

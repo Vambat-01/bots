@@ -66,7 +66,8 @@ async def main():
                                  telegram_api,
                                  state_factory,
                                  bot_state_to_dict_bijection,
-                                 args.server_url
+                                 args.server_url,
+                                 token
                                  )
             else:
                 await run_client(telegram_api,
@@ -80,7 +81,8 @@ async def run_server(config: BotConfig,
                      telegram_api: TelegramApi,
                      state_factory: BotStateFactory,
                      bot_state_to_dict_bijection: BotStateToDictBijection,
-                     server_url: Optional[str]
+                     server_url: Optional[str],
+                     token: str
                      ):
     with make_live_redis_api(config.redis) as redis_api:
         chat_state_storage = RedisChatStateStorage(redis_api, bot_state_to_dict_bijection)
@@ -116,7 +118,7 @@ async def run_server(config: BotConfig,
             logging.exception(exception)
             return PlainTextResponse(str(exception), status_code=400)
 
-        @app.post("/")
+        @app.post(f"/{token}")
         async def on_update(update: Update):
             await bot.process_update(update)
 
