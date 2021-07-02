@@ -55,6 +55,7 @@ async def main():
         logging.info("Starting bot")
 
         token = os.environ["BOT_TOKEN"]
+        logging.info(f"TOKEN - {token}")
         last_update_id = 0
         storage = JsonQuestionStorage(config.questions_filepath)
         random = RandomImpl()

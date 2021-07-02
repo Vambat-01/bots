@@ -177,7 +177,7 @@ class GreetingState(BotState):
             :return: ответ бота
         """
         idle_state = self.state_factory.create_idle_state()
-        response_message = Message(message.chat_id, "<i>&#129417Trivia bot greeting you</i>", "HTML")
+        response_message = Message(message.chat_id, "<i>&#129417Умная сова приветствует тебя</i>", "HTML")
         response = BotResponse(message=response_message, new_state=idle_state)
         return response
 
@@ -191,13 +191,13 @@ class GreetingState(BotState):
         command_type = command.text
         if command_type == "/start":
             response_command = Message(command.chat_id,
-                                       "<i>&#129417Trivia bot greeting you. Enter command /start or /help </i>",
+                                       "<i>&#129417Умная сова приветствует тебя. Введи команду /start или /help </i>",
                                        "HTML"
                                        )
             response = BotResponse(message=response_command, new_state=idle_state)
             return response
         else:
-            response_command = Message(command.chat_id, "<i>Something went wrong. Try again</i>")
+            response_command = Message(command.chat_id, "<i>Что-то пошло не так. Попробуйте снова</i>", "HTML")
             response = BotResponse(response_command)
             return response
 
@@ -235,7 +235,7 @@ class IdleState(BotState):
             :return: ответ бота
         """
         response_message = Message(message.chat_id,
-                                   "<i>I did not  understand the command. Enter /start or /help</i>",
+                                   "<i>Я не понимаю клманду. Введите /start или /help</i>",
                                    "HTML"
                                    )
         response = BotResponse(response_message)
@@ -251,13 +251,13 @@ class IdleState(BotState):
         in_game_state = self.state_factory.create_in_game_state()
         user_command = command.text
         if user_command == "/start":
-            response_message = Message(command.chat_id, "<i>Starting game</i>", "HTML")
+            response_message = Message(command.chat_id, "<i>Начало игры</i>", "HTML")
             new_state = in_game_state
         elif user_command == "/help":
-            response_message = Message(command.chat_id, "<i>Enter /start or /help</i>", "HTML")
+            response_message = Message(command.chat_id, "<i>Введите /start или /help</i>", "HTML")
         else:
             response_message = Message(command.chat_id,
-                                       "<i>I did not  understand the command. Enter /start or /help</i>",
+                                       "<i>Я не понимаю клманду. Введите /start или /help</i>",
                                        "HTML"
                                        )
         response = BotResponse(message=response_message, new_state=new_state)
@@ -333,10 +333,10 @@ class InGameState(BotState):
         idle_state = self.state_factory.create_idle_state()
         user_command = command.text
         if user_command == "/stop":
-            response_message = Message(command.chat_id, "<i>The game is over.</i>", "HTML")
+            response_message = Message(command.chat_id, "<i>Игра окончена.</i>", "HTML")
             new_state = idle_state
         else:
-            response_message = Message(command.chat_id, "<i>Other commands are not available in the game</i>", "HTML")
+            response_message = Message(command.chat_id, "<i>Другие команды в игре не доступны</i>", "HTML")
         response = BotResponse(message=response_message, new_state=new_state)
         return response
 
