@@ -21,7 +21,10 @@
 1. Перейдите в раздел `EC2` -> `Security groups`. В `securety group` откройте порт 22, 443 в `Inbound rules`. (пример `HTTPS	TCP	443	0.0.0.0/0`)
 
 ## Настройка локальной машины для деплоя
-1.Установите  [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html)
+
+1. 
+
+1. Установите  [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html)
 
 1. Настройте `aws credentials` [configuration aws credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html)( раздел `Configuration and credential file settings`)
 	1. `aws configure`  и введите ключи [Security Credentials](https://console.aws.amazon.com/iam/home?region=us-east-2#/security_credentials>),  тут получите ключ
