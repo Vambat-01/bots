@@ -9,7 +9,7 @@ from trivia.bot_state import make_keyboard_for_question
 
 class GetNumbersOfAnswersHelpTest(TestCase):
     def test_get_number_3(self):
-        self.assertEqual("<i>I don't understand you. You can enter a number from 1 to 3</i>",
+        self.assertEqual("<i>Я Вас не понимаю. Вы можете ввести число от 1 до 3</i>",
                          format.get_number_of_answers_help(3)
                          )
 
@@ -17,7 +17,7 @@ class GetNumbersOfAnswersHelpTest(TestCase):
 class GetResponseForValidAnswerText(TestCase):
     def test_when_answer_is_correct_and_has_next_question(self):
         expected_text = """
-                    <b>&#127891 Next question:</b>
+                    <b>&#127891 Следующий вопрос:</b>
                         <b>10+10</b>
                     &#9898 1: 20
                     &#9898 2: 45
@@ -31,7 +31,7 @@ class GetResponseForValidAnswerText(TestCase):
 
     def test_when_answer_is_not_correct_and_has_next_question(self):
         expected_text = """
-                        <b>&#127891 Next question:</b>
+                        <b>&#127891 Следующий вопрос:</b>
                             <b>15+10</b>
                         &#9898 1: 30
                         &#9898 2: 28
@@ -43,11 +43,11 @@ class GetResponseForValidAnswerText(TestCase):
         )
 
     def test_when_answer_is_correct_and_score(self):
-        expected_text = "<i>The game is over. Your points: 6</i>"
+        expected_text = "<i>Игра окончена. Ваши очки: 6</i>"
         self.assertEqual(expected_text, format.make_message(True, game_score=6))
 
     def test_when_answer_is_not_correct_and_score(self):
-        expected_text = "<i>The game is over. Your points: 2</i>"
+        expected_text = "<i>Игра окончена. Ваши очки: 2</i>"
         self.assertEqual(expected_text, format.make_message(False, game_score=2))
 
 

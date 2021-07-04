@@ -3,7 +3,7 @@ from core.bot import Bot
 from core.live_telegram_api import make_live_telegram_api
 from core.telegram_api import TelegramApi
 from trivia.bot_state import BotStateFactory, GreetingState
-from trivia.question_storage import JsonQuestionStorage, SqliteQuestionStorage
+from trivia.question_storage import JsonQuestionStorage
 from core.random import RandomImpl
 from trivia.bijection import BotStateToDictBijection
 import argparse
@@ -21,16 +21,22 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import PlainTextResponse
 from core.chat_state_storage import DictChatStateStorage, RedisChatStateStorage
 from core.bot_exeption import BotException, NotEnoughQuestionsException
+from core.utils import get_hash
 
 
 async def main():
     parser = argparse.ArgumentParser(description="Запуск бота")
-    parser.add_argument("-config", type=str, required=True, help="Путь к json файлу с настройками")
+    parser.add_argument("-config", help="Путь к json файлу с настройками")
     parser.add_argument("-server_url", help="Адрес сервера для регистрации в телеграм")
     parser.add_argument("-out_path", help="Директория для сохранения вывода")
     args = parser.parse_args()
 
-    with open(args.config) as json_file:
+    if args.config:
+        config_file_path = args.config
+    else:
+        config_file_path = os.environ["CONFIG"]
+
+    with open(config_file_path) as json_file:
         config_json = json.load(json_file)
         config = BotConfig.parse_obj(config_json)
 
@@ -61,7 +67,8 @@ async def main():
                                  telegram_api,
                                  state_factory,
                                  bot_state_to_dict_bijection,
-                                 args.server_url
+                                 args.server_url,
+                                 token
                                  )
             else:
                 await run_client(telegram_api,
@@ -75,19 +82,21 @@ async def run_server(config: BotConfig,
                      telegram_api: TelegramApi,
                      state_factory: BotStateFactory,
                      bot_state_to_dict_bijection: BotStateToDictBijection,
-                     server_url: Optional[str]
+                     server_url: Optional[str],
+                     token: str
                      ):
     with make_live_redis_api(config.redis) as redis_api:
         chat_state_storage = RedisChatStateStorage(redis_api, bot_state_to_dict_bijection)
+        hash_token = get_hash(token)
         bot = Bot(telegram_api,
                   redis_api,
                   lambda: GreetingState(state_factory),
                   bot_state_to_dict_bijection,
                   chat_state_storage
                   )
-
-        server_url = next(filter(None, [server_url, os.environ["SERVER_URL"], config.server.url]))
-        await telegram_api.set_webhook(server_url)
+        base_server_url = next(filter(None, [server_url, os.environ["SERVER_URL"], config.server.url]))
+        opt_cert_path = Path(config.server.cert) if config.server.cert else None
+        await telegram_api.set_webhook(f"{base_server_url}/{hash_token}", opt_cert_path)
 
         app = FastAPI()
 
@@ -110,16 +119,20 @@ async def run_server(config: BotConfig,
             logging.exception(exception)
             return PlainTextResponse(str(exception), status_code=400)
 
-        @app.post("/")
+        @app.post(f"/{hash_token}")
         async def on_update(update: Update):
             await bot.process_update(update)
 
-        config = Config(app=app,
-                        host=config.server.host,
-                        port=config.server.port,
-                        loop=asyncio.get_running_loop()
-                        )
-        server = Server(config)
+        conf = Config(app=app,
+                      host=config.server.host,
+                      port=config.server.port,
+                      loop=asyncio.get_running_loop()
+                      )
+        if config.server.key:
+            conf.ssl_keyfile = config.server.key
+            conf.ssl_certfile = config.server.cert
+
+        server = Server(conf)
         await server.serve()
 
 
