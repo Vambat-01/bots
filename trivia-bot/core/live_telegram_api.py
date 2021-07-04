@@ -94,7 +94,6 @@ class LiveTelegramApi(TelegramApi):
             response = await self.session.post(url, json=body)
         else:
             logging.info(f"Setting hook with certificate from {cert_filepath}")
-            logging.info(f"URL - {https_url}")
             with open(cert_filepath, 'r') as cert:
                 files = {'certificate': cert, 'url': https_url}
                 response = await self.session.post(url, data=files)

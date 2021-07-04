@@ -11,7 +11,7 @@ services:
       - cert
       - key
     volumes:
-      - ./all_questions_for_bot.json:/vol/all_questions_for_bot.json
+      - ./all_questions_for_bot.json:/vol/questions.json
   redis:
     image: "redis:alpine"
     ports:

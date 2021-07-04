@@ -20,7 +20,7 @@ class IdleStateTest(TestCase):
         state_factory = BotStateFactory(storage, random, GameConfig.make(1, 1, 1))
         state = IdleState(state_factory)
         message_resp = state.process_message(user_message)
-        self.assertEqual("<i>I did not  understand the command. Enter /start or /help</i>", message_resp.message.text)
+        self.assertEqual("<i>Я не понимаю команду. Введите /start или /help</i>", message_resp.message.text)
         self.assertEqual(260, message_resp.message.chat_id)
         self.assertEqual(None, message_resp.new_state)
 
@@ -38,7 +38,7 @@ class IdleStateTest(TestCase):
         self.assertTrue(isinstance(command_resp.new_state, InGameState))
         new_state = cast(InGameState, command_resp.new_state)
         game_state = InGameState.State(questions, new_state.state.game_id)
-        self.assertEqual("<i>Starting game</i>", command_resp.message.text)
+        self.assertEqual("<i>Игра начинается</i>", command_resp.message.text)
         self.assertEqual(265, command_resp.message.chat_id)
         self.assertEqual(InGameState(state_factory, game_state), command_resp.new_state)
 
@@ -52,7 +52,7 @@ class IdleStateTest(TestCase):
         state_factory = BotStateFactory(storage, random, GameConfig.make(1, 1, 1))
         state = IdleState(state_factory)
         command_resp = state.process_command(user_command)
-        self.assertEqual("<i>Enter /start or /help</i>", command_resp.message.text)
+        self.assertEqual("<i>Введите /start или /help</i>", command_resp.message.text)
         self.assertEqual(270, command_resp.message.chat_id)
         self.assertEqual(None, command_resp.new_state)
 
@@ -66,6 +66,6 @@ class IdleStateTest(TestCase):
         state_factory = BotStateFactory(storage, random, GameConfig.make(1, 1, 1))
         state = IdleState(state_factory)
         command_resp = state.process_command(user_command)
-        self.assertEqual("<i>I did not  understand the command. Enter /start or /help</i>", command_resp.message.text)
+        self.assertEqual("<i>Я не понимаю команду. Введите /start или /help</i>", command_resp.message.text)
         self.assertEqual(275, command_resp.message.chat_id)
         self.assertEqual(None, command_resp.new_state)
