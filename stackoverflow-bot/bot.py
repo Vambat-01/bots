@@ -21,13 +21,23 @@ def make_get_request(url, params):
 
 
 def search_stackoverflow(text):
-    response = make_get_request(f"https://api.stackexchange.com//2.2/search/advanced", {
+    response = make_get_request(f"https://api.stackexchange.com/2.3/search/advanced", {
+        "page": 1,
+        "pagesize": 5,
         "order": "desc",
         "sort": "relevance",
         "title": text,
-        "page": 1,
-        "pagesize": 5
+        "site": "stackoverflow"
     })
+
+# def search_stackoverflow(text):
+#     response = make_get_request(f"https://api.stackexchange.com//2.3/search/advanced", {
+#         "order": "desc",
+#         "sort": "relevance",
+#         "title": text,
+#         "page": 1,
+#         "pagesize": 5
+#     })
 
     if response.status_code == 400:
         raise SearchError("The site is not responding. Try later.")
@@ -37,8 +47,8 @@ def search_stackoverflow(text):
     if len(data["items"]) == 0:
         raise SearchError("Answer not found")
 
-    accept_answer_id = data["items"][0]["accepted_answer_id"]
-    return f"https://stackoverflow.com/a/{accept_answer_id}"
+    answer_link = data["items"][0]["link"]
+    return answer_link
 
 
 class Bot:
