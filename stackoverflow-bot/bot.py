@@ -30,15 +30,6 @@ def search_stackoverflow(text):
         "site": "stackoverflow"
     })
 
-# def search_stackoverflow(text):
-#     response = make_get_request(f"https://api.stackexchange.com//2.3/search/advanced", {
-#         "order": "desc",
-#         "sort": "relevance",
-#         "title": text,
-#         "page": 1,
-#         "pagesize": 5
-#     })
-
     if response.status_code == 400:
         raise SearchError("The site is not responding. Try later.")
     data = response.json()
