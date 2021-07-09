@@ -6,10 +6,14 @@ from typing import Optional
 class ServerConfig(BaseModel):
     """
     Настройки работы бота в режиме сервера.
+    Url можно передать в бота разными способами, поэтому он опциональный. Бота можно запустить в режиме сервера
+    локально без парамметров key и cert, поэтому они тоже опциональны
     """
     host: str
     port: int
     url: Optional[str]
+    key: Optional[str]
+    cert: Optional[Path]
 
 
 class LiveRedisApiConfig(BaseModel):

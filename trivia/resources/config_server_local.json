@@ -11,7 +11,7 @@
         "port": 8000
     },
     "redis": {
-        "host": "localhost",
+        "host": "redis",
         "port": 6379,
         "expire_sec": 5,
         "max_attempts": 10,
