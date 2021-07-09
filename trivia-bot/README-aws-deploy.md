@@ -55,12 +55,12 @@
 
 	1. Пометьте образ, чтобы его можно было отправить в созданный ранее репозиторий: `docker tag <image id> aws_account_id.dkr.ecr.region.amazonaws.com` (пример: `docker tag 61fa9099c9e3 111663367461.dkr.ecr.us-east-2.amazonaws.com/trivia_bot`)
 
-	1. Отправьте полученный образ на `aws-машину`: `docker push aws_account_id.dkr.ecr.region.amazonaws.com` (пример: `docker push 111663367461.dkr.ecr.us-east-2.amazonaws.com/trivia_bot`)
+	1. Отправьте полученный образ в `ECR`: `docker push aws_account_id.dkr.ecr.region.amazonaws.com` (пример: `docker push 111663367461.dkr.ecr.us-east-2.amazonaws.com/trivia_bot`)
 
 
 1. Запустите контейнер на `AWS` машине
 	1. Выполните аутентификацию `Docker` в [Amazon ECR](https://docs.aws.amazon.com/AmazonECR/latest/userguide/registry_auth.html): `aws ecr get-login --region region --no-include-email`(пример: `aws ecr get-login --region us-east-2 --no-include-email`). Затем полученный ключ скопируйте и введите в консоль, и нажмите `Enter`. Аутентификация выдается на 12 часов.
-	1. Загрузите готовый образ на `aws`: `docker pull aws_account_id.dkr.ecr.us-west-2.amazonaws.com/amazonlinux:latest` (пример `docker pull 111663367461.dkr.ecr.us-east-2.amazonaws.com/trivia_bot:latest`)
+	1. Загрузите на машину: `docker pull aws_account_id.dkr.ecr.us-west-2.amazonaws.com/amazonlinux:latest` (пример `docker pull 111663367461.dkr.ecr.us-east-2.amazonaws.com/trivia_bot:latest`)
 	1. Запустите бота, выполнив команду: `docker-compose -f docker-compose-aws.yml up`
 	1. Проверить, что бот работает:
 		- при запуске `docker-compose` не должно быть ошибок
