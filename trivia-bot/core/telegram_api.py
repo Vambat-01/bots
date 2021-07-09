@@ -2,6 +2,7 @@ from core.keyboard import Keyboard
 from abc import ABCMeta, abstractmethod
 from typing import Optional
 from trivia.telegram_models import UpdatesResponse
+from pathlib import Path
 
 
 class TelegramApi(metaclass=ABCMeta):
@@ -55,12 +56,13 @@ class TelegramApi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    async def set_webhook(self, url: str) -> None:
+    async def set_webhook(self, url: str, cert_filepath: Optional[Path] = None) -> None:
         """
             Метод регистрирует переданный url в качестве адреса для получения обновлений из Телеграма.
             При установленном вебхуке метод getUpdates не будет работать.
             Telegram Api documentation ( https://core.telegram.org/bots/api#setwebhook ).
         :param url: HTTPS url для отправки обновлений.
+        :param cert_filepath: путь к файлу сертификата
         :return: None
         """
         pass

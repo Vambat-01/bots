@@ -1,11 +1,11 @@
 import requests
-
 import datetime
+import os
+
 
 class SearchError(Exception):
     def __init__(self, message):
         self.message = message
-
 
 
 def log(message):
@@ -21,14 +21,15 @@ def make_get_request(url, params):
 
 
 def search_stackoverflow(text):
-    response = make_get_request(f"https://api.stackexchange.com//2.2/search/advanced", {
+    response = make_get_request(f"https://api.stackexchange.com/2.3/search/advanced", {
+        "page": 1,
+        "pagesize": 5,
         "order": "desc",
         "sort": "relevance",
         "title": text,
-        "page": 1,
-        "pagesize": 5,
-#        "site": "stackoverflow"
+        "site": "stackoverflow"
     })
+
     if response.status_code == 400:
         raise SearchError("The site is not responding. Try later.")
     data = response.json()
@@ -37,8 +38,8 @@ def search_stackoverflow(text):
     if len(data["items"]) == 0:
         raise SearchError("Answer not found")
 
-    accept_answer_id = data["items"][0]["accepted_answer_id"]
-    return f"https://stackoverflow.com/a/{accept_answer_id}"
+    answer_link = data["items"][0]["link"]
+    return answer_link
 
 
 class Bot:
@@ -67,9 +68,6 @@ class Bot:
                 self.send_message(chat_id, f"Your search: {text_message}. Got error:{error.message}")
                 self.send_message(chat_id, f"Your search: {text_message}. Got error:{error.message}")
 
-
-
-
     def send_message(self, chat_id, text):
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
         response = requests.get(url, params={
@@ -78,7 +76,7 @@ class Bot:
         })
 
 
-token = "1162468954:AAEk6dzuhBqfgRm0WO_3QRbZWe0WnYv0_Qs"
+token = os.environ["BOT_TOKEN"]
 bot = Bot(token)
 
 while True:
