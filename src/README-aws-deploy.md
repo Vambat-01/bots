@@ -11,13 +11,12 @@
 	1. Зайдите на машину с помощью `ssh`: `ssh -i <machine-key-pair> <user>@<address>`. Например `ssh -i "key_pair.pem" ec2-user@ec2-3-15-202-70.us-east-2.compute.amazonaws.com`
 	1. Установите [Docker](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/docker-basics.html) (раздел *Installing Docker*)
   	1. Установите [Docker Compose](https://docs.docker.com/compose/install/#install-compose-on-linux-systems)
+	1. На сайте [AWS](https://aws.amazon.com). Перейдите в раздел `EC2` -> `Security groups`. В `securety group` откройте порт 22 (для подключения через `ssh`), 443(`HTTPS` порт на котором слушает бот) в `Inbound rules`. (пример: `HTTPS	TCP	443	0.0.0.0/0`)
 
 
 ### Настройка ECR
 
-На сайте [AWS](https://aws.amazon.com)
-1. Перейдите в `Elastic Container Registry` (`ECR`) и создайте репозиторий
-1. Перейдите в раздел `EC2` -> `Security groups`. В `securety group` откройте порт 22 (для подключения через `ssh`), 443(`HTTPS` порт на котором слушает бот) в `Inbound rules`. (пример: `HTTPS	TCP	443	0.0.0.0/0`)
+На сайте [AWS](https://aws.amazon.com). Перейдите в `Elastic Container Registry` (`ECR`) и создайте репозиторий
 
 ## Настройка локальной машины для деплоя
 
@@ -44,6 +43,6 @@
 1. Запустите контейнер на `AWS` машине
 	1. Выполните аутентификацию `Docker` в частном реестре `Amazon ECR`[Docker authentication](https://docs.aws.amazon.com/AmazonECR/latest/userguide/registry_auth.html): `aws ecr get-login --region <ваш регион, где регистрировались> --no-include-email`(пример: `aws ecr get-login --region us-east-2 --no-include-email`). Затем полученный ключ скопируйте и введите в консоль, и нажмите `Enter`. Аутентификация выдается на 12 часов.
 	1. На сайте [AWS](https://aws.amazon.com).Перейдите в `Elastic Container Registry` (`ECR`), выберите репозиторий и нажмите на `View push commands`
-		1. Выполните команду: `docker pull aws_account_id.dkr.ecr.us-west-2.amazonaws.com/amazonlinux:latest` (пример `docker pull 111663367461.dkr.ecr.us-east-2.amazonaws.com/trivia_bot:latest`)
-		1. Запустите бота. Выполнив команду: `docker run --name so-bot --env BOT_TOKEN=<телеграм токен> 111663367461.dkr.ecr.us-east-2.amazonaws.com/stackoverflow_bot python bot.py`
+		1. Загрузите готовый образ на `aws`: `docker pull aws_account_id.dkr.ecr.us-west-2.amazonaws.com/amazonlinux:latest` (пример `docker pull 111663367461.dkr.ecr.us-east-2.amazonaws.com/trivia_bot:latest`)
+		1. Запустите бота, выполнив команду: `docker run --name so-bot --env BOT_TOKEN=<телеграм токен> 111663367461.dkr.ecr.us-east-2.amazonaws.com/stackoverflow_bot python bot.py`
 		1. Проверить, что бот работает. Отправьте сообщение боту в `Telegram`, бот должен ответить
