@@ -14,7 +14,11 @@ def dedent_and_strip(text: str):
     return textwrap.dedent(text).strip()
 
 
-def get_hash(obj: str) -> str:
+def get_sha256_hash(obj: str) -> str:
+    """
+    Шифрует данные преобразуя их в цифровой отпечаток длинны 256 бит
+    :param obj: обьект который будет зашифрован
+    """
     sha = hashlib.sha256()
     tok = obj.encode()
     sha.update(tok)
