@@ -1,0 +1,24 @@
+
+version: "3"
+services:
+  bot:
+    image: "111663367461.dkr.ecr.us-east-2.amazonaws.com/trivia_bot"
+    ports:
+      - "443:443"
+    env_file:
+      - "bot.env"
+    secrets:
+      - cert
+      - key
+    volumes:
+      - ./all_questions_for_bot.json:/vol/all_questions_for_bot.json
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+
+secrets:
+  cert:
+    file: cert.pem
+  key:
+    file: key.pem

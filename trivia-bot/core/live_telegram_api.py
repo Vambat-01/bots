@@ -6,6 +6,7 @@ from trivia.telegram_models import UpdatesResponse
 import json
 import aiohttp
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 
 class LiveTelegramApi(TelegramApi):
@@ -83,12 +84,19 @@ class LiveTelegramApi(TelegramApi):
         response = await self.session.post(url, json=body)
         logging.info(f"TelegramAPI message_edit status code: {response.status}")
 
-    async def set_webhook(self, url_https: str) -> None:
+    async def set_webhook(self, https_url: str, cert_filepath: Optional[Path] = None) -> None:
         url = f"https://api.telegram.org/bot{self.token}/setWebhook"
-        body = {
-            "url": url_https
-        }
-        response = await self.session.post(url, json=body)
+        if not cert_filepath:
+            logging.info("Setting hook without certificate")
+            body = {
+                "url": https_url,
+            }
+            response = await self.session.post(url, json=body)
+        else:
+            logging.info(f"Setting hook with certificate from {cert_filepath}")
+            with open(cert_filepath, 'r') as cert:
+                files = {'certificate': cert, 'url': https_url}
+                response = await self.session.post(url, data=files)
         logging.info(f"TelegramAPI set_webhook status code: {response.status}")
 
     async def delete_webhook(self, drop_pending_updates: bool) -> None:
