@@ -21,6 +21,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import PlainTextResponse
 from core.chat_state_storage import DictChatStateStorage, RedisChatStateStorage
 from core.bot_exeption import BotException, NotEnoughQuestionsException
+from core.utils import get_sha256_hash
 
 
 async def main():
@@ -86,6 +87,9 @@ async def run_server(config: BotConfig,
                      ):
     with make_live_redis_api(config.redis) as redis_api:
         chat_state_storage = RedisChatStateStorage(redis_api, bot_state_to_dict_bijection)
+        # Хешируем токен, чтобы он не выводился при логирования информации о работе приложения. Токен используется
+        # в url, для проверки, что нас вызывает Telegram
+        hashed_token = get_sha256_hash(token)
         bot = Bot(telegram_api,
                   redis_api,
                   lambda: GreetingState(state_factory),
@@ -93,9 +97,8 @@ async def run_server(config: BotConfig,
                   chat_state_storage
                   )
 
-        server_url = next(filter(None, [server_url, os.environ["SERVER_URL"], config.server.url]))
-        opt_cert_path = Path(config.server.cert) if config.server.cert else None
-        await telegram_api.set_webhook(server_url, opt_cert_path)
+        base_server_url = next(filter(None, [server_url, os.environ["SERVER_URL"], config.server.url]))
+        await telegram_api.set_webhook(f"{base_server_url}/{hashed_token}")
 
         app = FastAPI()
 
@@ -118,7 +121,7 @@ async def run_server(config: BotConfig,
             logging.exception(exception)
             return PlainTextResponse(str(exception), status_code=400)
 
-        @app.post(f"/{token}")
+        @app.post(f"/{hashed_token}")
         async def on_update(update: Update):
             await bot.process_update(update)
 
