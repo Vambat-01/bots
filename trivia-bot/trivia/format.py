@@ -11,7 +11,7 @@ SMILE_CROSS = '&#10006'
 
 
 def get_number_of_answers_help(num_of_resp: int) -> str:
-    return f"<i>I don't understand you. You can enter a number from 1 to {num_of_resp}</i>"
+    return f"<i>Я Вас не понимаю. Вы можете ввести число от 1 до {num_of_resp}</i>"
 
 
 def make_message(correct_answer: int,
@@ -31,14 +31,14 @@ def make_message(correct_answer: int,
     """
 
     if question is not None:
-        return make_question("Next question",
+        return make_question("Следующий вопрос",
                              question.text,
                              question.answers,
                              correct_answer,
                              answer_id
                              )
 
-    return f"<i>The game is over. Your points: {game_score}</i>"
+    return f"<i>Игра окончена. Ваши очки: {game_score}</i>"
 
 
 def make_question(first_text: str,

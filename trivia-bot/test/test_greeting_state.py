@@ -19,7 +19,7 @@ class GreetingStateTest(TestCase):
         state_factory = BotStateFactory(storage, random, GameConfig.make(1, 1, 1))
         state = GreetingState(state_factory)
         message_resp = state.process_message(user_message)
-        self.assertEqual("<i>&#129417Trivia bot greeting you</i>", message_resp.message.text)
+        self.assertEqual("<i>&#129417Умная сова приветствует Вас</i>", message_resp.message.text)
         self.assertEqual(200, message_resp.message.chat_id)
         self.assertEqual(IdleState(state_factory), message_resp.new_state)
 
@@ -33,7 +33,7 @@ class GreetingStateTest(TestCase):
         state_factory = BotStateFactory(storage, random, GameConfig.make(1, 1, 1))
         state = GreetingState(state_factory)
         command_resp = state.process_command(user_command)
-        self.assertEqual("<i>&#129417Trivia bot greeting you. Enter command /start or /help </i>",
+        self.assertEqual("<i>&#129417Умная сова приветствует Вас. Введите команду /start или /help </i>",
                          command_resp.message.text
                          )
         self.assertEqual(250, command_resp.message.chat_id)
@@ -49,6 +49,6 @@ class GreetingStateTest(TestCase):
         state_factory = BotStateFactory(storage, random, GameConfig.make(1, 1, 1))
         state = GreetingState(state_factory)
         command_resp = state.process_command(user_command)
-        self.assertEqual("<i>Something went wrong. Try again</i>", command_resp.message.text)
+        self.assertEqual("<i>Что-то пошло не так. Попробуйте снова</i>", command_resp.message.text)
         self.assertEqual(255, command_resp.message.chat_id)
         self.assertEqual(None, command_resp.new_state)

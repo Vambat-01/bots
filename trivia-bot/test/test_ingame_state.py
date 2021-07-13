@@ -82,7 +82,7 @@ class InGameStateTest(TestCase):
         user_message = Message(CHAT_ID, text)
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
         message_resp = state.process_message(user_message)
-        self.assertEqual("<i>I don't understand you. You can enter a number from 1 to 2</i>", message_resp.message.text)
+        self.assertEqual("<i>Я Вас не понимаю. Вы можете ввести число от 1 до 2</i>", message_resp.message.text)
         self.assertEqual(CHAT_ID, message_resp.message.chat_id)
         self.assertEqual(None, message_resp.new_state)
 
@@ -91,7 +91,7 @@ class InGameStateTest(TestCase):
         user_command = Command(CHAT_ID, text)
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
         command_resp = state.process_command(user_command)
-        self.assertEqual("<i>The game is over.</i>", command_resp.message.text)
+        self.assertEqual("<i>Игра окончена.</i>", command_resp.message.text)
         self.assertEqual(CHAT_ID, command_resp.message.chat_id)
         self.assertEqual(IdleState(state.state_factory), command_resp.new_state)
 
@@ -100,14 +100,14 @@ class InGameStateTest(TestCase):
         user_command = Command(CHAT_ID, text)
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
         command_response = state.process_command(user_command)
-        self.assertEqual("<i>Other commands are not available in the game</i>", command_response.message.text)
+        self.assertEqual("<i>Другие команды в игре не доступны</i>", command_response.message.text)
         self.assertEqual(CHAT_ID, command_response.message.chat_id)
         self.assertEqual(None, command_response.new_state)
 
     def test_on_enter(self):
         state = _make_in_game_state(TEST_QUESTIONS_PATH)
         response = state.on_enter(CHAT_ID)
-        text = format.make_question("Question", "7+3", ["10", "11"])
+        text = format.make_question("Вопрос", "7+3", ["10", "11"])
         check_text = dedent_and_strip(text)
         self.assertEqual(dedent_and_strip(check_text), response.text)
         self.assertEqual(CHAT_ID, response.chat_id)
@@ -198,7 +198,7 @@ class InGameStateTest(TestCase):
         keyboard_1 = make_keyboard_for_question(2, GAME_ID, question_id)
         keyboard_2 = make_keyboard_for_question(2, GAME_ID, question_id + 1)
         keyboard_3 = make_keyboard_for_question(2, GAME_ID, question_id + 2)
-        text = format.make_question("Question", "7+3", ["10", "11"])
+        text = format.make_question("Вопрос", "7+3", ["10", "11"])
         first_bot_message = Message(CHAT_ID, dedent_and_strip(text), "HTML", keyboard_1)
         text_1 = format.make_message(
             1,
@@ -231,7 +231,7 @@ class InGameStateTest(TestCase):
         keyboard_1 = make_keyboard_for_question(2, GAME_ID, question_id)
         keyboard_2 = make_keyboard_for_question(2, GAME_ID, question_id + 1)
         keyboard_3 = make_keyboard_for_question(2, GAME_ID, question_id + 2)
-        text = format.make_question("Question", "7+3", ["10", "11"], question_id)
+        text = format.make_question("Вопрос", "7+3", ["10", "11"], question_id)
         text_1 = format.make_message(
             2,
             question=Question("17+3", ["20", "21"], 0, Question.Difficulty.EASY, 1)
@@ -263,7 +263,7 @@ class InGameStateTest(TestCase):
         state_factory = self.create_state_factory()
         question_id = 0
         keyboard = make_keyboard_for_question(2, GAME_ID, question_id)
-        text = format.make_question("Question", "7+3", ["10", "11"])
+        text = format.make_question("Вопрос", "7+3", ["10", "11"])
         text_1 = format.get_number_of_answers_help(2)
         first_bot_message = Message(CHAT_ID, dedent_and_strip(text), "HTML", keyboard)
         message_1 = Message(CHAT_ID, text_1, "HTML", None)
@@ -283,7 +283,7 @@ class InGameStateTest(TestCase):
         question_id = 0
         keyboard_1 = make_keyboard_for_question(2, GAME_ID, question_id)
         keyboard_2 = make_keyboard_for_question(2, GAME_ID, question_id + 1)
-        text = format.make_question("Question", "7+3", ["10", "11"])
+        text = format.make_question("Вопрос", "7+3", ["10", "11"])
         text_1 = format.get_number_of_answers_help(2)
         text_2 = format.get_number_of_answers_help(2)
         text_3 = format.make_message(
@@ -311,7 +311,7 @@ class InGameStateTest(TestCase):
         question_id = 0
         keyboard_1 = make_keyboard_for_question(2, GAME_ID, question_id)
         keyboard_2 = make_keyboard_for_question(2, GAME_ID, question_id + 1)
-        text = format.make_question("Question", "7+3", ["10", "11"])
+        text = format.make_question("Вопрос", "7+3", ["10", "11"])
         text_1 = format.get_number_of_answers_help(2)
         text_2 = format.get_number_of_answers_help(2)
         text_3 = format.make_message(
@@ -340,7 +340,7 @@ class InGameStateTest(TestCase):
         question_id = 0
         keyboard_1 = make_keyboard_for_question(2, GAME_ID, question_id)
         keyboard_2 = make_keyboard_for_question(2, GAME_ID, question_id + 1)
-        text = format.make_question("Question", "7+3", ["10", "11"])
+        text = format.make_question("Вопрос", "7+3", ["10", "11"])
         text_1 = format.get_number_of_answers_help(2)
         text_2 = format.get_number_of_answers_help(2)
         text_3 = format.make_message(
