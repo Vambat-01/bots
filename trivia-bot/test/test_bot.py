@@ -136,7 +136,7 @@ class FakeTelegramApi(TelegramApi):
     async def edit_message(self, chat_id: int, message_id: int, text: str, parse_mode: Optional[str] = None) -> None:
         self.edit_message_is_called = True
 
-    async def set_webhook(self, url: str) -> None:
+    async def set_webhook(self, url: str, cert_filepath: Optional[Path] = None) -> None:
         pass
 
     async def delete_webhook(self, drop_pending_updates: bool) -> None:

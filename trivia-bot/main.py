@@ -3,7 +3,7 @@ from core.bot import Bot
 from core.live_telegram_api import make_live_telegram_api
 from core.telegram_api import TelegramApi
 from trivia.bot_state import BotStateFactory, GreetingState
-from trivia.question_storage import JsonQuestionStorage, SqliteQuestionStorage
+from trivia.question_storage import JsonQuestionStorage
 from core.random import RandomImpl
 from trivia.bijection import BotStateToDictBijection
 import argparse
@@ -26,12 +26,17 @@ from core.utils import get_sha256_hash
 
 async def main():
     parser = argparse.ArgumentParser(description="Запуск бота")
-    parser.add_argument("-config", type=str, required=True, help="Путь к json файлу с настройками")
+    parser.add_argument("-config", help="Путь к json файлу с настройками")
     parser.add_argument("-server_url", help="Адрес сервера для регистрации в телеграм")
     parser.add_argument("-out_path", help="Директория для сохранения вывода")
     args = parser.parse_args()
 
-    with open(args.config) as json_file:
+    if args.config:
+        config_file_path = args.config
+    else:
+        config_file_path = os.environ["CONFIG"]
+        
+    with open(config_file_path) as json_file:
         config_json = json.load(json_file)
         config = BotConfig.parse_obj(config_json)
 
@@ -120,12 +125,16 @@ async def run_server(config: BotConfig,
         async def on_update(update: Update):
             await bot.process_update(update)
 
-        config = Config(app=app,
-                        host=config.server.host,
-                        port=config.server.port,
-                        loop=asyncio.get_running_loop()
-                        )
-        server = Server(config)
+        conf = Config(app=app,
+                      host=config.server.host,
+                      port=config.server.port,
+                      loop=asyncio.get_running_loop()
+                      )
+        if config.server.key:
+            conf.ssl_keyfile = config.server.key
+            conf.ssl_certfile = config.server.cert
+
+        server = Server(conf)
         await server.serve()
 
 

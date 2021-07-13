@@ -1,12 +1,15 @@
-version: "3"
+version: "3.3"
+
 services:
   bot:
     image: "trivia_bot" 
     ports:
       - "8000:8000"
     env_file:
-      - "bot.env" 
+      - "bot.env"
+
   redis:
     image: "redis:alpine"
     ports:
       - "6379:6379"
+
