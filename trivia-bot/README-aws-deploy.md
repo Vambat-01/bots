@@ -48,7 +48,7 @@
 
 1. [Загрузите контейнер бота в ECR](https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-pull-ecr-image.html)
 	1. Выполните аутентификацию `Docker` в частном реестре `Amazon ECR` [Docker authentication](https://docs.aws.amazon.com/AmazonECR/latest/userguide/registry_auth.html): `aws ecr get-login-password --region region | docker login --username AWS --password-stdin aws_account_id.dkr.ecr.region.amazonaws.com` 
-	(пример: `aws ecr get-login-password --region us-east-2 | docker login username AWS --password-stdin 111663367461.dkr.ecr.us-east-2.amazonaws.com`)
+	(пример: `aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 111663367461.dkr.ecr.us-east-2.amazonaws.com`)
 	Она выдается на 12 часов.
 
 	1. Перейдите в `bots/trivia-bot`, создайте `Docker` образ: `docker build -t trivia_bot .`

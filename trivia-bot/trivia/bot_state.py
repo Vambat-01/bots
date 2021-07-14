@@ -71,11 +71,12 @@ class BotStateFactory:
         for question in game_questions:
             indexed_answers = list(enumerate(question.answers))
             self.random.shuffle(indexed_answers)
-            correct_answer = question.correct_answer
+            cor_answer = question.correct_answer
+            correct_answer = 0
             answers = []
 
             for (index, (original_index, answer)) in enumerate(indexed_answers):
-                if original_index == 0:
+                if original_index == cor_answer:
                     correct_answer = index
                 answers.append(answer)
 
