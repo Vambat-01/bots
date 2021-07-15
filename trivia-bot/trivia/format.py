@@ -38,7 +38,7 @@ def make_message(correct_answer: int,
                              answer_id
                              )
 
-    return f"<i>Игра окончена. Ваши очки: {game_score}</i>"
+    return f"<i>Игра окончена. Ваши очки: {game_score}. Начать игру сначала /start</i>"
 
 
 def make_question(first_text: str,
