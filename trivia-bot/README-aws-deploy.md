@@ -42,8 +42,12 @@
 			1. Заполните `bot.env`
 	1. Скопируйте `bot.env` и `docker-compose-aws.yml` :`scp -i <path/to/key-pair.pem> path/to/bot.env <user>@<machine>:~/` (пример: `ssh -i "/home/vambat/Downloads/trivia_bot_key_pair.pem" bot.env ec2-user@ec2-3-15-202-70.us-east-2.compute.amazonaws.com:~/`)
 	1. Скопируйте файл с вопросами на `aws-машину`: `scp -i <path/to/key-pair.pem> path/to/questions.json <user>@<machine>:~/`
-	(пример: `scp -i "/home/vambat/Downloads/trivia_bot_key_pair.pem" questions.json ec2-user@ec2-3-15-202-70.us-east-2.compute.amazonaws.com:~/`)	
+	(пример: `scp -i "/home/vambat/Downloads/trivia_bot_key_pair.pem" questions.json ec2-user@ec2-3-15-202-70.us-east-2.compute.amazonaws.com:~/`)
 
+1. Логирование бота будет сохранялось в файл	
+	1. Перейдите на `aws-машину` и в дерриктории с файлом `docker-compose-aws.yml`
+		- Создайте папку, выполнив команду `mkdir log`
+	
 ### Каждый деплой:
 
 1. [Загрузите контейнер бота в ECR](https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-pull-ecr-image.html)

@@ -12,6 +12,8 @@ services:
       - key
     volumes:
       - ./all_questions_for_bot.json:/vol/all_questions_for_bot.json
+      - ./log:/vol/log
+    command: ["python", "./main.py", "-config", "resources/config_server_aws.json"]
   redis:
     image: "redis:alpine"
     ports:
