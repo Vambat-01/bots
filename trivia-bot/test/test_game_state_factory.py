@@ -21,6 +21,19 @@ class BotStateFactoryTest(TestCase):
                           ]
         self.assertEqual(questions_list, actual.state.questions)
 
+    def test_answer_shuffling_in_game_state(self):
+        json_file = Path("resources/test_questions_for_format.json")
+        storage = JsonQuestionStorage(json_file)
+        random = ReversedShuffleRandom()
+        state_factory = BotStateFactory(storage, random, GameConfig.make(1, 1, 1))
+        actual = state_factory.create_in_game_state()
+
+        questions_list = [Question("7+8", ["20", "15", "11", "10"], 1, Question.Difficulty.EASY, 1),
+                          Question("27+3", ["30", "25", "21", "20"], 2, Question.Difficulty.MEDIUM, 0),
+                          Question("27+4", ["40", "35", "31", "30"], 3, Question.Difficulty.HARD, 2)
+                          ]
+        self.assertEqual(questions_list, actual.state.questions)
+
     def test_select_questions(self):
         storage = JsonQuestionStorage(Path("resources/test_questions.json"))
         random = DoNothingRandom()
