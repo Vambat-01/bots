@@ -1,6 +1,6 @@
 from unittest import TestCase
 from trivia.bot_state import BotStateFactory
-from trivia.question_storage import Question, JsonQuestionStorage
+from trivia.question_storage import Question, JsonQuestionStorage, InMemoryQuestionStorage
 from pathlib import Path
 from test.test_utils import ReversedShuffleRandom, DoNothingRandom
 from core.bot_exeption import NotEnoughQuestionsException
@@ -22,8 +22,12 @@ class BotStateFactoryTest(TestCase):
         self.assertEqual(questions_list, actual.state.questions)
 
     def test_answer_shuffling_in_game_state(self):
-        json_file = Path("resources/test_questions_for_format.json")
-        storage = JsonQuestionStorage(json_file)
+        questions = [
+            Question("7+8", ["10", "11", "15", "20"], 1, Question.Difficulty.EASY, 2),
+            Question("27+3", ["20", "21", "25", "30"], 2, Question.Difficulty.MEDIUM, 3),
+            Question("27+4", ["30", "31", "35", "40"], 3, Question.Difficulty.HARD, 1)
+        ]
+        storage = InMemoryQuestionStorage(questions)
         random = ReversedShuffleRandom()
         state_factory = BotStateFactory(storage, random, GameConfig.make(1, 1, 1))
         actual = state_factory.create_in_game_state()

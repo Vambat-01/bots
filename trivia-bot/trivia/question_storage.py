@@ -223,6 +223,25 @@ class SqliteQuestionStorage(QuestionStorage):
         self.connection.commit()
 
 
+class InMemoryQuestionStorage(QuestionStorage):
+    """
+        Класс для теста, считывает вопросы и списка вопросов
+    """
+    def __init__(self, list_questions: List[Question]):
+        """
+            Передает список вопросов
+        :param list_questions: спислк вопросов
+        """
+        self.list_questions = list_questions
+
+    def load_questions(self) -> List[Question]:
+        """
+            Возаращает переданные попросы из списка
+        :return: список вопросов
+        """
+        return self.list_questions
+
+
 class JSONEncoder(json.JSONEncoder):
     """
     Расширяет класс JSONEncoder, чтобы он мог кодировать Enum класс Difficulty
