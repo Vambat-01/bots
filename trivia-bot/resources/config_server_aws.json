@@ -18,5 +18,6 @@
         "expire_sec": 5,
         "max_attempts": 10,
         "delay_ms": 200
-    }
+    },
+    "out_path": "/vol/log"    
 }

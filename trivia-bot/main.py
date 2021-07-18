@@ -96,9 +96,9 @@ async def run_server(config: BotConfig,
                   bot_state_to_dict_bijection,
                   chat_state_storage
                   )
-
         base_server_url = next(filter(None, [server_url, os.environ["SERVER_URL"], config.server.url]))
-        await telegram_api.set_webhook(f"{base_server_url}/{hashed_token}")
+        opt_cert_path = Path(config.server.cert) if config.server.cert else None
+        await telegram_api.set_webhook(f"{base_server_url}/{hashed_token}", opt_cert_path)
 
         app = FastAPI()
 
@@ -166,7 +166,7 @@ def get_log_filename(directory: str) -> str:
     log_path = Path(directory)
     if not log_path.exists():
         log_path.mkdir()
-    return f"{log_path}/trivia_bot.log"
+    return f"{directory}/trivia_bot.log"
 
 
 if __name__ == "__main__":

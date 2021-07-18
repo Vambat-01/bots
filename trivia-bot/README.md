@@ -6,8 +6,8 @@
 
 1. Выставите переменную окружения `BOT_TOKEN`:  `export BOT_TOKEN=<telegram token>`
 
-1. Перейдите в терминале в репозитории по пути `/bots/trivia-bot`. Выполните команду `python main.py -config resources/config_client_local.son`
-1. Проверить, что бот работает : отправьте сообщение боту в `Telegram`, бот должен ответить
+1. Перейдите в терминале в репозитории по пути `/bots/trivia-bot`. Выполните команду `python main.py -config resources/config_client_local.json`
+1. Проверьте, что бот работает, отправив сообщение боту в `Telegram`. Бот должен ответить.
 
 ## Как поменять вопросы и настройки игры
 
