@@ -44,7 +44,7 @@
 	1. Скопируйте файл с вопросами на `aws-машину`: `scp -i <path/to/key-pair.pem> path/to/questions.json <user>@<machine>:~/`
 	(пример: `scp -i "/home/vambat/Downloads/trivia_bot_key_pair.pem" questions.json ec2-user@ec2-3-15-202-70.us-east-2.compute.amazonaws.com:~/`)
 
-1. Логирование бота будет сохранялось в файл	
+1. Логирование бота будет сохраняться в файл	
 	1. Перейдите на `aws-машину` и в дерриктории с файлом `docker-compose-aws.yml`
 		- Создайте папку, выполнив команду `mkdir log`
 	
