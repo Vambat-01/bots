@@ -21,7 +21,7 @@ class BotStateFactoryTest(TestCase):
                           ]
         self.assertEqual(questions_list, actual.state.questions)
 
-    def test_answer_shuffling_in_game_state(self):
+    def test_checking_correct_answer_after_shuffiling(self):
         questions = [
             Question("7+8", ["10", "11", "15", "20"], 1, Question.Difficulty.EASY, 2),
             Question("27+3", ["20", "21", "25", "30"], 2, Question.Difficulty.MEDIUM, 3),

@@ -229,14 +229,13 @@ class InMemoryQuestionStorage(QuestionStorage):
     """
     def __init__(self, list_questions: List[Question]):
         """
-            Передает список вопросов
-        :param list_questions: спислк вопросов
+            Список вопросов для теста
+        :param list_questions: список вопросов
         """
         self.list_questions = list_questions
 
     def load_questions(self) -> List[Question]:
         """
-            Возаращает переданные попросы из списка
         :return: список вопросов
         """
         return self.list_questions
