@@ -43,11 +43,11 @@ class GetResponseForValidAnswerText(TestCase):
         )
 
     def test_when_answer_is_correct_and_score(self):
-        expected_text = "<i>Игра окончена. Ваши очки: 6</i>"
+        expected_text = "<i>Игра окончена. Ваши очки: 6. Начать игру сначала /start</i>"
         self.assertEqual(expected_text, format.make_message(True, game_score=6))
 
     def test_when_answer_is_not_correct_and_score(self):
-        expected_text = "<i>Игра окончена. Ваши очки: 2</i>"
+        expected_text = "<i>Игра окончена. Ваши очки: 2. Начать игру сначала /start</i>"
         self.assertEqual(expected_text, format.make_message(False, game_score=2))
 
 
