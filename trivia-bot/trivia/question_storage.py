@@ -225,7 +225,7 @@ class SqliteQuestionStorage(QuestionStorage):
 
 class InMemoryQuestionStorage(QuestionStorage):
     """
-        Класс для теста, считывает вопросы и списка вопросов
+        Класс считывает вопросы из списка вопросов
     """
     def __init__(self, list_questions: List[Question]):
         """
