@@ -225,11 +225,11 @@ class SqliteQuestionStorage(QuestionStorage):
 
 class InMemoryQuestionStorage(QuestionStorage):
     """
-        Класс считывает вопросы из списка вопросов
+        Хранилище вопросов в памяти
     """
     def __init__(self, list_questions: List[Question]):
         """
-            Список вопросов для теста
+            Инициализирует хранилище переданных списков вопросов
         :param list_questions: список вопросов
         """
         self.list_questions = list_questions
